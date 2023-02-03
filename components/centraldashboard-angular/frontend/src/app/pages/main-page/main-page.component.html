@@ -9,12 +9,20 @@
   >
     <mat-toolbar>Menu</mat-toolbar>
     <mat-nav-list>
-      <a data-cy-sidenav-menu-item="Home" mat-list-item routerLink="/">Home</a>
+      <a
+        mat-list-item
+        routerLink="/"
+        [routerLinkActive]="['active']"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.data-cy-sidenav-menu-item]="'Home'"
+        >Home</a
+      >
       <a
         mat-list-item
         *ngFor="let link of menuLinks"
         [routerLink]="getUrlPath(link.link)"
         [fragment]="getUrlFragment(link.link)"
+        [class.active]="isLinkActive(link.link)"
         [attr.data-cy-sidenav-menu-item]="link.text"
       >
         {{ link.text }}

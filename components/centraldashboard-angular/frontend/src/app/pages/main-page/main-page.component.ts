@@ -6,6 +6,8 @@ import { environment } from 'src/environments/environment';
 import { CDBBackendService } from 'src/app/services/backend.service';
 import { envInfo } from '../../types/env-info';
 import { DashboardLinks, Link, MenuLink } from 'src/app/types/dashboard-links';
+import { Router } from '@angular/router';
+import { appendBackslash, removePrefixFrom } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-main-page',
@@ -37,6 +39,7 @@ export class MainPageComponent implements OnInit {
   constructor(
     private breakpointObserver: BreakpointObserver,
     private backend: CDBBackendService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -86,5 +89,13 @@ export class MainPageComponent implements OnInit {
 
   appendPrefix(url: string): string {
     return '/_' + url;
+  }
+
+  isLinkActive(url: string): boolean {
+    let browserUrl = this.router.url;
+    browserUrl = appendBackslash(browserUrl);
+    browserUrl = removePrefixFrom(browserUrl);
+    url = appendBackslash(url);
+    return browserUrl.startsWith(url);
   }
 }
