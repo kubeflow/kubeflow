@@ -42,11 +42,12 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/crud-web-apps/tensorboards/manifests
+        cd components/crud-web-apps/tensorboards/manifests/overlays/istio
         kubectl create ns kubeflow
 
-        export CURRENT_TWA_IMG=docker.io/kubeflownotebookswg/tensorboards-web-app:latest
+        export CURRENT_TWA_IMG=docker.io/kubeflownotebookswg/tensorboards-web-app
         export PR_TWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_TWA_IMG}=${PR_TWA_IMG}
 
-        kustomize build overlays/istio | sed "s#$CURRENT_TWA_IMG#$PR_TWA_IMG#g" |  kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=tensorboards-web-app --for=condition=Ready --timeout=300s

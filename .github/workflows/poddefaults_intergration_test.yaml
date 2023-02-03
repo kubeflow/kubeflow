@@ -44,12 +44,12 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/admission-webhook/manifests
+        cd components/admission-webhook/manifests/overlays/cert-manager
         kubectl create ns kubeflow
 
-        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook:latest
+        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook
         export PR_PODDEFAULTS_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_PODDEFAULTS_IMG}=${PR_PODDEFAULTS_IMG}
 
-
-        kustomize build overlays/cert-manager | sed "s#$CURRENT_PODDEFAULTS_IMG#$PR_PODDEFAULTS_IMG#g" | kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=poddefaults --for=condition=Ready --timeout=300s

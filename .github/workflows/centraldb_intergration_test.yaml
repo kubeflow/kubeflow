@@ -41,11 +41,12 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/centraldashboard/manifests
+        cd components/centraldashboard/manifests/overlays/kserve
         kubectl create ns kubeflow
 
-        export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard:latest
+        export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard
         export PR_CENTRALDB_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_CENTRALDB_IMG}=${PR_CENTRALDB_IMG}
 
-        kustomize build overlays/kserve | sed "s#$CURRENT_CENTRALDB_IMG#$PR_CENTRALDB_IMG#g" | kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=centraldashboard --for=condition=Ready --timeout=300s
