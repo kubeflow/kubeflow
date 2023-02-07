@@ -1,21 +1,37 @@
 # --- Build the backend ---
 FROM node:12-buster-slim as backend
 
-COPY ./backend/ ./src
+COPY ./centraldashboard-angular/backend/ ./src
 WORKDIR /src
 
 RUN npm ci && \
     npm run build && \
     npm prune --production
 
+# --- Build the frontend kubeflow library ---
+FROM node:12-buster-slim as frontend-kubeflow-lib
+
+WORKDIR /src
+
+ENV NG_CLI_ANALYTICS "ci"
+COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/package.json ./
+COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/package-lock.json ./
+RUN npm ci
+
+COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/projects ./projects
+COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/angular.json .
+COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/tsconfig.json .
+RUN npm run build
+
 # --- Build the frontend ---
 FROM node:12-buster-slim as frontend
 
-COPY ./frontend ./src
+COPY ./centraldashboard-angular/frontend ./src
 WORKDIR /src
 
 ENV NG_CLI_ANALYTICS "ci"
 RUN npm ci
+COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
 RUN npm run build -- --output-path=./dist/default --configuration=production
 
 # Step 2: Packages assets for serving

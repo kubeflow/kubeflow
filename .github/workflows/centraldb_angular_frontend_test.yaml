@@ -33,14 +33,22 @@ jobs:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 12
+      - name: Install Kubeflow common library dependecies
+        run: |
+          cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+          npm i
+          npm run build
+          npm link ./dist/kubeflow
       - name: Run unit tests
         run: |
           cd components/centraldashboard-angular/frontend/
           npm i
+          npm link kubeflow
           npm run test:prod
 
   run-ui-tests:
@@ -103,9 +111,17 @@ jobs:
           curl -H "kubeflow-userid: user" localhost:8085
           curl -H "kubeflow-userid: user" localhost:8087
 
+      - name: Install Kubeflow common library dependecies
+        run: |
+          cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+          npm i
+          npm run build
+          npm link ./dist/kubeflow
+
       - name: Serve UI & run Cypress tests in Chrome and Firefox
         run: |
           cd components/centraldashboard-angular/frontend
           npm i
+          npm link kubeflow
           npm run serve & npx wait-on http://localhost:4200
           npm run ui-test-ci-all
