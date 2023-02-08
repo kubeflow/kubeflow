@@ -303,6 +303,7 @@ describe('TableComponent', () => {
   it('should filter date values based on one column using X months ago', () => {
     component.config = tableConfig;
     const tableDataCopy = cloneDeep(tableData);
+    tableDataCopy[0].age = subMonths(new Date(), 3).toISOString();
     tableDataCopy[1].age = subMonths(new Date(), 2).toISOString();
     component.data = tableDataCopy;
 
