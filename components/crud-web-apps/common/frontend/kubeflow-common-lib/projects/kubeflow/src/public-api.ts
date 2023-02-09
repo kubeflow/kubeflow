@@ -109,3 +109,6 @@ export * from './lib/urls/types';
 export * from './lib/icon/icon.component';
 export * from './lib/icon/icon.module';
 export * from './lib/resource-table/action/action.component';
+
+export * from './lib/status-info/status-info.component';
+export * from './lib/status-info/status-info.module';

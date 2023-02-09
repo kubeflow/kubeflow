@@ -22,6 +22,7 @@ import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
 import { EditorModule } from './editor/editor.module';
 import { HelpPopoverModule } from './help-popover/help-popover.module';
 import { StatusIconModule } from './status-icon/status-icon.module';
+import { StatusInfoModule } from './status-info/status-info.module';
 
 @NgModule({
   declarations: [],
@@ -43,6 +44,7 @@ import { StatusIconModule } from './status-icon/status-icon.module';
     EditorModule,
     HelpPopoverModule,
     StatusIconModule,
+    StatusInfoModule,
   ],
   imports: [CommonModule, HttpClientModule, HttpClientXsrfModule],
 })
