@@ -76,7 +76,7 @@ export class StatusValue {
       case STATUS_TYPE.READY: {
         return 'check_circle';
       }
-      case STATUS_TYPE.READY: {
+      case STATUS_TYPE.WARNING: {
         return 'warning';
       }
       case STATUS_TYPE.UNAVAILABLE: {
