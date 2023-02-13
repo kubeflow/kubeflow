@@ -141,3 +141,10 @@ def notebook_dict_from_k8s_obj(notebook):
         "status": status.process_status(notebook),
         "metadata": notebook["metadata"]
     }
+
+
+def get_processed_status(notebook):
+    processed_status = status.process_status(notebook)
+    notebook["processed_status"] = processed_status
+
+    return notebook

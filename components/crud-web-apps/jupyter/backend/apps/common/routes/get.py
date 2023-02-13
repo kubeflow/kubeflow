@@ -59,7 +59,9 @@ def get_notebooks(namespace):
 @bp.route("/api/namespaces/<namespace>/notebooks/<name>")
 def get_notebook(name, namespace):
     notebook = api.get_notebook(name, namespace)
-    return api.success_response("notebook", notebook)
+    content = utils.get_processed_status(notebook)
+
+    return api.success_response("notebook", content)
 
 @bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/pod")
 def get_notebook_pod(notebook_name, namespace):
