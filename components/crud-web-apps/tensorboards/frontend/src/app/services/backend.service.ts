@@ -7,6 +7,7 @@ import {
   TensorboardResponseObject,
   TWABackendResponse,
   TensorboardPostObject,
+  PodDefault,
 } from '../types';
 
 @Injectable({
@@ -54,6 +55,16 @@ export class TWABackendService extends BackendService {
     return this.http.get<TWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map((resp: TWABackendResponse) => resp.pvcs),
+    );
+  }
+
+  public getPodDefaults(ns: string): Observable<PodDefault[]> {
+    // Get existing PodDefaults in a namespace
+    const url = `api/namespaces/${ns}/poddefaults`;
+
+    return this.http.get<TWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: TWABackendResponse) => resp.poddefaults),
     );
   }
 
