@@ -39,6 +39,7 @@ import './namespace-needed-view.js';
 import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import './iframe-container.js';
+import './logout-button.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 import {

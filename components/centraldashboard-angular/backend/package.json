@@ -5,8 +5,8 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production npm run tslint && npm run build-ts",
     "build-ts": "tsc",
-    "backend": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Express\" -c \"yellow.bold,cyan.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
-    "backend-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Express\" -c \"yellow.bold,cyan.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Express\" -c \"yellow.bold,cyan.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
+    "dev-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Express\" -c \"yellow.bold,cyan.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
     "serve": "node dist/server.js",
     "serve-debug": "nodemon --inspect dist/server.js",
     "start": "npm run serve",

@@ -77,6 +77,16 @@ manager: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+# Run the controller locally with culling enabled
+.PHONY: run-culling
+run-culling: generate fmt vet manifests
+	ENABLE_CULLING=true \
+	CLUSTER_DOMAIN=cluster.local \
+	CULL_IDLE_TIME=10 \
+	IDLENESS_CHECK_PERIOD=1 \
+	DEV=true \
+	go run ./main.go
+
 ##@ Build
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
@@ -114,7 +124,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+deploy: docker-build docker-push manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/base/kustomization.yaml
 	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/base/kustomization.yaml
 	$(KUSTOMIZE) build config/base | kubectl apply -f -

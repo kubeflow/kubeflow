@@ -39,7 +39,7 @@ def add_pvc_rok_annotations(pvc, body):
     pvc.metadata.labels = labels
 
 
-def parse_pvc(pvc, viewers):
+def parse_pvc(pvc, viewers, notebooks):
     """
     pvc: client.V1PersistentVolumeClaim
     viewers: dict(Key:PVC Name, Value: Viewer's Status)
@@ -47,7 +47,7 @@ def parse_pvc(pvc, viewers):
     Process the PVC and format it as the UI expects it. If a Viewer is active
     for that PVC, then include this information
     """
-    parsed_pvc = common_utils.parse_pvc(pvc)
+    parsed_pvc = common_utils.parse_pvc(pvc, notebooks)
     parsed_pvc["viewer"] = viewers.get(pvc.metadata.name,
                                        status.STATUS_PHASE.UNINITIALIZED)
 
