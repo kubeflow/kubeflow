@@ -59,19 +59,19 @@ describe('Main table', () => {
     cy.get('[data-cy-resource-table-row="Status"]').each(element => {
       if (notebooks[i].status.phase === STATUS_TYPE.READY) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'check_circle');
       } else if (notebooks[i].status.phase === STATUS_TYPE.STOPPED) {
         cy.wrap(element)
-          .find('lib-status>lib-icon')
+          .find('lib-status-icon>lib-icon')
           .should('have.attr', 'icon', 'custom:stoppedResource');
       } else if (notebooks[i].status.phase === STATUS_TYPE.UNAVAILABLE) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'timelapse');
       } else if (notebooks[i].status.phase === STATUS_TYPE.WARNING) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'warning');
       } else if (
         notebooks[i].status.phase === STATUS_TYPE.WAITING ||
