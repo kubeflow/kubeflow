@@ -34,7 +34,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-brands-svg-icons": "^5.15.3",
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
-    "@kubernetes/client-node": "^0.16.3",
+    "@kubernetes/client-node": "^0.18.1",
     "date-fns": "^1.29.0",
     "lodash-es": "^4.17.11",
     "material-icons": "^0.7.7",
