@@ -2,7 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Config, NotebookFormObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
-import { NamespaceService, SnackBarService, SnackType } from 'kubeflow';
+import {
+  NamespaceService,
+  SnackBarConfig,
+  SnackBarService,
+  SnackType,
+} from 'kubeflow';
 import { Router } from '@angular/router';
 import { getFormDefaults, initFormControls } from './utils';
 import { JWABackendService } from 'src/app/services/backend.service';
@@ -59,11 +64,14 @@ export class FormNewComponent implements OnInit, OnDestroy {
     this.backend.getDefaultStorageClass().subscribe(defaultClass => {
       if (defaultClass.length === 0) {
         this.defaultStorageclass = false;
-        this.popup.open(
-          $localize`No default Storage Class is set. Can't create new Disks for the new Notebook. Please use an Existing Disk.`,
-          SnackType.Warning,
-          0,
-        );
+        const configWarning: SnackBarConfig = {
+          data: {
+            msg: $localize`No default Storage Class is set. Can't create new Disks for the new Notebook. Please use an Existing Disk.`,
+            snackType: SnackType.Warning,
+          },
+          duration: 0,
+        };
+        this.popup.open(configWarning);
       } else {
         this.defaultStorageclass = true;
       }
@@ -156,16 +164,24 @@ export class FormNewComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    this.popup.open('Submitting new Notebook...', SnackType.Info, 3000);
+    const configInfo: SnackBarConfig = {
+      data: {
+        msg: 'Submitting new Notebook...',
+        snackType: SnackType.Info,
+      },
+    };
+    this.popup.open(configInfo);
 
     const notebook = this.getSubmitNotebook();
     this.backend.createNotebook(notebook).subscribe(() => {
       this.popup.close();
-      this.popup.open(
-        'Notebook created successfully.',
-        SnackType.Success,
-        3000,
-      );
+      const configSuccess: SnackBarConfig = {
+        data: {
+          msg: 'Notebook created successfully.',
+          snackType: SnackType.Success,
+        },
+      };
+      this.popup.open(configSuccess);
       this.goToNotebooks();
     });
   }

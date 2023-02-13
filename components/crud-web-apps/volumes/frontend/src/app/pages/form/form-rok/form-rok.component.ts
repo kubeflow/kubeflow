@@ -8,6 +8,7 @@ import {
   SnackType,
   rokUrlValidator,
   updateNonDirtyControl,
+  SnackBarConfig,
 } from 'kubeflow';
 
 import { VWABackendService } from 'src/app/services/backend.service';
@@ -112,11 +113,13 @@ export class FormRokComponent
     let size = parseInt(headers.get('content-length'), 10);
     size = size / Math.pow(1024, 3);
     this.formCtrl.get('size').setValue(size);
-    this.snack.open(
-      'Successfully retrieved snapshot information.',
-      SnackType.Success,
-      3000,
-    );
+    const config: SnackBarConfig = {
+      data: {
+        msg: 'Successfully retrieved snapshot information.',
+        snackType: SnackType.Success,
+      },
+    };
+    this.snack.open(config);
   }
 
   /*

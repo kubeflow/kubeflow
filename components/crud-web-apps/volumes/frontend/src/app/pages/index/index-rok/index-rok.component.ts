@@ -10,6 +10,7 @@ import {
   ActionEvent,
   STATUS_TYPE,
   PollerService,
+  SnackBarConfig,
 } from 'kubeflow';
 import { environment } from '@app/environment';
 import { VWABackendService } from 'src/app/services/backend.service';
@@ -68,11 +69,14 @@ export class IndexRokComponent
 
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
-        this.snackBar.open(
-          'Volume was submitted successfully.',
-          SnackType.Success,
-          2000,
-        );
+        const config: SnackBarConfig = {
+          data: {
+            msg: `Volume was submitted successfully.`,
+            snackType: SnackType.Success,
+          },
+          duration: 2000,
+        };
+        this.snackBar.open(config);
         this.poll(this.currNamespace);
       }
     });

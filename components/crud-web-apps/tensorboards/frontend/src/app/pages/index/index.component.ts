@@ -14,6 +14,7 @@ import {
   PollerService,
   ToolbarButtonConfig,
   DashboardState,
+  SnackBarConfig,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -103,11 +104,13 @@ export class IndexComponent implements OnInit, OnDestroy {
 
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
-        this.snackBar.open(
-          $localize`Tensorboard was submitted successfully.`,
-          SnackType.Success,
-          2000,
-        );
+        const config: SnackBarConfig = {
+          data: {
+            msg: $localize`Tensorboard was submitted successfully.`,
+            snackType: SnackType.Success,
+          },
+        };
+        this.snackBar.open(config);
         this.poll(this.currNamespace);
       }
     });

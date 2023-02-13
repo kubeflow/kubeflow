@@ -11,6 +11,7 @@ import {
   ToolbarButton,
   PollerService,
   DashboardState,
+  SnackBarConfig,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Subscription } from 'rxjs';
@@ -97,11 +98,14 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
           a.event.stopPropagation();
           a.event.preventDefault();
-          this.snackBar.open(
-            'Notebook is being deleted, cannot show details.',
-            SnackType.Info,
-            4000,
-          );
+          const config: SnackBarConfig = {
+            data: {
+              msg: 'Notebook is being deleted, cannot show details.',
+              snackType: SnackType.Info,
+            },
+            duration: 4000,
+          };
+          this.snackBar.open(config);
           return;
         }
         break;

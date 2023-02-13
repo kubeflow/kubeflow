@@ -9,6 +9,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { MainPageComponent } from './main-page.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 describe('MainPageComponent', () => {
   let component: MainPageComponent;
@@ -26,6 +28,8 @@ describe('MainPageComponent', () => {
         MatSidenavModule,
         MatToolbarModule,
         RouterTestingModule,
+        HttpClientTestingModule,
+        MatSnackBarModule,
       ],
     }).compileComponents();
   }));

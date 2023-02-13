@@ -1,7 +1,7 @@
 import { HttpHeaders } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { SnackBarService, SnackType } from 'kubeflow';
+import { SnackBarConfig, SnackBarService, SnackType } from 'kubeflow';
 import { setGenerateNameCtrl } from 'src/app/shared/utils/volumes';
 
 @Component({
@@ -34,11 +34,12 @@ export class RokUrlComponent implements OnInit {
     // ensure we use generateName
     const meta = this.volGroup.get('newPvc.metadata') as FormGroup;
     setGenerateNameCtrl(meta, `${name}-`);
-
-    this.snack.open(
-      'Volume was autofilled successfully.',
-      SnackType.Success,
-      3000,
-    );
+    const config: SnackBarConfig = {
+      data: {
+        msg: 'Volume was autofilled successfully.',
+        snackType: SnackType.Success,
+      },
+    };
+    this.snack.open(config);
   }
 }
