@@ -102,7 +102,14 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
         this.iframeLocation = currentUrl;
         const path = iframeWindow?.location.pathname;
         const queryParams = this.getQueryParams(iframeWindow?.location.search);
-        this.router.navigate(['/_' + path], { queryParams });
+        /**
+         * Contrary to comparing URLs, here we prefer an undefined string instead
+         * of an empty one, because Angular's router will ignore an undefined
+         * fragment while it will go ahead and append a '#' when the fragment
+         * is an empty string
+         */
+        const fragment = iframeWindow?.location.hash?.split('#')[1];
+        this.router.navigate(['/_' + path], { queryParams, fragment });
       }
     }, 100);
   }

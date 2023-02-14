@@ -5,13 +5,14 @@ import { map, shareReplay } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { CDBBackendService } from 'src/app/services/backend.service';
 import { envInfo } from '../../types/env-info';
+import { DashboardLinks, Link, MenuLink } from 'src/app/types/dashboard-links';
 
 @Component({
   selector: 'app-main-page',
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.scss'],
 })
-export class MainPageComponent implements OnInit, OnDestroy {
+export class MainPageComponent implements OnInit {
   isHandset$: Observable<boolean> = this.breakpointObserver
     .observe(Breakpoints.Handset)
     .pipe(
@@ -28,7 +29,10 @@ export class MainPageComponent implements OnInit, OnDestroy {
   public get buildIdWithLabel() {
     return this.computeBuildValue(this.buildLabel, this.buildId);
   }
-  public envInfoSub: Subscription;
+  public menuLinks: MenuLink[];
+  public externalLinks: any[];
+  public quickLinks: Link[];
+  public documentationItems: Link[];
 
   constructor(
     private breakpointObserver: BreakpointObserver,
@@ -36,15 +40,13 @@ export class MainPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.envInfoSub = this.backend.getEnvInfo().subscribe((res: envInfo) => {
+    this.backend.getEnvInfo().subscribe((res: envInfo) => {
       this.handleEnvInfo(res);
     });
-  }
 
-  ngOnDestroy(): void {
-    if (this.envInfoSub) {
-      this.envInfoSub.unsubscribe();
-    }
+    this.backend.getDashboardLinks().subscribe((res: DashboardLinks) => {
+      this.handleDashboardLinks(res);
+    });
   }
 
   handleEnvInfo(env: envInfo) {
@@ -62,5 +64,27 @@ export class MainPageComponent implements OnInit, OnDestroy {
 
   computeBuildValue(label: string, buildValue: string): string {
     return `${label} ${buildValue}`;
+  }
+
+  handleDashboardLinks(links: DashboardLinks) {
+    const { menuLinks, externalLinks, quickLinks, documentationItems } = links;
+    this.menuLinks = menuLinks || [];
+    this.externalLinks = externalLinks || [];
+    this.quickLinks = quickLinks || [];
+    this.documentationItems = documentationItems || [];
+  }
+
+  getUrlPath(url: string) {
+    const urlWithoutFragment = url.split('#')[0];
+    return this.appendPrefix(urlWithoutFragment);
+  }
+
+  getUrlFragment(url: string): string {
+    const fragment = url.split('#')[1];
+    return fragment;
+  }
+
+  appendPrefix(url: string): string {
+    return '/_' + url;
   }
 }

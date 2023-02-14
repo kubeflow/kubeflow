@@ -11,17 +11,14 @@
     <mat-nav-list>
       <a data-cy-sidenav-menu-item="Home" mat-list-item routerLink="/">Home</a>
       <a
-        data-cy-sidenav-menu-item="Jupyter"
         mat-list-item
-        routerLink="/_/jupyter/"
-        >Jupyter</a
+        *ngFor="let link of menuLinks"
+        [routerLink]="getUrlPath(link.link)"
+        [fragment]="getUrlFragment(link.link)"
+        [attr.data-cy-sidenav-menu-item]="link.text"
       >
-      <a
-        data-cy-sidenav-menu-item="Volumes"
-        mat-list-item
-        routerLink="/_/volumes/"
-        >Volume</a
-      >
+        {{ link.text }}
+      </a>
     </mat-nav-list>
 
     <mat-toolbar class="footer">

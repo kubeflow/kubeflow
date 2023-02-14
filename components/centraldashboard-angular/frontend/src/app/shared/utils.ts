@@ -22,9 +22,15 @@ export function appendBackslash(url: string): string {
 
   let urlPath = urlObject.pathname;
   urlPath += urlPath?.endsWith('/') ? '' : '/';
-  const urlParams = urlObject.search;
+  /**
+   * We need an empty string as a default value because in case
+   * of undefined strings, Javascript will go ahead and append the
+   * string 'undefined' in string additions/concats
+   */
+  const urlParams = urlObject.search || '';
+  const urlFragment = urlObject.hash || '';
 
-  return urlPath + urlParams;
+  return urlPath + urlParams + urlFragment;
 }
 
 export function removePrefixFrom(url: string) {
