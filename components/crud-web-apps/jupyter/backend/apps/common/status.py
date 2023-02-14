@@ -130,7 +130,7 @@ def check_stopped_deleted_nb(notebook):
         if readyReplicas == 0:
             return status.STATUS_PHASE.STOPPED, "No Pods are currently running for this Notebook Server."
         else:
-            return status.STATUS_PHASE.TERMINATING, "Notebook Server is stopping."
+            return status.STATUS_PHASE.WAITING, "Notebook Server is stopping."
 
     # If the Notebook is being deleted, the status will be waiting
     if "deletionTimestamp" in metadata:

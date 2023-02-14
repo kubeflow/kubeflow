@@ -156,7 +156,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
 
-        notebook.status.phase = STATUS_TYPE.TERMINATING;
+        notebook.status.phase = STATUS_TYPE.WAITING;
         notebook.status.message = 'Preparing to stop the Notebook Server.';
         this.updateNotebookFields(notebook);
       });
