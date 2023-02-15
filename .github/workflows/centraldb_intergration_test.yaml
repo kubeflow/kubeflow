@@ -18,10 +18,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Build CentralDashboard Image 
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build CentralDashboard Image
       run: |
         cd components/centraldashboard
-        make docker-build 
+        make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -29,7 +35,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster 
+    - name: Load Images into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
