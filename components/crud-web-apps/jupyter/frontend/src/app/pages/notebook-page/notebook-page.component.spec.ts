@@ -161,6 +161,7 @@ describe('NotebookPageComponent', () => {
 
     const updateButtons = 'updateButtons';
     component[updateButtons]();
+    // check the buttons state after updateButton() is called
     for (const button of component.buttonsConfig) {
       expect(button.disabled).toBeTrue();
     }
