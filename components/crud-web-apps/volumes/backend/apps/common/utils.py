@@ -3,7 +3,7 @@ from kubeflow.kubeflow.crud_backend import api, helpers
 from . import status
 
 
-def parse_pvc(pvc):
+def parse_pvc(pvc, notebooks):
     """
     pvc: client.V1PersistentVolumeClaim
 
@@ -14,6 +14,7 @@ def parse_pvc(pvc):
     except Exception:
         capacity = pvc.spec.resources.requests["storage"]
 
+    notebooks = get_notebooks_using_pvc(pvc.metadata.name, notebooks)
     parsed_pvc = {
         "name": pvc.metadata.name,
         "namespace": pvc.metadata.namespace,
@@ -22,9 +23,42 @@ def parse_pvc(pvc):
         "capacity": capacity,
         "modes": pvc.spec.access_modes,
         "class": pvc.spec.storage_class_name,
+        "notebooks": notebooks,
     }
 
     return parsed_pvc
+
+
+def get_notebooks_using_pvc(pvc, notebooks):
+    """Return a list of Notebooks that are using the given PVC."""
+    mounted_notebooks = []
+
+    for nb in notebooks:
+        pvcs = get_notebook_pvcs(nb)
+        if pvc in pvcs:
+            mounted_notebooks.append(nb["metadata"]["name"])
+
+    return mounted_notebooks
+
+
+def get_notebook_pvcs(nb):
+    """
+    Return a list of PVC names that the given notebook is using.
+
+    If it doesn't use any, then an empty list will be returned.
+    """
+    pvcs = []
+    if not nb["spec"]["template"]["spec"]["volumes"]:
+        return []
+
+    vols = nb["spec"]["template"]["spec"]["volumes"]
+    for vol in vols:
+        # Check if the volume is a pvc
+        if not vol.get("persistentVolumeClaim"):
+            continue
+        pvcs.append(vol["persistentVolumeClaim"]["claimName"])
+
+    return pvcs
 
 
 def get_pods_using_pvc(pvc, namespace):
