@@ -10,6 +10,7 @@ on:
 env:
   IMG: centraldashboard
   TAG: intergration-test
+  ARCH: linux/ppc64le,linux/amd64
 
 jobs:
   build:
