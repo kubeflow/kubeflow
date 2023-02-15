@@ -10,7 +10,6 @@ on:
 env:
   IMG: centraldashboard
   TAG: intergration-test
-  ARCH: linux/ppc64le,linux/amd64
 
 jobs:
   build:
@@ -28,7 +27,8 @@ jobs:
     - name: Build CentralDashboard Image
       run: |
         cd components/centraldashboard
-        make docker-build-multi-arch
+        ARCH=linux/ppc64le make docker-build-multi-arch
+        ARCH=linux/amd64 make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
