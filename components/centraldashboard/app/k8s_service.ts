@@ -2,7 +2,8 @@ import * as k8s from '@kubernetes/client-node';
 
 /** Retrieve Dashboard configmap Name */
 const {
-  DASHBOARD_CONFIGMAP = "centraldashboard-config"
+  DASHBOARD_CONFIGMAP = "centraldashboard-config",
+  LOGOUT_URL = '/logout'
 } = process.env;
 
 /** Information about the Kubernetes hosting platform. */
@@ -10,6 +11,7 @@ export interface PlatformInfo {
   provider: string;
   providerName: string;
   kubeflowVersion: string;
+  logoutUrl: string;
 }
 
 /**
@@ -111,7 +113,8 @@ export class KubernetesService {
       return {
         kubeflowVersion: version,
         provider,
-        providerName: provider.split(':')[0]
+        providerName: provider.split(':')[0],
+        logoutUrl : LOGOUT_URL,
       };
     } catch (err) {
       console.error('Unexpected error', err);
