@@ -1,7 +1,7 @@
 IMG ?= centraldashboard
 TAG ?= $(shell git describe --tags --always --dirty)
 COMMIT = $(shell git rev-parse HEAD)
-DOCKERFILE ?= centraldashboard/Dockerfile
+DOCKERFILE ?= Dockerfile
 ARCH ?= linux/amd64
 
 
@@ -32,12 +32,12 @@ docker-push:
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	cd ../ && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f ${DOCKERFILE} .
+	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f ${DOCKERFILE} .
 
 
 .PHONY: docker-build-push-multi-arch
-docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
-	cd ../ && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ${DOCKERFILE} .
+docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry
+	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ${DOCKERFILE} .
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
