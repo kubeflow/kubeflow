@@ -228,7 +228,8 @@ describe('KubernetesService', () => {
         provider:
             'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm',
         providerName: 'gce',
-        kubeflowVersion: '1.0.0'
+        kubeflowVersion: '1.0.0',
+        logoutUrl: '/logout'
       });
     });
 
@@ -269,7 +270,8 @@ describe('KubernetesService', () => {
       expect(platformInfo).toEqual({
         provider: 'other://',
         providerName: 'other',
-        kubeflowVersion: '1.0.0'
+        kubeflowVersion: '1.0.0',
+        logoutUrl: '/logout'
       });
     });
 
@@ -316,7 +318,8 @@ describe('KubernetesService', () => {
         provider:
             'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm',
         providerName: 'gce',
-        kubeflowVersion: 'unknown'
+        kubeflowVersion: 'unknown',
+        logoutUrl: '/logout'
       });
     });
 
@@ -330,7 +333,8 @@ describe('KubernetesService', () => {
       expect(platformInfo).toEqual({
         provider: 'other://',
         providerName: 'other',
-        kubeflowVersion: 'unknown'
+        kubeflowVersion: 'unknown',
+        logoutUrl: '/logout'
       });
     });
   });
