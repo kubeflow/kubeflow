@@ -13,12 +13,12 @@ export class LogoutButton extends PolymerElement {
     static get template() {
         return html`
             <paper-button id="logout-button" on-tap="logout">
-                <iron-icon icon='kubeflow:logout' title="Logout"
+                <iron-icon icon='kubeflow:logout' title="Logout">
                 </iron-icon>
             </paper-button>
             <iron-ajax
                     id='logout'
-                    url='/logout'
+                    url$='{{logoutUrl}}'
                     method='post'
                     handle-as='json'
                     headers='{{headers}}'
@@ -32,6 +32,9 @@ export class LogoutButton extends PolymerElement {
             headers: {
                 type: Object,
                 computed: '_setHeaders()',
+            },
+            logoutUrl: {
+                type: String,
             },
         };
     }
