@@ -16,6 +16,9 @@ manifests: controller-gen
 	$(CONTROLLER_GEN) crd:crdVersions=v1,maxDescLen=0 output:crd:artifacts:config=manifests/base paths="./..."
 	mv manifests/base/kubeflow.org_poddefaults.yaml manifests/base/crd.yaml
 
+test:
+	go test -coverprofile cover.out
+
 build:
 	go build -gcflags 'all=-N -l' -o bin/webhook .
 
