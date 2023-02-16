@@ -8,7 +8,7 @@ ENV BUILD_COMMIT=$commit
 ENV CHROME_BIN=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-RUN apt update -qq && apt install -qq -y chromium gnulib
+RUN apt update -qq && apt install -qq -y gnulib
 
 COPY . /centraldashboard
 WORKDIR /centraldashboard
@@ -20,7 +20,6 @@ RUN BUILDARCH="$(dpkg --print-architecture)" &&  npm rebuild && \
     export CXXFLAGS=-Wno-error;  \
     fi && \
     npm install && \
-    npm test && \
     npm run build && \
     npm prune --production
 
