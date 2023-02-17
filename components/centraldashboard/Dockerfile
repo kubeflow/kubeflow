@@ -26,6 +26,10 @@ RUN BUILDARCH="$(dpkg --print-architecture)" &&  npm rebuild && \
 # Step 2: Packages assets for serving
 FROM node:12.22.12-alpine AS serve
 
+ARG kubeflowversion
+ARG commit
+ENV BUILD_VERSION=$kubeflowversion
+ENV BUILD_COMMIT=$commit
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /centraldashboard .
