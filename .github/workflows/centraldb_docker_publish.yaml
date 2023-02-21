@@ -1,5 +1,8 @@
 name: Build & Publish CentralDashboard Docker image
 on:
+  pull_request:
+    paths:
+      - components/centraldashboard/**
   push:
     branches:
       - master
@@ -9,8 +12,8 @@ on:
       - releasing/version/VERSION
 
 env:
-  DOCKER_USER: amitmukati2604
-  IMG: amitmukati2604/centraldashboard
+  DOCKER_USER: kubeflownotebookswg
+  IMG: kubeflownotebookswg/centraldashboard
   ARCH: linux/ppc64le,linux/amd64
 
 jobs:
@@ -29,6 +32,7 @@ jobs:
             - 'releasing/version/VERSION'
             
     - name: Login to DockerHub
+      if: ${{ github.event_name == 'push'  }}
       uses: docker/login-action@v2
       with:
         username: ${{ env.DOCKER_USER }}
