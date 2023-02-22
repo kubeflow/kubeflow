@@ -27,26 +27,41 @@ def get_pvcs(namespace):
     return api.success_response("pvcs", data)
 
 
-@bp.route("/api/namespaces/<namespace>/poddefaults")
-def get_poddefaults(namespace):
-    pod_defaults = api.list_poddefaults(namespace)
-
+def read_pod_defaults(namespace, client=api):
+    pod_defaults = client.list_poddefaults(namespace)
     # Return a list of pod defaults adding custom fields (label, desc) for forms
     contents = []
     for pd in pod_defaults["items"]:
-        label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
-        if "desc" in pd["spec"]:
-            desc = pd["spec"]["desc"]
-        else:
-            desc = pd["metadata"]["name"]
+        try:
+            # The only PodDefaults that should be selected are ones that contain
+            # a single matchLabel with a value of "true".
+            labels = pd["spec"]["selector"]["matchLabels"]
+        except KeyError:
+            continue
 
-        pd["label"] = label
-        pd["desc"] = desc
-        contents.append(pd)
+        if len(labels) == 1:
+            key = list(labels.keys()).pop()
+            if labels[key] == "true":
+                # PodDefaults are applied by setting a single label key to "true"
+                # on a notebook manifest. If there is more than a single key,
+                # or the value associated with the key is not "true", the
+                # PodDefault won't be applied (because the notebook won't have the
+                # appropriate labels), so it would be misleading to return it as an option
+                desc = pd["metadata"]["name"]
+                if "desc" in pd["spec"]:
+                    desc = pd["spec"]["desc"]
 
-    log.info("Found poddefaults: %s", contents)
+                pd["label"] = key
+                pd["desc"] = desc
+                contents.append(pd)
+    return contents
 
-    return api.success_response("poddefaults", contents)
+
+@bp.route("/api/namespaces/<namespace>/poddefaults")
+def get_poddefaults(namespace):
+    content = read_pod_defaults(namespace, client=api)
+    log.info("Found poddefaults: %s", content)
+    return api.success_response("poddefaults", content)
 
 
 @bp.route("/api/namespaces/<namespace>/notebooks")
