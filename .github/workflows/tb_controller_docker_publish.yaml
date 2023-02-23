@@ -39,7 +39,7 @@ jobs:
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v2
-
+    
     - name: Build and push multi-arch docker image
       run: |
         cd components/tensorboard-controller
