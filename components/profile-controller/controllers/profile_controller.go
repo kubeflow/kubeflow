@@ -240,9 +240,9 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		}
 	} else {
 		found := &corev1.ResourceQuota{}
-		err := r.Client.Get(ctx, types.NamespacedName{Name: KFQUOTA, Namespace: instance.Name}, found)
+		err := r.Get(ctx, types.NamespacedName{Name: KFQUOTA, Namespace: instance.Name}, found)
 		if err == nil {
-			if err := r.Client.Delete(ctx, found); err != nil {
+			if err := r.Delete(ctx, found); err != nil {
 				logger.Error(err, "error deleting resource quota", "namespace", instance.Name)
 				return ctrl.Result{}, err
 			}
@@ -275,7 +275,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		// registering our finalizer.
 		if !containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
 			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
-			if err := r.Client.Update(ctx, instance); err != nil {
+			if err := r.Update(ctx, instance); err != nil {
 				logger.Error(err, "error updating finalizer", "namespace", instance.Name)
 				IncRequestErrorCounter("error updating finalizer", SEVERITY_MAJOR)
 				return ctrl.Result{}, err
@@ -297,7 +297,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 
 			// remove our finalizer from the list and update it.
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
-			if err := r.Client.Update(ctx, instance); err != nil {
+			if err := r.Update(ctx, instance); err != nil {
 				logger.Error(err, "error removing finalizer", "namespace", instance.Name)
 				IncRequestErrorCounter("error removing finalizer", SEVERITY_MAJOR)
 				return ctrl.Result{}, err
@@ -315,7 +315,7 @@ func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, i
 		Type:    profilev1.ProfileFailed,
 		Message: message,
 	})
-	if err := r.Client.Update(ctx, instance); err != nil {
+	if err := r.Update(ctx, instance); err != nil {
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
@@ -477,7 +477,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 		return err
 	}
 	foundAuthorizationPolicy := &istioSecurityClient.AuthorizationPolicy{}
-	err := r.Client.Get(
+	err := r.Get(
 		context.TODO(),
 		types.NamespacedName{
 			Name:      istioAuth.ObjectMeta.Name,
@@ -501,7 +501,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 			foundAuthorizationPolicy.Spec = *istioAuth.Spec.DeepCopy()
 			logger.Info("Updating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
-			err = r.Client.Update(context.TODO(), foundAuthorizationPolicy)
+			err = r.Update(context.TODO(), foundAuthorizationPolicy)
 			if err != nil {
 				return err
 			}
@@ -519,11 +519,11 @@ func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1.Profile,
 		return err
 	}
 	found := &corev1.ResourceQuota{}
-	err := r.Client.Get(ctx, types.NamespacedName{Name: resourceQuota.Name, Namespace: resourceQuota.Namespace}, found)
+	err := r.Get(ctx, types.NamespacedName{Name: resourceQuota.Name, Namespace: resourceQuota.Namespace}, found)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating ResourceQuota", "namespace", resourceQuota.Namespace, "name", resourceQuota.Name)
-			err = r.Client.Create(ctx, resourceQuota)
+			err = r.Create(ctx, resourceQuota)
 			if err != nil {
 				return err
 			}
@@ -534,7 +534,7 @@ func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1.Profile,
 		if !(reflect.DeepEqual(resourceQuota.Spec, found.Spec)) {
 			found.Spec = resourceQuota.Spec
 			logger.Info("Updating ResourceQuota", "namespace", resourceQuota.Namespace, "name", resourceQuota.Name)
-			err = r.Client.Update(ctx, found)
+			err = r.Update(ctx, found)
 			if err != nil {
 				return err
 			}
@@ -557,12 +557,12 @@ func (r *ProfileReconciler) updateServiceAccount(profileIns *profilev1.Profile, 
 		return err
 	}
 	found := &corev1.ServiceAccount{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, found)
+	err := r.Get(context.TODO(), types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, found)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating ServiceAccount", "namespace", serviceAccount.Namespace,
 				"name", serviceAccount.Name)
-			err = r.Client.Create(context.TODO(), serviceAccount)
+			err = r.Create(context.TODO(), serviceAccount)
 			if err != nil {
 				return err
 			}
@@ -600,11 +600,11 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 		return err
 	}
 	found := &rbacv1.RoleBinding{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
+	err := r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-			err = r.Client.Create(context.TODO(), roleBinding)
+			err = r.Create(context.TODO(), roleBinding)
 			if err != nil {
 				return err
 			}
@@ -616,7 +616,7 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 			found.RoleRef = roleBinding.RoleRef
 			found.Subjects = roleBinding.Subjects
 			logger.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-			err = r.Client.Update(context.TODO(), found)
+			err = r.Update(context.TODO(), found)
 			if err != nil {
 				return err
 			}
@@ -681,7 +681,7 @@ func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileI
 			})
 		}
 	}
-	if err := r.Client.Update(ctx, profileIns); err != nil {
+	if err := r.Update(ctx, profileIns); err != nil {
 		return err
 	}
 	return nil
