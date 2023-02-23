@@ -12,7 +12,7 @@ docker-push:
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	cd ../ && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f ${DOCKERFILE} .
+	cd ../ && docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} -f ${DOCKERFILE} .
 
 
 .PHONY: docker-build-push-multi-arch
@@ -20,4 +20,3 @@ docker-build-push-multi-arch: ## Build multi-arch docker images with docker buil
 	cd ../ && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ${DOCKERFILE} .
 
 image: docker-build docker-push
-
