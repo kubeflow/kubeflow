@@ -18,11 +18,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
     - name: Build TWA Image 
       run: |
         cd components/crud-web-apps/tensorboards
-        make docker-build 
+        ARCH=linux/ppc64le make docker-build-multi-arch
+        ARCH=linux/amd64 make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
