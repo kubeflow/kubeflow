@@ -3,11 +3,15 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable, Subscription } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { CDBBackendService } from 'src/app/services/backend.service';
-import { envInfo } from '../../types/env-info';
 import { DashboardLinks, Link, MenuLink } from 'src/app/types/dashboard-links';
 import { Router } from '@angular/router';
-import { appendBackslash, removePrefixFrom } from 'src/app/shared/utils';
+import {
+  appendBackslash,
+  getUrlFragment,
+  removePrefixFrom,
+} from 'src/app/shared/utils';
+import { EnvironmentService } from 'src/app/services/environment.service';
+import { PlatformInfo } from 'src/app/types/platform-info';
 
 @Component({
   selector: 'app-main-page',
@@ -38,22 +42,21 @@ export class MainPageComponent implements OnInit {
 
   constructor(
     private breakpointObserver: BreakpointObserver,
-    private backend: CDBBackendService,
     private router: Router,
+    private env: EnvironmentService,
   ) {}
 
   ngOnInit() {
-    this.backend.getEnvInfo().subscribe((res: envInfo) => {
-      this.handleEnvInfo(res);
+    this.env.platform.subscribe((platform: PlatformInfo) => {
+      this.storeBuildInfo(platform);
     });
 
-    this.backend.getDashboardLinks().subscribe((res: DashboardLinks) => {
-      this.handleDashboardLinks(res);
+    this.env.dashboardLinks.subscribe((links: DashboardLinks) => {
+      this.storeDashboardLinks(links);
     });
   }
 
-  handleEnvInfo(env: envInfo) {
-    const { platform, user, namespaces, isClusterAdmin } = env;
+  storeBuildInfo(platform: PlatformInfo) {
     if (platform?.buildLabel) {
       this.buildLabel = platform.buildLabel;
     }
@@ -69,7 +72,7 @@ export class MainPageComponent implements OnInit {
     return `${label} ${buildValue}`;
   }
 
-  handleDashboardLinks(links: DashboardLinks) {
+  storeDashboardLinks(links: DashboardLinks) {
     const { menuLinks, externalLinks, quickLinks, documentationItems } = links;
     this.menuLinks = menuLinks || [];
     this.externalLinks = externalLinks || [];
@@ -77,15 +80,12 @@ export class MainPageComponent implements OnInit {
     this.documentationItems = documentationItems || [];
   }
 
-  getUrlPath(url: string) {
+  getUrlPathWithPrefix(url: string) {
     const urlWithoutFragment = url.split('#')[0];
     return this.appendPrefix(urlWithoutFragment);
   }
 
-  getUrlFragment(url: string): string {
-    const fragment = url.split('#')[1];
-    return fragment;
-  }
+  getUrlFragment = getUrlFragment;
 
   appendPrefix(url: string): string {
     return '/_' + url;

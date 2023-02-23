@@ -20,7 +20,7 @@
       <a
         mat-list-item
         *ngFor="let link of menuLinks"
-        [routerLink]="getUrlPath(link.link)"
+        [routerLink]="getUrlPathWithPrefix(link.link)"
         [fragment]="getUrlFragment(link.link)"
         [class.active]="isLinkActive(link.link)"
         [attr.data-cy-sidenav-menu-item]="link.text"

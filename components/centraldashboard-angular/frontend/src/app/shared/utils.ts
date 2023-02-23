@@ -36,3 +36,8 @@ export function appendBackslash(url: string): string {
 export function removePrefixFrom(url: string) {
   return url.includes('/_') ? url.slice(2) : url;
 }
+
+export function getUrlFragment(url: string): string {
+  const fragment = url.split('#')[1];
+  return fragment;
+}
