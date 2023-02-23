@@ -20,17 +20,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"reflect"
-	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/go-logr/logr"
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"github.com/pkg/errors"
 	"gopkg.in/fsnotify.v1"
-	"gopkg.in/yaml.v2"
 	istioSecurity "istio.io/api/security/v1beta1"
 	istioSecurityClient "istio.io/client-go/pkg/apis/security/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -74,6 +69,14 @@ const (
 const DEFAULT_EDITOR = "default-editor"
 const DEFAULT_VIEWER = "default-viewer"
 
+const (
+	errGetNamespace                  = "error reading namespace"
+	errCreateNamespace               = "error creating namespace"
+	errUpdateNamespace               = "error updating namespace"
+	errSetControllerReference        = "error setting controller reference"
+	errFmtNamespaceNotOwnedByProfile = "namespace already exist, but not owned by profile creator %v"
+)
+
 type Plugin interface {
 	// Called when profile CR is created / updated
 	ApplyPlugin(*ProfileReconciler, *profilev1.Profile) error
@@ -91,6 +94,7 @@ type ProfileReconciler struct {
 	UserIdPrefix               string
 	WorkloadIdentity           string
 	DefaultNamespaceLabelsPath string
+	readLabelsFunc             func(path string) (map[string]string, error)
 }
 
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs="*"
@@ -104,12 +108,15 @@ type ProfileReconciler struct {
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("profile", request.NamespacedName)
-	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
+	defaultKubeflowNamespaceLabels, err := r.readLabelsFunc(r.DefaultNamespaceLabelsPath)
+	if err != nil {
+		r.Log.Error(err, "Failed to read default namespace labels")
+	}
 
 	// Fetch the Profile instance
 	instance := &profilev1.Profile{}
 	logger.Info("Start to Reconcile.", "namespace", request.Namespace, "name", request.Name)
-	err := r.Get(ctx, request.NamespacedName, instance)
+	err = r.Client.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -123,79 +130,47 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		return reconcile.Result{}, err
 	}
 
-	// Update namespace
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
-			// inject istio sidecar to all pods in target namespace by default.
-			Labels: map[string]string{
-				istioInjectionLabel: "enabled",
-			},
-			Name: instance.Name,
-		},
+	ns := &corev1.Namespace{}
+	ns.SetName(instance.GetName())
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(ns), ns); err != nil {
+		if !apierrors.IsNotFound(err) {
+			IncRequestErrorCounter(errGetNamespace, SEVERITY_MAJOR)
+			logger.Error(err, errGetNamespace)
+			return ctrl.Result{}, errors.Wrap(err, errGetNamespace)
+		}
+		// Namespace isn't found, create it
+		addLabel(ns, istioInjectionLabel, "enabled")
+		setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
+		ns.SetAnnotations(map[string]string{"owner": instance.Spec.Owner.Name})
+		logger.Info("Creating Namespace: " + ns.Name)
+		if err := r.Client.Create(ctx, ns); err != nil {
+			IncRequestErrorCounter(errCreateNamespace, SEVERITY_MAJOR)
+			logger.Error(err, errCreateNamespace)
+			return ctrl.Result{}, errors.Wrap(err, errCreateNamespace)
+		}
 	}
-	setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
+	if ns.Annotations["owner"] != instance.Spec.Owner.Name {
+		logger.Info(fmt.Sprintf(errFmtNamespaceNotOwnedByProfile, instance.Spec.Owner.Name))
+		IncRequestCounter("reject profile taking over existing namespace")
+		return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(errFmtNamespaceNotOwnedByProfile, instance.Spec.Owner.Name))
+	}
+
 	logger.Info("List of labels to be added to namespace", "labels", ns.Labels)
-	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
-		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
-		logger.Error(err, "error setting ControllerReference")
-		return reconcile.Result{}, err
-	}
-	foundNs := &corev1.Namespace{}
-	err = r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
+	res, err := controllerutil.CreateOrUpdate(ctx, r.Client, ns, func() error {
+		setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
+		addLabel(ns, istioInjectionLabel, "enabled")
+		if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
+			IncRequestErrorCounter(errSetControllerReference, SEVERITY_MAJOR)
+			logger.Error(err, errSetControllerReference)
+			return errors.Wrap(err, errSetControllerReference)
+		}
+		return nil
+	})
 	if err != nil {
-		if apierrors.IsNotFound(err) {
-			logger.Info("Creating Namespace: " + ns.Name)
-			err = r.Create(ctx, ns)
-			if err != nil {
-				IncRequestErrorCounter("error creating namespace", SEVERITY_MAJOR)
-				logger.Error(err, "error creating namespace")
-				return reconcile.Result{}, err
-			}
-			// wait 15 seconds for new namespace creation.
-			err = backoff.Retry(
-				func() error {
-					return r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
-				},
-				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
-			if err != nil {
-				IncRequestErrorCounter("error namespace create completion", SEVERITY_MAJOR)
-				logger.Error(err, "error namespace create completion")
-				return r.appendErrorConditionAndReturn(ctx, instance,
-					"Owning namespace failed to create within 15 seconds")
-			}
-			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
-		} else {
-			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
-			logger.Error(err, "error reading namespace")
-			return reconcile.Result{}, err
-		}
-	} else {
-		// Check exising namespace ownership before move forward
-		owner, ok := foundNs.Annotations["owner"]
-		if ok && owner == instance.Spec.Owner.Name {
-			oldLabels := map[string]string{}
-			for k, v := range foundNs.Labels {
-				oldLabels[k] = v
-			}
-			setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
-			logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
-			if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
-				err = r.Update(ctx, foundNs)
-				if err != nil {
-					IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
-					logger.Error(err, "error updating namespace label")
-					return reconcile.Result{}, err
-				}
-			}
-		} else {
-			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-				instance.Spec.Owner.Name))
-			IncRequestCounter("reject profile taking over existing namespace")
-			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
-				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
-		}
+		r.Log.Error(err, errUpdateNamespace)
+		return ctrl.Result{}, errors.Wrap(err, errUpdateNamespace)
 	}
+	r.Log.Info("Finished reconciling profile namespace", "name", instance.Name, "result", res)
 
 	// Update Istio AuthorizationPolicy
 	// Create Istio AuthorizationPolicy in target namespace, which will give ns owner permission to access services in ns.
@@ -265,9 +240,9 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		}
 	} else {
 		found := &corev1.ResourceQuota{}
-		err := r.Get(ctx, types.NamespacedName{Name: KFQUOTA, Namespace: instance.Name}, found)
+		err := r.Client.Get(ctx, types.NamespacedName{Name: KFQUOTA, Namespace: instance.Name}, found)
 		if err == nil {
-			if err := r.Delete(ctx, found); err != nil {
+			if err := r.Client.Delete(ctx, found); err != nil {
 				logger.Error(err, "error deleting resource quota", "namespace", instance.Name)
 				return ctrl.Result{}, err
 			}
@@ -300,7 +275,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		// registering our finalizer.
 		if !containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
 			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
-			if err := r.Update(ctx, instance); err != nil {
+			if err := r.Client.Update(ctx, instance); err != nil {
 				logger.Error(err, "error updating finalizer", "namespace", instance.Name)
 				IncRequestErrorCounter("error updating finalizer", SEVERITY_MAJOR)
 				return ctrl.Result{}, err
@@ -322,7 +297,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 
 			// remove our finalizer from the list and update it.
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
-			if err := r.Update(ctx, instance); err != nil {
+			if err := r.Client.Update(ctx, instance); err != nil {
 				logger.Error(err, "error removing finalizer", "namespace", instance.Name)
 				IncRequestErrorCounter("error removing finalizer", SEVERITY_MAJOR)
 				return ctrl.Result{}, err
@@ -340,7 +315,7 @@ func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, i
 		Type:    profilev1.ProfileFailed,
 		Message: message,
 	})
-	if err := r.Update(ctx, instance); err != nil {
+	if err := r.Client.Update(ctx, instance); err != nil {
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
@@ -502,7 +477,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 		return err
 	}
 	foundAuthorizationPolicy := &istioSecurityClient.AuthorizationPolicy{}
-	err := r.Get(
+	err := r.Client.Get(
 		context.TODO(),
 		types.NamespacedName{
 			Name:      istioAuth.ObjectMeta.Name,
@@ -514,7 +489,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
-			err = r.Create(context.TODO(), istioAuth)
+			err = r.Client.Create(context.TODO(), istioAuth)
 			if err != nil {
 				return err
 			}
@@ -526,7 +501,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 			foundAuthorizationPolicy.Spec = *istioAuth.Spec.DeepCopy()
 			logger.Info("Updating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
-			err = r.Update(context.TODO(), foundAuthorizationPolicy)
+			err = r.Client.Update(context.TODO(), foundAuthorizationPolicy)
 			if err != nil {
 				return err
 			}
@@ -544,11 +519,11 @@ func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1.Profile,
 		return err
 	}
 	found := &corev1.ResourceQuota{}
-	err := r.Get(ctx, types.NamespacedName{Name: resourceQuota.Name, Namespace: resourceQuota.Namespace}, found)
+	err := r.Client.Get(ctx, types.NamespacedName{Name: resourceQuota.Name, Namespace: resourceQuota.Namespace}, found)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating ResourceQuota", "namespace", resourceQuota.Namespace, "name", resourceQuota.Name)
-			err = r.Create(ctx, resourceQuota)
+			err = r.Client.Create(ctx, resourceQuota)
 			if err != nil {
 				return err
 			}
@@ -559,7 +534,7 @@ func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1.Profile,
 		if !(reflect.DeepEqual(resourceQuota.Spec, found.Spec)) {
 			found.Spec = resourceQuota.Spec
 			logger.Info("Updating ResourceQuota", "namespace", resourceQuota.Namespace, "name", resourceQuota.Name)
-			err = r.Update(ctx, found)
+			err = r.Client.Update(ctx, found)
 			if err != nil {
 				return err
 			}
@@ -582,12 +557,12 @@ func (r *ProfileReconciler) updateServiceAccount(profileIns *profilev1.Profile, 
 		return err
 	}
 	found := &corev1.ServiceAccount{}
-	err := r.Get(context.TODO(), types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, found)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, found)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating ServiceAccount", "namespace", serviceAccount.Namespace,
 				"name", serviceAccount.Name)
-			err = r.Create(context.TODO(), serviceAccount)
+			err = r.Client.Create(context.TODO(), serviceAccount)
 			if err != nil {
 				return err
 			}
@@ -625,11 +600,11 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 		return err
 	}
 	found := &rbacv1.RoleBinding{}
-	err := r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-			err = r.Create(context.TODO(), roleBinding)
+			err = r.Client.Create(context.TODO(), roleBinding)
 			if err != nil {
 				return err
 			}
@@ -641,7 +616,7 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 			found.RoleRef = roleBinding.RoleRef
 			found.Subjects = roleBinding.Subjects
 			logger.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-			err = r.Update(context.TODO(), found)
+			err = r.Client.Update(context.TODO(), found)
 			if err != nil {
 				return err
 			}
@@ -706,7 +681,7 @@ func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileI
 			})
 		}
 	}
-	if err := r.Update(ctx, profileIns); err != nil {
+	if err := r.Client.Update(ctx, profileIns); err != nil {
 		return err
 	}
 	return nil
@@ -752,19 +727,11 @@ func setNamespaceLabels(ns *corev1.Namespace, newLabels map[string]string) {
 	}
 }
 
-func (r *ProfileReconciler) readDefaultLabelsFromFile(path string) map[string]string {
-	logger := r.Log.WithName("read-config-file").WithValues("path", path)
-	dat, err := ioutil.ReadFile(path)
-	if err != nil {
-		logger.Error(err, "namespace labels properties file doesn't exist")
-		os.Exit(1)
+func addLabel(obj client.Object, key, value string) {
+	labels := obj.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
 	}
-
-	labels := map[string]string{}
-	err = yaml.Unmarshal(dat, &labels)
-	if err != nil {
-		logger.Error(err, "Unable to parse default namespace labels.")
-		os.Exit(1)
-	}
-	return labels
+	labels[key] = value
+	obj.SetLabels(labels)
 }
