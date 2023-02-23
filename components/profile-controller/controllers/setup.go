@@ -1,16 +1,12 @@
 package controllers
 
 import (
-	"context"
 	"os"
 
 	"github.com/go-logr/logr"
-	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 )
 
 const (
@@ -83,19 +79,4 @@ func NewProfileReconciler(mgr Manager, opts ...ProfileReconcilerOption) *Profile
 		f(r)
 	}
 	return r
-}
-
-func enqueueRequestsForProfiles(reader client.Reader, log logr.Logger) handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(func(o client.Object) []ctrl.Request {
-		proList := &profilev1.ProfileList{}
-		if err := reader.List(context.TODO(), proList); err != nil {
-			log.Error(err, errListProfiles)
-			return nil
-		}
-		var reqs []ctrl.Request
-		for _, item := range proList.Items {
-			reqs = append(reqs, ctrl.Request{NamespacedName: client.ObjectKeyFromObject(&item)})
-		}
-		return reqs
-	})
 }
