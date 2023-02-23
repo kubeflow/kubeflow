@@ -116,7 +116,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 	// Fetch the Profile instance
 	instance := &profilev1.Profile{}
 	logger.Info("Start to Reconcile.", "namespace", request.Namespace, "name", request.Name)
-	err = r.Client.Get(ctx, request.NamespacedName, instance)
+	err = r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -489,7 +489,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 		if apierrors.IsNotFound(err) {
 			logger.Info("Creating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
-			err = r.Client.Create(context.TODO(), istioAuth)
+			err = r.Create(context.TODO(), istioAuth)
 			if err != nil {
 				return err
 			}

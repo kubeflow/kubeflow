@@ -209,15 +209,6 @@ func createMockReconciler() *ProfileReconciler {
 	return reconciler
 }
 
-func newScheme(t *testing.T) *runtime.Scheme {
-	scheme := runtime.NewScheme()
-	assert.Nil(t, profilev1.AddToScheme(scheme))
-	assert.Nil(t, corev1.AddToScheme(scheme))
-	assert.Nil(t, rbacv1.AddToScheme(scheme))
-	assert.Nil(t, istioRegister.AddToScheme(scheme))
-	return scheme
-}
-
 func TestProfileReconciler_ReconcileNamespace(t *testing.T) {
 	cases := map[string]struct {
 		profile     *profilev1.Profile
@@ -457,4 +448,13 @@ func passThroughLabelReader(m map[string]string) func(string) (map[string]string
 	return func(_ string) (map[string]string, error) {
 		return m, nil
 	}
+}
+
+func newScheme(t *testing.T) *runtime.Scheme {
+	scheme := runtime.NewScheme()
+	assert.Nil(t, profilev1.AddToScheme(scheme))
+	assert.Nil(t, corev1.AddToScheme(scheme))
+	assert.Nil(t, rbacv1.AddToScheme(scheme))
+	assert.Nil(t, istioRegister.AddToScheme(scheme))
+	return scheme
 }
