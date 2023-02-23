@@ -20,3 +20,4 @@ docker-build-push-multi-arch: ## Build multi-arch docker images with docker buil
 	cd ../ && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ${DOCKERFILE} .
 
 image: docker-build docker-push
+
