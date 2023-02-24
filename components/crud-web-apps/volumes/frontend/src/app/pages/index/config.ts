@@ -6,8 +6,8 @@ import {
   LinkValue,
   LinkType,
   ComponentValue,
+  quantityToScalar,
 } from 'kubeflow';
-import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 import { UsedByComponent } from './columns/used-by/used-by.component';
 
 export const tableConfig: TableConfig = {

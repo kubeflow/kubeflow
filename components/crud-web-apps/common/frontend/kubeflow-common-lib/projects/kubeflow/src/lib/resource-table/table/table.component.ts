@@ -43,6 +43,7 @@ import {
 } from '@angular/material/autocomplete';
 import { DateTimeService } from '../../services/date-time.service';
 import { isEqual } from 'lodash-es';
+import { MemoryValue } from '../types/memory-value';
 
 @Component({
   selector: 'lib-table',
@@ -204,6 +205,9 @@ export class TableComponent
           return valueExtractor.getValue(element);
         }
       }
+      if (this.isMemoryValue(valueExtractor)) {
+        return valueExtractor.getValue(element);
+      }
       if (this.isDateTimeValue(valueExtractor)) {
         if (valueExtractor.getValue(element) === '') {
           return -1;
@@ -217,35 +221,6 @@ export class TableComponent
       if (this.isComponentValue(valueExtractor)) {
         return sortingPreprocessorFn(element);
       }
-    };
-    this.dataSource.sortData = (data, sort) => {
-      const active = sort.active;
-      const direction = sort.direction;
-      if (!active || direction === '') {
-        return data;
-      }
-      return data.sort((a, b) => {
-        const valueA = this.dataSource.sortingDataAccessor(a, active);
-        const valueB = this.dataSource.sortingDataAccessor(b, active);
-        // If both valueA and valueB exist (truthy), then compare the two. Otherwise, check if
-        // one value exists while the other doesn't. In this case, existing value should come last.
-        // This avoids inconsistent results when comparing values to undefined/null.
-        // If neither value exists, return 0 (equal).
-        let comparatorResult = 0;
-        if (valueA !== null && valueB !== null) {
-          // Check if one value is greater than the other; if equal, comparatorResult should remain 0.
-          if (valueA > valueB) {
-            comparatorResult = 1;
-          } else if (valueA < valueB) {
-            comparatorResult = -1;
-          }
-        } else if (valueA !== null) {
-          comparatorResult = 1;
-        } else if (valueB !== null) {
-          comparatorResult = -1;
-        }
-        return comparatorResult * (direction === 'asc' ? 1 : -1);
-      });
     };
     this.dataSource.sort = this.sort;
     this.sort.disableClear = true;
@@ -288,6 +263,15 @@ export class TableComponent
           isMatchText ||
           (valueExtractor as LinkValue)
             .getValue(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (this.isMemoryValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as MemoryValue)
+            .getViewValue(row)
             .toString()
             .toLocaleLowerCase()
             .includes(filterValue);
@@ -381,6 +365,20 @@ export class TableComponent
               isMatchObj &&
               valueExtractor
                 .getValue(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]);
+          }
+        }
+        if (this.isMemoryValue(valueExtractor)) {
+          if (filterValue[element] === '""') {
+            isMatchObj =
+              isMatchObj && valueExtractor.getViewValue(row).length === 0;
+          } else {
+            isMatchObj =
+              isMatchObj &&
+              valueExtractor
+                .getViewValue(row)
                 .toString()
                 .toLocaleLowerCase()
                 .includes(filterValue[element]);
@@ -590,6 +588,10 @@ export class TableComponent
 
   public isDateTimeValue(obj) {
     return obj instanceof DateTimeValue;
+  }
+
+  public isMemoryValue(obj) {
+    return obj instanceof MemoryValue;
   }
 
   public actionTriggered(e: ActionEvent) {

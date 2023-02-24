@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { TableComponent } from './table.component';
 import { ResourceTableModule } from '../resource-table.module';
-import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 import {
   PropertyValue,
   DateTimeValue,
@@ -10,6 +9,7 @@ import {
   ComponentValue,
   LinkValue,
   LinkType,
+  MemoryValue,
 } from '../types';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { TableColumnComponent } from '../component-value/component-value.component';
@@ -19,6 +19,7 @@ import { cloneDeep } from 'lodash-es';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { quantityToScalar } from './utils';
 
 @Component({
   selector: 'lib-server-type',
@@ -59,6 +60,11 @@ const tableConfig = {
       filteringPreprocessorFn: element => element.serverType,
     },
     {
+      matHeaderCellDef: `Memory`,
+      matColumnDef: 'memory',
+      value: new MemoryValue({ field: 'memory' }),
+    },
+    {
       matHeaderCellDef: `Created at`,
       matColumnDef: 'age',
       value: new DateTimeValue({ field: 'age' }),
@@ -79,6 +85,7 @@ const tableData = [
       text: 'a-notebook',
       url: '',
     },
+    memory: '107374182400m',
   },
   {
     status: {
@@ -92,6 +99,7 @@ const tableData = [
       text: 'b-notebook',
       url: '',
     },
+    memory: '1Gi',
   },
 ];
 
@@ -236,6 +244,38 @@ describe('TableComponent', () => {
     expect(columnCells[0].textContent.replace(/\s+/g, '')).toBe('1');
   });
 
+  it('should sort memory values', () => {
+    component.config = {
+      title: 'test',
+      columns: [
+        {
+          matHeaderCellDef: `Memory`,
+          matColumnDef: 'memory',
+          value: new MemoryValue({ field: 'memory' }),
+          sort: true,
+        },
+      ],
+    };
+    component.data = [{ memory: '512Mi' }, { memory: '1288490188800m' }];
+    fixture.detectChanges();
+
+    const compiled = fixture.debugElement.nativeElement;
+    const button = compiled.querySelector(
+      '[data-cy-table-header-row="Memory"]',
+    );
+    button.click();
+    button.click();
+    const columnCells = compiled.querySelectorAll(
+      '[data-cy-resource-table-row="Memory"]',
+    );
+
+    // after click on the first element, detect the changes to ensure sorting took place
+    fixture.detectChanges();
+
+    // your assertions, i.e. expect to see the first element being sorted in the table
+    expect(columnCells[0].textContent.replace(/\s+/g, '')).toBe('1.2Gi');
+  });
+
   it('should filter link values based on all columns', () => {
     component.config = tableConfig;
     component.data = tableData;
@@ -367,6 +407,38 @@ describe('TableComponent', () => {
     checkCell(compiled);
   });
 
+  it('should filter memory values based on all columns', () => {
+    component.config = tableConfig;
+    component.data = tableData;
+
+    const compiled = fixture.debugElement.nativeElement;
+    const inputElement = compiled.querySelector('#filterInput');
+    component.add({
+      input: inputElement,
+      value: '1.0 Gi',
+    } as MatChipInputEvent);
+
+    fixture.detectChanges();
+
+    checkCell(compiled);
+  });
+
+  it('should filter memory values based on one column', () => {
+    component.config = tableConfig;
+    component.data = tableData;
+
+    const compiled = fixture.debugElement.nativeElement;
+    const inputElement = compiled.querySelector('#filterInput');
+    component.add({
+      input: inputElement,
+      value: 'Memory: 1.0 Gi',
+    } as MatChipInputEvent);
+
+    fixture.detectChanges();
+
+    checkCell(compiled);
+  });
+
   it('should properly configure filter section', () => {
     component.config = tableConfig;
 
@@ -383,6 +455,7 @@ describe('TableComponent', () => {
       { title: 'Status' },
       { title: 'Name' },
       { title: 'Type' },
+      { title: 'Memory' },
       { title: 'Created at' },
     ]);
     expect(component.showStatus).toEqual(true);
@@ -398,8 +471,63 @@ describe('TableComponent', () => {
       { title: 'Status' },
       { title: 'Name' },
       { title: 'Type' },
+      { title: 'Memory' },
     ]);
     expect(component.showStatus).toEqual(true);
     expect(component.showDate).toEqual(false);
+  });
+
+  it('should properly show memory values', () => {
+    component.config = {
+      title: 'test',
+      columns: [
+        {
+          matHeaderCellDef: `Memory`,
+          matColumnDef: 'memory',
+          value: new MemoryValue({ field: 'memory' }),
+          sort: true,
+        },
+      ],
+    };
+    component.data = [
+      { memory: '107374182400m' },
+      { memory: '1Gi' },
+      { memory: '10Gi' },
+      { memory: '100Gi' },
+      { memory: '1000Gi' },
+      { memory: '1100Gi' },
+      { memory: '10000Gi' },
+      { memory: '100000Gi' },
+      { memory: '1000000Gi' },
+      { memory: '1100000Gi' },
+    ];
+    fixture.detectChanges();
+
+    const compiled = fixture.debugElement.nativeElement;
+    const columnCells = compiled.querySelectorAll(
+      '[data-cy-resource-table-row="Memory"]',
+    );
+
+    fixture.detectChanges();
+
+    const formattedValues = [
+      '102.4Mi',
+      '1.0Gi',
+      '10.0Gi',
+      '100.0Gi',
+      '1000.0Gi',
+      '1.1Ti',
+      '9.8Ti',
+      '97.7Ti',
+      '976.6Ti',
+      '1.0Pi',
+    ];
+
+    const tableValues = [];
+    columnCells.forEach(element => {
+      tableValues.push(element.textContent.replace(/\s+/g, ''));
+    });
+
+    expect(tableValues).toEqual(formattedValues);
   });
 });
