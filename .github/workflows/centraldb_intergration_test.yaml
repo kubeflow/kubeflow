@@ -1,5 +1,6 @@
 name: CentralDashboard Intergration Test
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - components/centraldashboard/**
@@ -10,49 +11,51 @@ on:
 env:
   IMG: centraldashboard
   TAG: intergration-test
+  ARCH: linux/amd64,linux/ppc64le
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@v2
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Build CentralDashboard Image
-      run: |
-        cd components/centraldashboard
-        ARCH=linux/ppc64le make docker-build-multi-arch
-        ARCH=linux/amd64 make docker-build-multi-arch
+      - name: Build CentralDashboard Image
+        run: |
+          export EXTRA_BUILDX_FLAGS="-o type=tar,dest=./${IMG}.tar"
+          cd components/centraldashboard
+          make docker-build-multi-arch
+          docker import ${IMG}.tar ${IMG}:${TAG}
 
-    - name: Install KinD
-      run: ./components/testing/gh-actions/install_kind.sh
+      - name: Install KinD
+        run: ./components/testing/gh-actions/install_kind.sh
 
-    - name: Create KinD Cluster
-      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+      - name: Create KinD Cluster
+        run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster
-      run: |
-        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+      - name: Load Images into KinD Cluster
+        run: |
+          kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
-    - name: Install kustomize
-      run: ./components/testing/gh-actions/install_kustomize.sh
+      - name: Install kustomize
+        run: ./components/testing/gh-actions/install_kustomize.sh
 
-    - name: Install Istio
-      run: ./components/testing/gh-actions/install_istio.sh
+      - name: Install Istio
+        run: ./components/testing/gh-actions/install_istio.sh
 
-    - name: Build & Apply manifests
-      run: |
-        cd components/centraldashboard/manifests
-        kubectl create ns kubeflow
+      - name: Build & Apply manifests
+        run: |
+          cd components/centraldashboard/manifests
+          kubectl create ns kubeflow
 
-        export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard:latest
-        export PR_CENTRALDB_IMG=${{env.IMG}}:${{env.TAG}}
+          export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard:latest
+          export PR_CENTRALDB_IMG=${{env.IMG}}:${{env.TAG}}
 
-        kustomize build overlays/kserve | sed "s#$CURRENT_CENTRALDB_IMG#$PR_CENTRALDB_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=centraldashboard --for=condition=Ready --timeout=300s
+          kustomize build overlays/kserve | sed "s#$CURRENT_CENTRALDB_IMG#$PR_CENTRALDB_IMG#g" | kubectl apply -f -
+          kubectl wait pods -n kubeflow -l app=centraldashboard --for=condition=Ready --timeout=300s
