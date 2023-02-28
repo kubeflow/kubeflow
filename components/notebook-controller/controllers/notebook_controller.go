@@ -33,6 +33,7 @@ import (
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -114,6 +115,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		log.Info("Emitting Notebook Event.", "Event", event)
 		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
 			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
+
 		return ctrl.Result{}, nil
 	}
 
@@ -247,16 +249,26 @@ func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 
 	// Initialize Notebook CR Status
 	log.Info("Initializing Notebook CR Status")
+
+	nbConditions := make([]v1beta1.NotebookCondition, 0)
+	// Preserve the conditions from previous Warning Events, if any, since at
+	// some point they will be garbage collected.
+	if len(nb.Status.Conditions) != 0 {
+		nbConditions = nb.Status.Conditions
+	}
+
 	status := v1beta1.NotebookStatus{
-		Conditions:     make([]v1beta1.NotebookCondition, 0),
+		Conditions:     nbConditions,
 		ReadyReplicas:  sts.Status.ReadyReplicas,
 		ContainerState: corev1.ContainerState{},
 	}
 
-	// Update the status based on the Pod's status
+	// Update the status based on the Pod's status. If Pod doesn't exists
+	// populate the CR's status with conditions from warning events, if any.
+	// See https://github.com/kubeflow/kubeflow/issues/6999.
 	if reflect.DeepEqual(pod.Status, corev1.PodStatus{}) {
-		log.Info("No pod.Status found. Won't update notebook conditions and containerState")
-		return status, nil
+		log.Info("No pod.Status found. Checking for Warning Events...")
+		return checkWarningEvents(r, status, nb, req)
 	}
 
 	// Update status of the CR using the ContainerState of
@@ -340,6 +352,77 @@ func PodCondToNotebookCond(podc corev1.PodCondition) v1beta1.NotebookCondition {
 	}
 
 	return condition
+}
+
+func checkWarningEvents(r *NotebookReconciler, status v1beta1.NotebookStatus, nb *v1beta1.Notebook, req ctrl.Request) (v1beta1.NotebookStatus, error) {
+	log := r.Log.WithValues("notebook", req.NamespacedName)
+
+	// Don't check events if the Notebook is stopping
+	if metav1.HasAnnotation(nb.ObjectMeta, "kubeflow-resource-stopped") {
+		return status, nil
+	}
+
+	events := &corev1.EventList{}
+	// The events are indexed locally on the controller's cache. We configure the controller manager to
+	// index the involvedObject.kind field of Events, which references the object that each event is about. We then
+	// use a MatchingFieldsSelector filter to fetch only the surfaced Notebook Events (See
+	// https://github.com/kubeflow/kubeflow/issues/3772).
+	opts := []client.ListOption{
+		client.InNamespace(req.NamespacedName.Namespace),
+		client.MatchingFieldsSelector{Selector: fields.OneTermEqualSelector("involvedObject.kind", "Notebook")},
+	}
+	listEventErr := r.List(context.TODO(), events, opts...)
+	if listEventErr != nil && !apierrs.IsNotFound(listEventErr) {
+		log.Error(listEventErr, "unable to list Notebook Events")
+		return status, listEventErr
+	}
+
+	for _, event := range events.Items {
+		if event.Type == "Warning" && req.Name == event.InvolvedObject.Name {
+			log.Info("Found Warning event, updating the status of the notebook CR")
+			status = setConditionFromWarningEvents(status, event)
+		}
+	}
+
+	return status, nil
+}
+
+func setConditionFromWarningEvents(status v1beta1.NotebookStatus, event corev1.Event) v1beta1.NotebookStatus {
+
+	nbConditions := status.Conditions
+	// Create condition from Event
+	condFromEvent := v1beta1.NotebookCondition{
+		Type:               event.Type,
+		Status:             "",
+		LastProbeTime:      event.LastTimestamp,
+		LastTransitionTime: event.LastTimestamp,
+		Reason:             event.Reason,
+		Message:            event.Message,
+	}
+
+	// If conditions are empty just append the condFromEvent.
+	if len(nbConditions) == 0 {
+		nbConditions = append(nbConditions, condFromEvent)
+	} else {
+		// Ensure we don't have duplicate conditions from the same event
+		if !conditionExists(nbConditions, &condFromEvent) {
+			nbConditions = append(nbConditions, condFromEvent)
+		}
+	}
+
+	status.Conditions = nbConditions
+
+	return status
+}
+
+func conditionExists(nbconditions []v1beta1.NotebookCondition, condFromEvent *v1beta1.NotebookCondition) bool {
+	for _, condition := range nbconditions {
+		if condition.Type == condFromEvent.Type && condition.Status == condFromEvent.Status &&
+			condition.Reason == condFromEvent.Reason && condition.Message == condFromEvent.Message {
+			return true
+		}
+	}
+	return false
 }
 
 func setPrefixEnvVar(instance *v1beta1.Notebook, container *corev1.Container) {
@@ -690,6 +773,15 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				Namespace: object.GetNamespace(),
 			}},
 		}
+	}
+
+	// Create an index for the involvedObject.kind field of Events. The controller can then use this index key
+	// to efficiently look up for events related only to Νotebooks.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Event{}, "involvedObject.kind", func(rawObj client.Object) []string {
+		event := rawObj.(*corev1.Event)
+		return []string{event.InvolvedObject.Kind}
+	}); err != nil {
+		return err
 	}
 
 	builder := ctrl.NewControllerManagedBy(mgr).
