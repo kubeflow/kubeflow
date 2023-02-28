@@ -9,19 +9,24 @@
   >
     <mat-toolbar>Menu</mat-toolbar>
     <mat-nav-list>
-      <a data-cy-sidenav-menu-item="Home" mat-list-item routerLink="/">Home</a>
       <a
-        data-cy-sidenav-menu-item="Jupyter"
         mat-list-item
-        routerLink="/_/jupyter/"
-        >Jupyter</a
+        routerLink="/"
+        [routerLinkActive]="['active']"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.data-cy-sidenav-menu-item]="'Home'"
+        >Home</a
       >
       <a
-        data-cy-sidenav-menu-item="Volumes"
         mat-list-item
-        routerLink="/_/volumes/"
-        >Volume</a
+        *ngFor="let link of menuLinks"
+        [routerLink]="getUrlPath(link.link)"
+        [fragment]="getUrlFragment(link.link)"
+        [class.active]="isLinkActive(link.link)"
+        [attr.data-cy-sidenav-menu-item]="link.text"
       >
+        {{ link.text }}
+      </a>
     </mat-nav-list>
 
     <mat-toolbar class="footer">

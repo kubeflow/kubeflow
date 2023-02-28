@@ -52,6 +52,16 @@ declare global {
        * underlying pod request
        */
       notebookPodRequest(): Chainable<void>;
+
+      /**
+       * Custom command that mocks Dashboard links request
+       */
+      mockDashboardLinksRequest(): Chainable<void>;
+
+      /**
+       * Custom command that mocks Env Info request
+       */
+      mockEnvInfoRequest(): Chainable<void>;
     }
   }
 }

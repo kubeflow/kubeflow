@@ -2,6 +2,8 @@ describe('Browser and Iframe URL syncing', () => {
   beforeEach(() => {
     cy.notebooksRequest();
     cy.mockPodDefaultsRequest();
+    cy.mockDashboardLinksRequest();
+    cy.mockEnvInfoRequest();
   });
 
   it('checks the URLs when the user navigates to pages inside the same WA', () => {
@@ -9,7 +11,7 @@ describe('Browser and Iframe URL syncing', () => {
     cy.notebookPodRequest();
     cy.visit('/');
 
-    cy.get('[data-cy-sidenav-menu-item="Jupyter"]')
+    cy.get('[data-cy-sidenav-menu-item="Notebooks"]')
       .should('be.visible')
       .click();
     cy.getIframeBody().find('button').contains('New Notebook').click();
@@ -35,7 +37,7 @@ describe('Browser and Iframe URL syncing', () => {
     cy.notebookPodRequest();
     cy.visit('/');
 
-    cy.get('[data-cy-sidenav-menu-item="Jupyter"]')
+    cy.get('[data-cy-sidenav-menu-item="Notebooks"]')
       .should('be.visible')
       .click();
 
@@ -62,7 +64,7 @@ describe('Browser and Iframe URL syncing', () => {
     cy.notebookPodRequest();
     cy.visit('/');
 
-    cy.get('[data-cy-sidenav-menu-item="Jupyter"]')
+    cy.get('[data-cy-sidenav-menu-item="Notebooks"]')
       .should('be.visible')
       .click();
 

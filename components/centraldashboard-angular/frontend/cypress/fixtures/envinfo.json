@@ -1,0 +1,18 @@
+{
+  "user": "user",
+  "platform": {
+    "provider": "provider:///path/to/provider",
+    "providerName": "aws",
+    "buildLabel": "Build Label",
+    "buildVersion": "Version",
+    "buildId": "Id"
+  },
+  "namespaces": [
+    {
+      "user": "user",
+      "namespace": "kubeflow-user",
+      "role": "owner"
+    }
+  ],
+  "isClusterAdmin": false
+}

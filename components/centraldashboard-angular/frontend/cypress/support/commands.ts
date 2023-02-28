@@ -85,3 +85,15 @@ Cypress.Commands.add('notebookPodRequest', () => {
     '/jupyter/api/namespaces/kubeflow-user/notebooks/test-notebook/pod',
   ).as('notebookPodRequest');
 });
+
+Cypress.Commands.add('mockDashboardLinksRequest', () => {
+  cy.intercept('GET', '/api/dashboard-links', { fixture: 'dashboardlinks' }).as(
+    'mockDashboardLinksRequest',
+  );
+});
+
+Cypress.Commands.add('mockEnvInfoRequest', () => {
+  cy.intercept('GET', '/api/workgroup/env-info', { fixture: 'envinfo' }).as(
+    'mockEnvInfoRequest',
+  );
+});
