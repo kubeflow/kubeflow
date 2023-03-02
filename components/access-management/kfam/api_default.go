@@ -119,7 +119,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	}
 	// check permission before create binding
 	useremail := c.getUserEmail(r.Header)
-	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
+	groups := c.getUserGroups(r.Header)
+	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace, groups) {
 		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix)
 		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
@@ -172,7 +173,8 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 	}
 	// check permission before delete
 	useremail := c.getUserEmail(r.Header)
-	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
+	groups := c.getUserGroups(r.Header)
+	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace, groups) {
 		err := c.bindingClient.Delete(&binding)
 		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
@@ -195,7 +197,8 @@ func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Reques
 	useremail := c.getUserEmail(r.Header)
 	profileName := path.Base(r.RequestURI)
 	// check permission before delete
-	if c.isOwnerOrAdmin(useremail, profileName) {
+	groups := c.getUserGroups(r.Header)
+	if c.isOwnerOrAdmin(useremail, profileName, groups) {
 		err := c.profileClient.Delete(profileName, nil)
 		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
@@ -301,6 +304,10 @@ func (c *KfamV1Alpha1Client) getUserEmail(header http.Header) string {
 	return header.Get(c.userIdHeader)[len(c.userIdPrefix):]
 }
 
+func (c *KfamV1Alpha1Client) getUserGroups(header http.Header) []string {
+	return strings.Split(header.Get(c.groupsHeader), ",")
+}
+
 func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
 	for _, val := range c.clusterAdmin {
 		if val == queryUser {
@@ -310,12 +317,18 @@ func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
 	return false
 }
 
+func (c *KfamV1Alpha1Client) isKubeflowAdmin(queryUser string, groups []string, profileName string) bool {
+	roles, _ := c.bindingClient.List(queryUser, groups, []string{profileName}, roleBindingNameMap["kubeflow-admin"])
+	return len(roles.Bindings) > 0
+}
+
 //isOwnerOrAdmin return true if queryUser is cluster admin or profile owner
-func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string) bool {
+func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string, groups []string) bool {
 	isAdmin := c.isClusterAdmin(queryUser)
+	isKubeflowAdmin := c.isKubeflowAdmin(queryUser, groups, profileName)
 	prof, err := c.profileClient.Get(profileName, metav1.GetOptions{})
 	if err != nil {
 		return false
 	}
-	return isAdmin || (prof.Spec.Owner.Name == queryUser)
+	return isAdmin || (prof.Spec.Owner.Name == queryUser) || (isKubeflowAdmin && c.experimentalGroups)
 }
