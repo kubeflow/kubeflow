@@ -318,8 +318,8 @@ func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
 }
 
 func (c *KfamV1Alpha1Client) isKubeflowAdmin(queryUser string, groups []string, profileName string) bool {
-	roles, _ := c.bindingClient.List(queryUser, groups, []string{profileName}, roleBindingNameMap["kubeflow-admin"])
-	return len(roles.Bindings) > 0
+	roles, err := c.bindingClient.List(queryUser, groups, []string{profileName}, roleBindingNameMap["kubeflow-admin"])
+	return err != nil && len(roles.Bindings) > 0
 }
 
 //isOwnerOrAdmin return true if queryUser is cluster admin or profile owner
