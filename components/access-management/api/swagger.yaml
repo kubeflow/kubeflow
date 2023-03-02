@@ -72,7 +72,7 @@ paths:
       parameters:
       - name: "user"
         in: "query"
-        description: "User name, when not empty, only return bindings of this user"
+        description: "User name, when not empty, only return bindings of this user and its groups."
         required: false
         type: "string"
         x-exportParamName: "User"
@@ -84,6 +84,13 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Namespace"
+        x-optionalDataType: "String"
+      - name: "groups"
+        in: "query"
+        description: "User groups, when not empty, only return bindings of those groups."
+        required: false
+        type: "string"
+        x-exportParamName: "Groups"
         x-optionalDataType: "String"
       - name: "role"
         in: "query"
