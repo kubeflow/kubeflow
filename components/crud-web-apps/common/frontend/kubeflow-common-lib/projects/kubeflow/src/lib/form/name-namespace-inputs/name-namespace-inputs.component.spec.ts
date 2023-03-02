@@ -10,11 +10,13 @@ describe('NameNamespaceInputsComponent', () => {
   let component: NameNamespaceInputsComponent;
   let fixture: ComponentFixture<NameNamespaceInputsComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [FormModule, BrowserAnimationsModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [FormModule, BrowserAnimationsModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(NameNamespaceInputsComponent);

@@ -1,0 +1,36 @@
+.vol-group-container {
+  margin-bottom: 1.4rem;
+}
+
+.vol-group-container:last-of-type {
+  margin-bottom: 0.4rem;
+}
+
+.group-key {
+  margin-bottom: 0.6rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+
+  .icon {
+    cursor: pointer;
+    background: none;
+    border: none;
+    margin-top: 8px;
+    color: grey;
+  }
+}
+
+.popoverCard {
+  max-width: 400px;
+  padding: 4px 12px 4px 4px;
+}
+
+.chip-list-wa .list-chip {
+  min-height: 28px;
+  margin: 4px 4px;
+}
+
+.lib-link {
+  margin-right: 14px;
+}

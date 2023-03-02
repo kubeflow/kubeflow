@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
   NamespaceService,
@@ -9,6 +9,8 @@ import {
   RokService,
   ActionEvent,
   STATUS_TYPE,
+  PollerService,
+  SnackBarConfig,
 } from 'kubeflow';
 import { environment } from '@app/environment';
 import { VWABackendService } from 'src/app/services/backend.service';
@@ -16,13 +18,17 @@ import { IndexDefaultComponent } from '../index-default/index-default.component'
 import { FormRokComponent } from '../../form/form-rok/form-rok.component';
 import { rokConfig } from './config';
 import { PVCProcessedObjectRok, PVCResponseObjectRok } from 'src/app/types';
+import { Router } from '@angular/router';
+import { ActionsService } from 'src/app/services/actions.service';
 
 @Component({
   selector: 'app-index-rok',
   templateUrl: '../index-default/index-default.component.html',
   styleUrls: ['../index-default/index-default.component.scss'],
 })
-export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
+export class IndexRokComponent
+  extends IndexDefaultComponent
+  implements OnInit, OnDestroy {
   config = rokConfig;
 
   constructor(
@@ -32,8 +38,20 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
     public dialog: MatDialog,
     public snackBar: SnackBarService,
     public rok: RokService,
+    public poller: PollerService,
+    public router: Router,
+    public actions: ActionsService,
   ) {
-    super(ns, confirmDialog, backend, dialog, snackBar);
+    super(
+      ns,
+      confirmDialog,
+      backend,
+      dialog,
+      snackBar,
+      poller,
+      router,
+      actions,
+    );
   }
 
   ngOnInit() {
@@ -51,12 +69,15 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
 
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
-        this.snackBar.open(
-          'Volume was submitted successfully.',
-          SnackType.Success,
-          2000,
-        );
-        this.poller.reset();
+        const config: SnackBarConfig = {
+          data: {
+            msg: `Volume was submitted successfully.`,
+            snackType: SnackType.Success,
+          },
+          duration: 2000,
+        };
+        this.snackBar.open(config);
+        this.poll(this.currNamespace);
       }
     });
   }
@@ -80,9 +101,9 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
     this.pvcsWaitingViewer.add(pvc.name);
     pvc.editAction = this.parseViewerActionStatus(pvc);
 
-    this.backend.createViewer(this.currNamespace, pvc.name).subscribe({
+    this.backend.createViewer(pvc.namespace, pvc.name).subscribe({
       next: res => {
-        this.poller.reset();
+        this.poll(pvc.namespace);
       },
       error: err => {
         this.pvcsWaitingViewer.delete(pvc.name);

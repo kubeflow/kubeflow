@@ -177,6 +177,18 @@ body {
   white-space: pre-line;
 }
 
+// Strip button from all default styles
+.reset-button-to-text {
+  background-color: transparent;
+  border-width: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  padding: 0;
+}
+
 /*
  * padding for the page
  */
@@ -220,4 +232,60 @@ body {
 
 .lib-overflow-auto {
   overflow: auto;
+}
+
+.mat-chip {
+  &.mat-chip-blue {
+    background-color: var(--accent-color);
+    color: white;
+
+    .mat-icon {
+      color: white;
+    }
+  }
+}
+
+/*
+* Classes for showing an object's details page in web apps
+*/
+.details-page {
+  .details-page-outer {
+    padding-top: 1.5rem;
+    flex-grow: 1;
+    overflow: auto;
+    padding-left: $page-space-left;
+    padding-right: $page-space-right;
+  }
+
+  .details-page-inner {
+    margin-bottom: 1rem;
+    padding-left: $page-space-left;
+    padding-right: $page-space-right;
+  }
+
+  .details-page-inner-2 {
+    display: flex;
+    align-items: center;
+  }
+
+  .title {
+    font-weight: 500;
+    font-size: 20px;
+  }
+}
+
+// Classes for styling anchor elements
+
+.lib-link {
+  color: $link-color;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lib-link:visited {
+  color: $link-color;
+}
+
+.lib-link:hover {
+  text-decoration: underline;
 }

@@ -25,6 +25,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public tensorboardNames = new Set<string>();
   public pvcNames: string[] = [];
   public storageType = 'object_store';
+  public configurations = [];
 
   constructor(
     public ns: NamespaceService,
@@ -39,6 +40,7 @@ export class FormComponent implements OnInit, OnDestroy {
       objectStoreLink: ['', [Validators.required]],
       pvcName: ['', [Validators.nullValidator]],
       pvcMountPath: ['', [Validators.nullValidator]],
+      configurations: [[], []],
     });
   }
 
@@ -50,7 +52,7 @@ export class FormComponent implements OnInit, OnDestroy {
         this.currNamespace = ns;
         this.formCtrl.controls.namespace.setValue(ns);
 
-        this.backend.getTensorboards(ns).subscribe(tensorboards => {
+        this.backend.getTensorBoards(ns).subscribe(tensorboards => {
           this.tensorboardNames.clear();
           tensorboards.forEach(tensorboard =>
             this.tensorboardNames.add(tensorboard.name),
@@ -105,6 +107,7 @@ export class FormComponent implements OnInit, OnDestroy {
         name: this.formCtrl.get('name').value,
         namespace: this.formCtrl.get('namespace').value,
         logspath,
+        configurations: this.formCtrl.get('configurations').value,
       }),
     );
 

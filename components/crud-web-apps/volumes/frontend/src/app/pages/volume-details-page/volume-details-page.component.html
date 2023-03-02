@@ -1,0 +1,49 @@
+<div class="lib-content-wrapper details-page">
+  <lib-title-actions-toolbar
+    title="Volume details"
+    [buttons]="buttonsConfig"
+    [backButton]="true"
+    (back)="navigateBack()"
+  >
+  </lib-title-actions-toolbar>
+
+  <div class="details-page-outer">
+    <lib-loading-spinner *ngIf="!pvcInfoLoaded"></lib-loading-spinner>
+
+    <ng-container *ngIf="pvcInfoLoaded">
+      <div class="details-page-inner">
+        <div class="details-page-inner-2">
+          <lib-status-icon></lib-status-icon>
+          <lib-status-icon
+            [stateChanging]="false"
+            [status]="status"
+          ></lib-status-icon>
+
+          <div class="title">{{ name }}</div>
+        </div>
+      </div>
+      <mat-tab-group
+        dynamicHeight
+        animationDuration="0ms"
+        (selectedTabChange)="onTabChange($event)"
+        [selectedIndex]="selectedTab.index"
+      >
+        <mat-tab label="OVERVIEW">
+          <app-overview [pvc]="pvc"></app-overview>
+        </mat-tab>
+
+        <mat-tab label="EVENTS">
+          <ng-template matTabContent>
+            <app-events [pvc]="pvc"></app-events>
+          </ng-template>
+        </mat-tab>
+
+        <mat-tab label="YAML">
+          <ng-template matTabContent>
+            <app-yaml [pvcInfoLoaded]="pvcInfoLoaded" [pvc]="pvc"></app-yaml>
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>
+    </ng-container>
+  </div>
+</div>

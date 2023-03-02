@@ -1,0 +1,31 @@
+{
+  "/api": "http://localhost:8082",
+  "/dashboard_lib.bundle.js": "http://localhost:4200/assets/",
+  "/jupyter/*": {
+    "target": "http://localhost:8085",
+    "pathRewrite": { "^/jupyter": "" },
+    "headers": {
+      "kubeflow-userid": "user"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/pipeline/*": {
+    "target": "http://localhost:8086",
+    "pathRewrite": { "^/pipeline": "" },
+    "headers": {
+      "kubeflow-userid": "user"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/volumes/*": {
+    "target": "http://localhost:8087",
+    "pathRewrite": { "^/volumes": "" },
+    "headers": {
+      "kubeflow-userid": "user"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  }
+}

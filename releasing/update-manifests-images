@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
-import logging
 import argparse
-import ruamel.yaml
+import logging
+import sys
 
+import ruamel.yaml
 
 log = logging.getLogger(__name__)
 
@@ -53,8 +53,8 @@ apps = [
         "kustomization": "components/admission-webhook/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/admission-webhook",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/admission-webhook",
+                "name": "docker.io/kubeflownotebookswg/poddefaults-webhook",
+                "newName": "docker.io/kubeflownotebookswg/poddefaults-webhook",
             },
         ],
     },
@@ -63,8 +63,8 @@ apps = [
         "kustomization": "components/centraldashboard/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/central-dashboard",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/central-dashboard",
+                "name": "docker.io/kubeflownotebookswg/centraldashboard",
+                "newName": "docker.io/kubeflownotebookswg/centraldashboard",
             },
         ],
     },
@@ -73,8 +73,9 @@ apps = [
         "kustomization": "components/crud-web-apps/jupyter/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app",
+                "name": "docker.io/kubeflownotebookswg/jupyter-web-app",
+                "newName": "docker.io/kubeflownotebookswg/jupyter-web-app",
+
             },
         ],
     },
@@ -83,8 +84,8 @@ apps = [
         "kustomization": "components/crud-web-apps/tensorboards/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/tensorboards-web-app",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/tensorboards-web-app",
+                "name": "docker.io/kubeflownotebookswg/tensorboards-web-app",
+                "newName": "docker.io/kubeflownotebookswg/tensorboards-web-app",
             },
         ],
     },
@@ -93,8 +94,8 @@ apps = [
         "kustomization": "components/crud-web-apps/volumes/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/volumes-web-app",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/volumes-web-app",
+                "name": "docker.io/kubeflownotebookswg/volumes-web-app",
+                "newName": "docker.io/kubeflownotebookswg/volumes-web-app",
             },
         ],
     },
@@ -103,8 +104,8 @@ apps = [
         "kustomization": "components/notebook-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/notebook-controller",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/notebook-controller",
+                "name": "docker.io/kubeflownotebookswg/notebook-controller",
+                "newName": "docker.io/kubeflownotebookswg/notebook-controller",
             },
         ],
     },
@@ -113,8 +114,8 @@ apps = [
         "kustomization": "components/tensorboard-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller",
+                "name": "docker.io/kubeflownotebookswg/tensorboard-controller",
+                "newName": "docker.io/kubeflownotebookswg/tensorboard-controller",
             },
         ],
     },
@@ -123,8 +124,8 @@ apps = [
         "kustomization": "components/profile-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/profile-controller",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/profile-controller",
+                "name": "docker.io/kubeflownotebookswg/profile-controller",
+                "newName": "docker.io/kubeflownotebookswg/profile-controller",
             },
         ],
     },
@@ -133,8 +134,8 @@ apps = [
         "kustomization": "components/profile-controller/config/overlays/kubeflow/kustomization.yaml",
         "images": [
             {
-                "name": "public.ecr.aws/j1r0q0g6/notebooks/access-management",
-                "newName": "public.ecr.aws/j1r0q0g6/notebooks/access-management",
+                "name": "docker.io/kubeflownotebookswg/kfam",
+                "newName": "docker.io/kubeflownotebookswg/kfam",
             },
         ],
     },
@@ -170,9 +171,11 @@ def update_manifests_images(apps, tag):
     with open(JWA_SPAWNER_CONFIG, "r") as f:
         jwa_config = yaml.load(f)
     for nb_type in ["image", "imageGroupTwo", "imageGroupOne"]:
-        jwa_config["spawnerFormDefaults"][nb_type]["value"] = change_image_tag(jwa_config["spawnerFormDefaults"][nb_type]["value"], tag)
+        jwa_config["spawnerFormDefaults"][nb_type]["value"] = change_image_tag(
+            jwa_config["spawnerFormDefaults"][nb_type]["value"], tag)
         for i in range(len(jwa_config["spawnerFormDefaults"][nb_type]["options"])):
-            jwa_config["spawnerFormDefaults"][nb_type]["options"][i] = change_image_tag(jwa_config["spawnerFormDefaults"][nb_type]["options"][i], tag)
+            jwa_config["spawnerFormDefaults"][nb_type]["options"][i] = change_image_tag(
+                jwa_config["spawnerFormDefaults"][nb_type]["options"][i], tag)
     with open(JWA_SPAWNER_CONFIG, "w") as f:
         yaml.dump(jwa_config, f)
 
@@ -180,7 +183,8 @@ def update_manifests_images(apps, tag):
 def change_image_tag(img, newTag):
     parts = img.split(":")
     if len(parts) != 2:
-        raise RuntimeError("Image `%s` doesn't have expected format <img>:<tag>")
+        raise RuntimeError(
+            "Image `%s` doesn't have expected format <img>:<tag>")
     return parts[0] + ":" + newTag
 
 

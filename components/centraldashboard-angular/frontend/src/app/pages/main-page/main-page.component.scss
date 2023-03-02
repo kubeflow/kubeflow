@@ -1,0 +1,53 @@
+.sidenav-container {
+  height: 100%;
+}
+
+.sidenav {
+  width: 200px;
+}
+
+.sidenav .mat-toolbar {
+  background: inherit;
+}
+
+.main-page-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.menu-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 200px;
+}
+
+.footer-text {
+  height: auto;
+  background-color: white;
+  border-right: solid 1px rgba(0, 0, 0, 0.12);
+  white-space: normal;
+  word-break: break-all;
+
+  .buildId {
+    display: none;
+  }
+
+  &:hover .buildVersion {
+    display: none;
+  }
+
+  &:hover .buildId {
+    display: inline;
+  }
+}
+
+.active {
+  background-color: #ececec;
+}

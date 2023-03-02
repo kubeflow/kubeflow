@@ -1,0 +1,26 @@
+:host {
+  display: block;
+}
+
+.list-entry-row {
+  padding: 0.4rem 0;
+  display: flex;
+}
+
+.list-entry-key {
+  font-weight: 500;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  color: rgba(0, 0, 0, 0.66);
+}
+
+.vertical-align {
+  margin-bottom: auto;
+}
+
+.mat-divider {
+  margin: 4px 0;
+}

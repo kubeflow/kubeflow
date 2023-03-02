@@ -1,0 +1,9 @@
+<lib-heading-row [heading]="[heading]" [subHeading]="[subHeading]">
+</lib-heading-row>
+
+<cdk-virtual-scroll-viewport itemSize="18" class="logs-viewer">
+  <div *cdkVirtualFor="let entry of logs; let index = index" class="log-entry">
+    <span class="number">{{ index }}</span>
+    {{ entry }}
+  </div>
+</cdk-virtual-scroll-viewport>

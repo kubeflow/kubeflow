@@ -1,17 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Location } from '@angular/common';
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
+import { throwError, Observable, of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { BackendResponse } from './types';
 import { SnackType } from '../../snack-bar/types';
 import { SnackBarService } from '../../snack-bar/snack-bar.service';
+import { SnackBarConfig } from '../../snack-bar/types';
 
 @Injectable({
   providedIn: 'root',
@@ -63,6 +59,50 @@ export class BackendService {
       catchError(error => this.handleError(error, showSnackBar)),
       map((data: BackendResponse) => data.defaultStorageClass),
     );
+  }
+
+  public getObjectsAllNamespaces<T>(
+    obsFn: (ns: string) => Observable<T[]>,
+    ns: string | string[],
+  ): Observable<T[]> {
+    if (!ns) {
+      return of([]);
+    }
+
+    if (!Array.isArray(ns)) {
+      return obsFn(ns);
+    }
+
+    // make a request for each namespace and gather all Notebooks
+    const requests: Observable<T[]>[] = [];
+    for (const namespace of ns) {
+      requests.push(obsFn(namespace));
+    }
+
+    // wait until all requests complete
+    return forkJoin(requests).pipe(
+      map((objects: T[][]) => {
+        const all = objects.flat();
+        all.sort(this.sortCompareFn);
+
+        return all;
+      }),
+    );
+  }
+
+  private sortCompareFn(a: any, b: any): number {
+    const name1 = a.name || a.metadata.name;
+    const name2 = b.name || b.metadata.name;
+
+    if (name1 > name2) {
+      return 1;
+    }
+
+    if (name1 < name2) {
+      return -1;
+    }
+
+    return 0;
   }
 
   // ---------------------------Error Handling---------------------------------
@@ -130,12 +170,18 @@ export class BackendService {
   public handleError(
     error: HttpErrorResponse | ErrorEvent | string,
     showSnackBar = true,
-  ) {
+  ): Observable<never> {
     // The backend returned an unsuccessful response code.
     // The response body may contain clues as to what went wrong,
     console.error(error);
+    const config: SnackBarConfig = {
+      data: {
+        msg: this.getSnackErrorMessage(error),
+        snackType: SnackType.Error,
+      },
+    };
     if (showSnackBar) {
-      this.snackBar.open(this.getSnackErrorMessage(error), SnackType.Error);
+      this.snackBar.open(config);
     }
 
     return throwError(this.getErrorMessage(error));

@@ -16,6 +16,7 @@ const tableConfig: TableConfig = {
       matColumnDef: 'status',
       style: { width: '1%' },
       value: new StatusValue(),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Name`,
@@ -26,15 +27,17 @@ const tableConfig: TableConfig = {
         tooltipField: 'name',
         truncate: true,
       }),
+      sort: true,
     },
     {
-      matHeaderCellDef: $localize`Age`,
+      matHeaderCellDef: $localize`Created at`,
       matColumnDef: 'age',
       style: { width: '15%' },
       textAlignment: 'right',
       value: new DateTimeValue({
         field: 'age',
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Logspath`,
@@ -45,6 +48,7 @@ const tableConfig: TableConfig = {
         tooltipField: 'logspath',
         truncate: true,
       }),
+      sort: true,
     },
   ],
 };
@@ -70,8 +74,9 @@ const actionsCol: TableColumn = {
   ]),
 };
 
-export const defaultConfig = {
+export const defaultConfig: TableConfig = {
   title: tableConfig.title,
+  dynamicNamespaceColumn: true,
   newButtonText: tableConfig.newButtonText,
   columns: tableConfig.columns.concat(actionsCol),
 };

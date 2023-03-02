@@ -1,4 +1,69 @@
-<table mat-table [dataSource]="dataSource" [trackBy]="trackByFn" class="wide">
+<mat-form-field class="example-chip-list" appearance="none">
+  <mat-chip-list #chipList>
+    <mat-icon matPrefix class="filter-icon">filter_list</mat-icon>
+    <span class="filter-header">Filter</span>
+    <mat-chip
+      *ngFor="let chip of chips"
+      (removed)="remove(chip)"
+      class="mat-chip-blue"
+    >
+      {{ chip }}
+      <button matChipRemove>
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip>
+    <input
+      id="filterInput"
+      placeholder="Enter property name or value"
+      #chipInput
+      (keydown.escape)="blurInput(chipInput)"
+      [formControl]="chipCtrl"
+      [matAutocomplete]="auto"
+      [matChipInputFor]="chipList"
+      (matChipInputTokenEnd)="add($event)"
+    />
+  </mat-chip-list>
+  <button
+    mat-button
+    *ngIf="chipCtrl.value || isClear"
+    matSuffix
+    mat-icon-button
+    matTooltip="Clear filters"
+    aria-label="Clear"
+    (click)="clear(); blurInput(chipInput)"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+  <button
+    mat-button
+    matSuffix
+    mat-icon-button
+    aria-label="Help"
+    (click)="$event.stopPropagation()"
+  >
+    <lib-help-popover [showStatus]="showStatus" [showDate]="showDate">
+    </lib-help-popover>
+  </button>
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    panelWidth="270px"
+    (optionSelected)="selected($event)"
+  >
+    <mat-option *ngFor="let header of filteredHeaders" [value]="header.title">
+      {{ header.title }}
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
+
+<mat-divider></mat-divider>
+
+<table
+  mat-table
+  [dataSource]="dataSource"
+  matSort
+  [trackBy]="trackByFn"
+  class="wide"
+>
   <ng-container
     [matColumnDef]="col.matColumnDef"
     *ngFor="let col of config?.columns"
@@ -6,7 +71,11 @@
     <th
       mat-header-cell
       *matHeaderCellDef
+      mat-sort-header
+      [arrowPosition]="col.textAlignment === 'right' ? 'before' : 'after'"
+      [disabled]="!col.sort"
       data-cy-resource-table-row
+      [attr.data-cy-table-header-row]="col.matHeaderCellDef"
       [ngClass]="{
         grey: tableTheme === TABLE_THEME.FLAT,
         'right-align': col.textAlignment === 'right',
@@ -21,7 +90,7 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
         [ngClass]="{
           'right-align': col.textAlignment === 'right',
@@ -34,10 +103,71 @@
           matTooltipClass="custom-tooltip"
           [ngStyle]="col.value.style"
           [ngClass]="col.value.getClasses()"
-          (click)="linkClicked(col.matColumnDef, element)"
+          (click)="linkClicked(col.matColumnDef, element, $event)"
         >
           {{ col.value.getValue(element) }}
         </div>
+      </td>
+    </ng-container>
+
+    <!--Link Value-->
+    <ng-container
+      *ngIf="isLinkValue(col.value)"
+      [ngSwitch]="col.value.linkType"
+    >
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
+        [ngStyle]="col.style"
+        [ngClass]="{
+          'right-align': col.textAlignment === 'right',
+          'mat-cell-truncate': col.value.truncate
+        }"
+      >
+        <a
+          *ngSwitchCase="LinkType.External"
+          [matTooltip]="col.value.getTooltip(element)"
+          [libPopover]="col.value.getPopover(element)"
+          matTooltipClass="custom-tooltip"
+          [ngStyle]="col.value.style"
+          [ngClass]="col.value.getClasses()"
+          [href]="col.value.getUrl(element)"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="linkClicked(col.matColumnDef, element, $event)"
+        >
+          {{ col.value.getValue(element) }}
+        </a>
+
+        <a
+          *ngSwitchCase="LinkType.Internal"
+          [matTooltip]="col.value.getTooltip(element)"
+          [libPopover]="col.value.getPopover(element)"
+          matTooltipClass="custom-tooltip"
+          [ngStyle]="col.value.style"
+          [ngClass]="col.value.getClasses()"
+          [routerLink]="col.value.getUrl(element)"
+          [queryParams]="col.value.getQueryParams(element)"
+          queryParamsHandling="merge"
+        >
+          <span (click)="linkClicked(col.matColumnDef, element, $event)">{{
+            col.value.getValue(element)
+          }}</span>
+        </a>
+      </td>
+    </ng-container>
+
+    <!--Memory Value-->
+    <ng-container *ngIf="isMemoryValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
+        [ngStyle]="col.style"
+        [ngClass]="{ 'right-align': col.textAlignment === 'right' }"
+      >
+        {{ col.value.getViewValue(element) }}
       </td>
     </ng-container>
 
@@ -46,7 +176,7 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
       >
         <lib-status [row]="element" [config]="col.value"></lib-status>
@@ -58,7 +188,8 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-timestamp]="col.value.getValue(element)"
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
         [ngClass]="{ 'right-align': col.textAlignment === 'right' }"
       >
@@ -71,13 +202,14 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
         [ngClass]="{ 'right-align': col.textAlignment === 'right' }"
       >
         <lib-component-value
           [element]="element"
           [valueDescriptor]="col.value"
+          (emitter)="actionTriggered($event)"
         ></lib-component-value>
       </td>
     </ng-container>
@@ -87,7 +219,7 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
         [ngClass]="{
           'right-align': col.textAlignment === 'right',
@@ -106,7 +238,7 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
       >
         <lib-table-chips-list
@@ -121,7 +253,7 @@
       <td
         mat-cell
         *matCellDef="let element"
-        data-cy-resource-table-row
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
         [ngStyle]="col.style"
       >
         <button mat-icon-button [matMenuTriggerFor]="menu">
@@ -144,27 +276,31 @@
 
     <!--Action List Value-->
     <ng-container *ngIf="isActionListValue(col.value)">
-      <td mat-cell *matCellDef="let element" data-cy-resource-table-row>
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.data-cy-resource-table-row]="col.matColumnDef"
+      >
         <div class="action-list">
           <ng-container *ngFor="let action of col.value.actions">
             <!--Button-->
             <lib-action-button
               *ngIf="isActionButtonValue(action)"
-              data-cy-resource-table-action-button
               class="action-button"
               [action]="action"
               [data]="element"
               (emitter)="actionTriggered($event)"
+              [attr.data-cy-resource-table-action-button]="action?.name"
             ></lib-action-button>
 
             <!--Icon-->
             <lib-action
               *ngIf="isActionIconValue(action)"
-              data-cy-resource-table-action-icon
               class="action-button"
               [action]="action"
               [data]="element"
               (emitter)="actionTriggered($event)"
+              [attr.data-cy-resource-table-action-icon]="action?.name"
             ></lib-action>
           </ng-container>
         </div>
@@ -173,7 +309,20 @@
   </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; let i = index; columns: displayedColumns"
+    [ngClass]="highlightRow(row, highlightedRow)"
+  >
+    {{
+      row
+    }}
+  </tr>
+
+  <!-- Row shown when there is no matching data. -->
+  <tr class="mat-row" *matNoDataRow>
+    <td class="mat-cell" colspan="12">No rows to display</td>
+  </tr>
 </table>
 
 <mat-paginator

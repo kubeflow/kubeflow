@@ -1,0 +1,59 @@
+{
+  "poddefaults": [
+    {
+      "apiVersion": "kubeflow.org/v1alpha1",
+      "desc": "Allow access to Kubeflow Pipelines",
+      "kind": "PodDefault",
+      "label": "access-ml-pipeline",
+      "metadata": {
+        "creationTimestamp": "2022-04-12T10:19:29Z",
+        "generation": 1,
+        "name": "access-ml-pipeline",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "60754922",
+        "selfLink": "/apis/kubeflow.org/v1alpha1/namespaces/kubeflow-user/poddefaults/access-ml-pipeline",
+        "uid": "6ec1727b-7599-4100-afae-b6ff57a56bf8"
+      },
+      "spec": {
+        "desc": "Allow access to Kubeflow Pipelines",
+        "env": [
+          {
+            "name": "KF_PIPELINES_SA_TOKEN_PATH",
+            "value": "/var/run/secrets/kubeflow/pipelines/token"
+          }
+        ],
+        "selector": {
+          "matchLabels": {
+            "access-ml-pipeline": "true"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/var/run/secrets/kubeflow/pipelines",
+            "name": "volume-ml-pipeline-token",
+            "readOnly": true
+          }
+        ],
+        "volumes": [
+          {
+            "name": "volume-ml-pipeline-token",
+            "projected": {
+              "sources": [
+                {
+                  "serviceAccountToken": {
+                    "audience": "pipelines.kubeflow.org",
+                    "expirationSeconds": 99999,
+                    "path": "token"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "status": 200,
+  "success": true,
+  "user": null
+}

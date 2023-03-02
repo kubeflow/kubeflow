@@ -28,6 +28,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	nbv1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1"
@@ -59,6 +60,7 @@ func main() {
 	var probeAddr string
 	var Burst int
 	var QPS int
+	var log = logf.Log.WithName("main")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "probe-addr", ":8081", "The address the health endpoint binds to.")
 	flag.StringVar(&leaderElectionNamespace, "leader-election-namespace", "",
@@ -103,6 +105,20 @@ func main() {
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Notebook")
 		os.Exit(1)
+	} //+kubebuilder:scaffold:builder
+
+	if controllers.GetEnvDefault("ENABLE_CULLING", controllers.DEFAULT_ENABLE_CULLING) == "true" {
+		if err = (&controllers.CullingReconciler{
+			Client: mgr.GetClient(),
+			Log:    ctrl.Log.WithName("controllers").WithName("Culler"),
+			Scheme: mgr.GetScheme(),
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Culler")
+			os.Exit(1)
+		} //+kubebuilder:scaffold:builder
+	} else {
+		log.Info("Culling of idle Pods is Disabled. To enable it set the " +
+			"ENV Var 'ENABLE_CULLING=true'")
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

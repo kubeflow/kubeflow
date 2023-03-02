@@ -196,23 +196,29 @@ module.exports = {
         proxy: {
             '/api': 'http://localhost:8082',
             '/jupyter': {
-                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/jupyter-web-app-service:80/proxy',
+                target: 'http://localhost:8085',
                 pathRewrite: {'^/jupyter': ''},
+                headers: {
+                    'kubeflow-userid': 'user',
+                },
             },
-            '/metadata': {
-                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/metadata-ui:80/proxy',
-                pathRewrite: {'^/metadata': ''},
-            },
+            // Requests at /notebook currently fail with a 504 error 
             '/notebook': {
-                target: 'http://localhost:8083/api/v1/namespaces/',
+                target: 'http://localhost:8086',
                 pathRewrite: {
                     '^/notebook/(.*?)/(.*?)/(.*)':
                         '/$1/services/$2/proxy/notebook/$1/$2/$3',
                 },
+                headers: {
+                    'kubeflow-userid': 'user',
+                },
             },
             '/pipeline': {
-                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/ml-pipeline-ui:80/proxy',
+                target: 'http://localhost:8087',
                 pathRewrite: {'^/pipeline': ''},
+                headers: {
+                    'kubeflow-userid': 'user',
+                },
             },
         },
         historyApiFallback: {

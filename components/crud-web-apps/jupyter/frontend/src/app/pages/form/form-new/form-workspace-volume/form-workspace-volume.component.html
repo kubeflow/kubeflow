@@ -1,0 +1,110 @@
+<lib-form-section
+  title="Workspace Volume"
+  i18n-title
+  text="Volume that will be mounted in your home directory."
+  i18n-text
+>
+  <mat-accordion>
+    <mat-expansion-panel
+      hideToggle
+      *ngIf="!volGroup.disabled"
+      (opened)="panelOpen = true"
+      (closed)="panelOpen = false"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          {{ getVolumeTitle(volGroup.value) }}
+        </mat-panel-title>
+
+        <mat-panel-description>
+          <ng-container *ngIf="volGroup.get('newPvc')">
+            <div
+              class="pvc-name truncate"
+              [matTooltip]="getVolumeName(volGroup.value)"
+            >
+              {{ getVolumeName(volGroup.value) }},
+            </div>
+            <div class="pvc-type">{{ getNewVolumeType(volGroup.value) }},</div>
+            <div>{{ getNewVolumeSize(volGroup.value) }}</div>
+          </ng-container>
+
+          <ng-container *ngIf="volGroup.get('existingSource')">
+            <div
+              class="vol-name truncate"
+              [matTooltip]="getVolumeName(volGroup.value)"
+            >
+              {{ getVolumeName(volGroup.value) }}
+            </div>
+          </ng-container>
+
+          <div class="icons">
+            <mat-icon
+              *ngIf="!readonly"
+              (click)="onDelete($event)"
+              matTooltip="Delete volume"
+              i18n-matTooltip
+              class="delete-icon"
+            >
+              delete
+            </mat-icon>
+
+            <mat-icon
+              *ngIf="!panelOpen"
+              matTooltip="Show volume details"
+              i18n-matTooltip
+            >
+              expand_more
+            </mat-icon>
+
+            <mat-icon
+              *ngIf="panelOpen"
+              matTooltip="Hide volume details"
+              i18n-matTooltip
+            >
+              expand_less
+            </mat-icon>
+          </div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div [class.readonly]="readonly">
+        <app-existing-volume
+          *ngIf="volGroup.get('existingSource')"
+          [volGroup]="volGroup"
+        ></app-existing-volume>
+
+        <app-new-volume
+          *ngIf="volGroup.get('newPvc')"
+          [volGroup]="volGroup"
+          [externalName]="externalName"
+        ></app-new-volume>
+
+        <app-volume-mount [volGroup]="volGroup"></app-volume-mount>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <div class="volume-buttons">
+    <button
+      *ngIf="volGroup.disabled || readonly"
+      type="button"
+      color="primary"
+      (click)="addNewVolume()"
+      mat-stroked-button
+      i18n
+    >
+      + Add new volume
+    </button>
+
+    <button
+      *ngIf="volGroup.disabled || readonly"
+      type="button"
+      color="primary"
+      (click)="attachExistingVolume()"
+      mat-stroked-button
+      i18n
+    >
+      + Attach existing volume
+    </button>
+  </div>
+</lib-form-section>

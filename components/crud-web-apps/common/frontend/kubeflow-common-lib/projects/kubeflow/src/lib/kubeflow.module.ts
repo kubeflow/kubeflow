@@ -20,6 +20,9 @@ import { DateTimeModule } from './date-time/date-time.module';
 import { PanelModule } from './panel/panel.module';
 import { LoadingSpinnerModule } from './loading-spinner/loading-spinner.module';
 import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
+import { EditorModule } from './editor/editor.module';
+import { HelpPopoverModule } from './help-popover/help-popover.module';
+import { StatusIconModule } from './status-icon/status-icon.module';
 
 @NgModule({
   declarations: [],
@@ -38,6 +41,9 @@ import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
     DateTimeModule,
     PanelModule,
     LoadingSpinnerModule,
+    EditorModule,
+    HelpPopoverModule,
+    StatusIconModule,
   ],
   imports: [CommonModule, HttpClientModule, HttpClientXsrfModule],
   providers: [
