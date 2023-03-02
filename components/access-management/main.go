@@ -33,20 +33,38 @@ const USERIDPREFIX = "userid-prefix"
 // set cluster admin user id here.
 const CLUSTERADMIN = "cluster-admin"
 
+// By default, kfam will ignore role binding on Group subject.
+// set this to use groups.
+const EXPERIMENTALGROUPS = "experimental-groups"
+
+// kfam API will use the following header for rbac permissions
+const GROUPSHEADER = "groups-header"
+
 func main() {
 	log.Printf("Server started")
 	var userIdHeader string
 	var userIdPrefix string
 	var clusterAdmin string
+	var experimentalGroupsSupport bool
+	var groupsHeader string
+
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
 	flag.StringVar(&clusterAdmin, CLUSTERADMIN, "", "cluster admin")
+	flag.BoolVar(&experimentalGroupsSupport, EXPERIMENTALGROUPS, false, "")
+	flag.StringVar(&groupsHeader, GROUPSHEADER, "", "Key of request header containing user groups")
+
 	flag.Parse()
 
 	profile.AddToScheme(scheme.Scheme)
 	istioSecurityClient.AddToScheme(scheme.Scheme)
 
-	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin)
+	profileClient, err := kfam.NewKfamClient(
+		userIdHeader,
+		userIdPrefix,
+		clusterAdmin,
+		experimentalGroupsSupport,
+		groupsHeader)
 	if err != nil {
 		log.Print(err)
 		panic(err)
@@ -54,5 +72,8 @@ func main() {
 
 	router := kfam.NewRouter(profileClient)
 
+	if experimentalGroupsSupport {
+		log.Info("Experimental groups support is activated.")
+	}
 	log.Fatal(http.ListenAndServe(":8081", router))
 }

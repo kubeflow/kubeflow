@@ -34,6 +34,7 @@ import (
 const AuthorizationPolicy = "authorizationpolicies"
 const USER = "user"
 const ROLE = "role"
+const GROUP = "group"
 
 //roleBindingNameMap maps frontend role names to k8s role names and vice-versa
 var roleBindingNameMap = map[string]string{
@@ -48,7 +49,7 @@ var roleBindingNameMap = map[string]string{
 type BindingInterface interface {
 	Create(binding *Binding, userIdHeader string, userIdPrefix string) error
 	Delete(binding *Binding) error
-	List(user string, namespaces []string, role string) (*BindingEntries, error)
+	List(user string, groups []string, namespaces []string, role string) (*BindingEntries, error)
 }
 
 type BindingClient struct {
@@ -176,7 +177,7 @@ func (c *BindingClient) Delete(binding *Binding) error {
 		Error()
 }
 
-func (c *BindingClient) List(user string, namespaces []string, role string) (*BindingEntries, error) {
+func (c *BindingClient) List(user string, groups []string, namespaces []string, role string) (*BindingEntries, error) {
 	bindings := []Binding{}
 	for _, ns := range namespaces {
 		roleBindings, err := c.roleBindingLister.RoleBindings(ns).List(labels.Everything())
@@ -184,11 +185,16 @@ func (c *BindingClient) List(user string, namespaces []string, role string) (*Bi
 			return nil, err
 		}
 		for _, roleBinding := range roleBindings {
-			userVal, ok := roleBinding.Annotations[USER]
-			if !ok {
+			userVal, userOk := roleBinding.Annotations[USER]
+			groupVal, groupOk := roleBinding.Annotations[GROUP]
+
+			if !userOk && !groupOk {
 				continue
 			}
-			if user != "" && user != userVal {
+			if user != "" && user != userVal && len(groups) == 0 {
+				continue
+			}
+			if len(groups) > 0 && !contains(groups, groupVal) {
 				continue
 			}
 			roleVal, ok := roleBinding.Annotations[ROLE]
