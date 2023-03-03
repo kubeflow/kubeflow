@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -15,6 +15,7 @@ import {
   MAT_SNACK_BAR_DEFAULT_OPTIONS,
 } from '@angular/material/snack-bar';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
+import { SvgIconsService } from './services/svg-icons.service';
 
 /**
  * MAT_SNACK_BAR_DEFAULT_OPTIONS values can be found
@@ -43,6 +44,12 @@ const CdbSnackBarConfig: MatSnackBarConfig = {
     SnackBarModule,
   ],
   providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (sis: SvgIconsService) => () => sis.init(),
+      deps: [SvgIconsService],
+      multi: true,
+    },
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: CdbSnackBarConfig },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
   ],
