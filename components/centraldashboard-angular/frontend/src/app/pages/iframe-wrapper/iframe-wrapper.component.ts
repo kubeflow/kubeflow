@@ -11,6 +11,7 @@ import {
   equalUrlPaths,
   appendBackslash,
   removePrefixFrom,
+  getQueryParams,
 } from 'src/app/shared/utils';
 
 @Component({
@@ -101,7 +102,8 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
       if (currentUrl !== this.iframeLocation) {
         this.iframeLocation = currentUrl;
         const path = iframeWindow?.location.pathname;
-        const queryParams = this.getQueryParams(iframeWindow?.location.search);
+        let queryParams = getQueryParams(iframeWindow?.location.search);
+
         /**
          * Contrary to comparing URLs, here we prefer an undefined string instead
          * of an empty one, because Angular's router will ignore an undefined
@@ -114,16 +116,6 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
     }, 100);
   }
 
-  getQueryParams(locationSearch: string | undefined): {
-    [key: string]: string;
-  } {
-    const searchParams = new URLSearchParams(locationSearch);
-    const queryParams: { [key: string]: string } = {};
-    searchParams.forEach((value, key) => {
-      queryParams[key] = value;
-    });
-    return queryParams;
-  }
 
   ngOnDestroy() {
     if (this.urlSub) {

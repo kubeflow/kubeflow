@@ -37,6 +37,22 @@ export function removePrefixFrom(url: string) {
   return url.includes('/_') ? url.slice(2) : url;
 }
 
+/*
+ * Accepts a string with all the query parameters of the URL
+ * and returns them in the form
+ * of a dictionary
+ */
+export function getQueryParams(locationSearch: string | undefined): {
+  [key: string]: string;
+} {
+  const searchParams = new URLSearchParams(locationSearch);
+  const queryParams: { [key: string]: string } = {};
+  searchParams.forEach((value, key) => {
+    queryParams[key] = value;
+  });
+  return queryParams;
+}
+
 export function getUrlFragment(url: string): string {
   const fragment = url.split('#')[1];
   return fragment;
