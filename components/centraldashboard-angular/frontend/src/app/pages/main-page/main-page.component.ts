@@ -1,10 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { DashboardLinks, Link, MenuLink } from 'src/app/types/dashboard-links';
-import { Router } from '@angular/router';
+import { Params, Router } from '@angular/router';
 import {
   appendBackslash,
   getUrlFragment,
@@ -12,6 +12,8 @@ import {
 } from 'src/app/shared/utils';
 import { EnvironmentService } from 'src/app/services/environment.service';
 import { PlatformInfo } from 'src/app/types/platform-info';
+import { CDBNamespaceService } from 'src/app/services/namespace.service';
+import { Namespace } from 'src/app/types/namespace';
 
 @Component({
   selector: 'app-main-page',
@@ -39,11 +41,13 @@ export class MainPageComponent implements OnInit {
   public externalLinks: any[];
   public quickLinks: Link[];
   public documentationItems: Link[];
+  public currentNamespace: string;
 
   constructor(
     private breakpointObserver: BreakpointObserver,
     private router: Router,
     private env: EnvironmentService,
+    private ns: CDBNamespaceService,
   ) {}
 
   ngOnInit() {
@@ -53,6 +57,10 @@ export class MainPageComponent implements OnInit {
 
     this.env.dashboardLinks.subscribe((links: DashboardLinks) => {
       this.storeDashboardLinks(links);
+    });
+
+    this.ns.currentNamespace.subscribe((namespace: Namespace) => {
+      this.currentNamespace = namespace.namespace;
     });
   }
 
@@ -93,9 +101,19 @@ export class MainPageComponent implements OnInit {
 
   isLinkActive(url: string): boolean {
     let browserUrl = this.router.url;
-    browserUrl = appendBackslash(browserUrl);
     browserUrl = removePrefixFrom(browserUrl);
+    const browserUrlObject = new URL(browserUrl, window.location.origin);
+    browserUrl = browserUrlObject.pathname + browserUrlObject.hash;
+    browserUrl = appendBackslash(browserUrl);
     url = appendBackslash(url);
     return browserUrl.startsWith(url);
+  }
+
+  public getNamespaceParams(ns: string): Params | null {
+    let params: Params = {};
+    if (ns) {
+      params['ns'] = ns;
+    }
+    return params;
   }
 }

@@ -12,6 +12,7 @@
       <a
         mat-list-item
         routerLink="/"
+        [queryParams]="getNamespaceParams(currentNamespace)"
         [routerLinkActive]="['active']"
         [routerLinkActiveOptions]="{ exact: true }"
         [attr.data-cy-sidenav-menu-item]="'Home'"
@@ -22,6 +23,7 @@
         *ngFor="let link of menuLinks"
         [routerLink]="getUrlPathWithPrefix(link.link)"
         [fragment]="getUrlFragment(link.link)"
+        [queryParams]="getNamespaceParams(currentNamespace)"
         [class.active]="isLinkActive(link.link)"
         [attr.data-cy-sidenav-menu-item]="link.text"
       >
