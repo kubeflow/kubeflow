@@ -99,7 +99,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')
-                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
+                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', multi-owned-namespaces='[[multiOwnedNamespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
+                    //- manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
                     iframe-container(namespace='[[namespace]]',
                         src='[[iframeSrc]]', page="{{iframePage}}"
