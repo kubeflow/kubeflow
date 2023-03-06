@@ -88,9 +88,16 @@ export class MainPageComponent implements OnInit {
     this.documentationItems = documentationItems || [];
   }
 
-  getUrlPathWithPrefix(url: string) {
-    const urlWithoutFragment = url.split('#')[0];
-    return this.appendPrefix(urlWithoutFragment);
+  getUrlPath(url: string, ns: string) {
+    // Remove fragment from URL
+    url = url.split('#')[0];
+    url = this.appendPrefix(url);
+
+    if (!ns) {
+      return url;
+    }
+
+    return url.replace('{ns}', ns);
   }
 
   getUrlFragment = getUrlFragment;

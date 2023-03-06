@@ -21,7 +21,7 @@
       <a
         mat-list-item
         *ngFor="let link of menuLinks"
-        [routerLink]="getUrlPathWithPrefix(link.link)"
+        [routerLink]="getUrlPath(link.link, currentNamespace)"
         [fragment]="getUrlFragment(link.link)"
         [queryParams]="getNamespaceParams(currentNamespace)"
         [class.active]="isLinkActive(link.link)"
