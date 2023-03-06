@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
-import { IndexModule } from './pages/index/index.module';
 import { KubeflowModule } from 'kubeflow';
 
 import { HttpClientModule } from '@angular/common/http';
@@ -15,6 +14,7 @@ import {
   MatSnackBarConfig,
   MAT_SNACK_BAR_DEFAULT_OPTIONS,
 } from '@angular/material/snack-bar';
+import { IndexDefaultModule } from './pages/index/index-default/index-default.module';
 
 /**
  * MAT_SNACK_BAR_DEFAULT_OPTIONS values can be found
@@ -33,9 +33,9 @@ const JwaSnackBarConfig: MatSnackBarConfig = {
     AppRoutingModule,
     CommonModule,
     KubeflowModule,
-    IndexModule,
     NotebookPageModule,
     FormNewModule,
+    IndexDefaultModule,
   ],
   providers: [
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: JwaSnackBarConfig },

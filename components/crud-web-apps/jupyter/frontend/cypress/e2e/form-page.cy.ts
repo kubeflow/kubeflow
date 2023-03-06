@@ -2,7 +2,7 @@ describe('New notebook form', () => {
   beforeEach(() => {
     cy.mockDashboardRequest();
     cy.mockStorageClassesRequests();
-    cy.mockDefaultStorageClassRequest('rok');
+    cy.mockDefaultStorageClassRequest('standard');
     cy.mockGpusRequest();
     cy.mockConfigRequest();
     cy.fixture('settings').then(settings => {

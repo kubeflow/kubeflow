@@ -18,14 +18,6 @@ function getVolumeType(pvc: V1PersistentVolumeClaim): NEW_VOLUME_TYPE {
     return NEW_VOLUME_TYPE.CUSTOM;
   }
 
-  try {
-    if ('rok/origin' in pvc.metadata.annotations) {
-      return NEW_VOLUME_TYPE.ROK_SNAPSHOT;
-    }
-  } catch (error) {
-    return NEW_VOLUME_TYPE.EMPTY;
-  }
-
   return NEW_VOLUME_TYPE.EMPTY;
 }
 
