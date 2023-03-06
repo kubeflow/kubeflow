@@ -3,7 +3,7 @@
     {
       "age": "Thu, 01 Sep 2022 08:36:40 GMT",
       "capacity": "5Gi",
-      "class": "rok",
+      "class": "",
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-ready-viewer-ready",
       "namespace": "kubeflow-user",
@@ -18,7 +18,7 @@
     {
       "age": "Thu, 29 Sep 2022 16:25:53 GMT",
       "capacity": "5Gi",
-      "class": "rok",
+      "class": "",
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-ready-viewer-uninitialized",
       "namespace": "kubeflow-user",
@@ -33,7 +33,7 @@
     {
       "age": "Thu, 14 Apr 2022 12:00:28 GMT",
       "capacity": "5Gi",
-      "class": "rok",
+      "class": "",
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-ready-viewer-waiting",
       "namespace": "kubeflow-user",
@@ -48,7 +48,7 @@
     {
       "age": "Tue, 04 Oct 2022 13:01:05 GMT",
       "capacity": "5Gi",
-      "class": "rok",
+      "class": "",
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-unvailable-viewer-unavailable",
       "namespace": "kubeflow-user",
@@ -63,7 +63,7 @@
     {
       "age": "Thu, 01 Sep 2022 08:36:21 GMT",
       "capacity": "5Gi",
-      "class": "rok",
+      "class": "",
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-waiting-viewer-uninitialized",
       "namespace": "kubeflow-user",
@@ -78,7 +78,7 @@
     {
       "age": "Thu, 14 Apr 2022 14:58:53 GMT",
       "capacity": "5Gi",
-      "class": "rok",
+      "class": "",
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-warning-viewer-ready",
       "namespace": "kubeflow-user",
