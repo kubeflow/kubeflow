@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: centraldashboard
-        image: public.ecr.aws/j1r0q0g6/notebooks/central-dashboard
+        image: docker.io/kubeflownotebookswg/centraldashboard
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -40,4 +40,6 @@ spec:
           value: $(CD_REGISTRATION_FLOW)
         - name: DASHBOARD_LINKS_CONFIGMAP
           value: $(CD_CONFIGMAP_NAME)
+        - name: LOGOUT_URL
+          value: '/authservice/logout'
       serviceAccountName: centraldashboard

@@ -1,0 +1,24 @@
+<div class="yaml-tab-container">
+  <div class="message">
+    <p>{{ infoMessage }}</p>
+  </div>
+  <div>
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-select
+        [(value)]="selection"
+        (selectionChange)="selectionChanged($event)"
+      >
+        <mat-option value="notebook"> Notebook </mat-option>
+        <mat-option value="pod"> Pod </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>
+
+<lib-monaco-editor
+  [text]="yaml"
+  language="yaml"
+  [readOnly]="true"
+  [height]="490"
+>
+</lib-monaco-editor>

@@ -1,61 +1,97 @@
 TAG ?= $(shell git describe --tags --always --dirty)
 REGISTRY ?= kubeflownotebookswg
 
-docker-build-all:
-	@echo "\nBuilding base image...\n"
-	make docker-build -C base TAG=${TAG}
 
-	@echo "\nBuilding codeserver image...\n"
-	make docker-build -C codeserver TAG=${TAG} 
+.PHONY: docker-build
+docker-build: build-jupyter-pytorch-full build-jupyter-tensorflow-full build-jupyter-scipy build-codeserver-python build-rstudio-tidyverse
+		@echo "\nAll notebook-server images have been successfully built...\n"
 
-	@echo "\nBuilding codeserver-python image...\n"
-	make docker-build -C codeserver-python TAG=${TAG} 
+.PHONY: build-jupyter-pytorch-full
+build-jupyter-pytorch-full: build-jupyter-pytorch-full-cpu build-jupyter-pytorch-full-cuda
 
-	@echo "\nBuilding rstudio image...\n"
-	make docker-build -C rstudio TAG=${TAG} 
+.PHONY: build-jupyter-pytorch-full-cpu
+build-jupyter-pytorch-full-cpu:
+	@echo "\nBuilding jupyter-pytorch-full-cpu image...\n"
+	$(MAKE) docker-build-cpu -C jupyter-pytorch-full TAG=${TAG}
 
-	@echo "\nBuilding rstudio-tidyverse image...\n"
-	make docker-build -C rstudio-tidyverse TAG=${TAG} 
+.PHONY: build-jupyter-pytorch-full-cuda
+build-jupyter-pytorch-full-cuda:
+	@echo "\nBuilding jupyter-pytorch-full-cuda image...\n"
+	$(MAKE) docker-build-cuda -C jupyter-pytorch-full TAG=${TAG}
 
-	@echo "\nBuilding jupyter image...\n"
-	make docker-build -C jupyter TAG=${TAG} 
+.PHONY: build-jupyter-tensorflow-full
+build-jupyter-tensorflow-full: build-jupyter-tensorflow-full-cpu build-jupyter-tensorflow-full-cuda
 
+.PHONY: jupyter-tensorflow-full-cpu
+build-jupyter-tensorflow-full-cpu:
+	@echo "\nBuilding jupyter-tensorflow-full-cpu image...\n"
+	$(MAKE) docker-build-cpu -C jupyter-tensorflow-full TAG=${TAG}
+
+.PHONY: build-jupyter-tensorflow-full-cuda
+build-jupyter-tensorflow-full-cuda:
+	@echo "\nBuilding jupyter-tensorflow-full-cuda image...\n"
+	$(MAKE) docker-build-cuda -C jupyter-tensorflow-full TAG=${TAG}
+
+.PHONY: build-jupyter-scipy
+build-jupyter-scipy:
 	@echo "\nBuilding jupyter-scipy image...\n"
-	make docker-build -C jupyter-scipy TAG=${TAG} 
+	$(MAKE) docker-build -C jupyter-scipy TAG=${TAG}
 
-	@echo "\nBuilding jupyter-pytorch image...\n"
-	make docker-build-cpu -C jupyter-pytorch TAG=${TAG} 
+.PHONY: build-codeserver-python
+build-codeserver-python:
+	@echo "\nBuilding codeserver-python image...\n"
+	$(MAKE) docker-build -C codeserver-python TAG=${TAG}
 
-	@echo "\nBuilding jupyter-pytorch-cuda image...\n"
-	make docker-build-cuda -C jupyter-pytorch TAG=${TAG} 
+.PHONY: build-rstudio-tidyverse
+build-rstudio-tidyverse:
+	@echo "\nBuilding rstudio-tidyverse image...\n"
+	$(MAKE) docker-build -C rstudio-tidyverse TAG=${TAG}
 
-	@echo "\nBuilding jupyter-pytorch-full image...\n"
-	make docker-build-cpu -C jupyter-pytorch-full TAG=${TAG}
+.PHONY: docker-push
+docker-push:
+	@echo "\nPushing base image...\n"
+	$(MAKE) docker-push -C base
 
-	@echo "\nBuilding jupyter-pytorch-cuda-full image...\n"
-	make docker-build-cuda -C jupyter-pytorch-full TAG=${TAG} 
+	@echo "\nPushing codeserver image...\n"
+	$(MAKE) docker-push -C codeserver
 
-	@echo "\nBuilding jupyter-tensorflow image...\n"
-	make docker-build-cpu -C jupyter-tensorflow TAG=${TAG} 
+	@echo "\nPushing codeserver-python image...\n"
+	$(MAKE) docker-push -C codeserver-python 
 
-	@echo "\nBuilding jupyter-tensorflow-cuda image...\n"
-	make docker-build-cuda -C jupyter-tensorflow TAG=${TAG} 
+	@echo "\nPushing rstudio image...\n"
+	$(MAKE) docker-push -C rstudio
 
-	@echo "\nBuilding jupyter-tensorflow-full image...\n"
-	make docker-build-cpu -C jupyter-tensorflow-full TAG=${TAG} 
+	@echo "\nPushing rstudio-tidyverse image...\n"
+	$(MAKE) docker-push -C rstudio-tidyverse
 
-	@echo "\nBuilding jupyter-tensorflow-cuda-full image...\n"
-	make docker-build-cuda -C jupyter-tensorflow-full TAG=${TAG} 
+	@echo "\nPushing jupyter image...\n"
+	$(MAKE) docker-push -C jupyter
 
-	@echo "\nAll notebook-server images have been successfully built...\n"
+	@echo "\nPushing jupyter-scipy image...\n"
+	$(MAKE) docker-push -C jupyter-scipy
 
-docker-push-all:
-	for img in base codeserver codeserver-python jupyter jupyter-scipy jupyter-pytorch-full jupyter-pytorch-cuda-full jupyter-tensorflow-full \
-	jupyter-tensorflow-cuda-full rstudio rstudio-tidyverse ; do \
-		docker tag $$img:${TAG} ${REGISTRY}/$$img:${TAG} ; \
-		docker push ${REGISTRY}/$$img:${TAG} ; \
-	done
+	@echo "\nPushing jupyter-pytorch image...\n"
+	$(MAKE) docker-push-cpu -C jupyter-pytorch
 
-	
+	@echo "\nPushing jupyter-pytorch-cuda image...\n"
+	$(MAKE) docker-push-cuda -C jupyter-pytorch
 
-	
+	@echo "\nPushing jupyter-pytorch-full image...\n"
+	$(MAKE) docker-push-cpu -C jupyter-pytorch-full
+
+	@echo "\nPushing jupyter-pytorch-cuda-full image...\n"
+	$(MAKE) docker-push-cuda -C jupyter-pytorch-full
+
+	@echo "\nPushing jupyter-tensorflow image...\n"
+	$(MAKE) docker-push-cpu -C jupyter-tensorflow
+
+	@echo "\nPushing jupyter-tensorflow-cuda image...\n"
+	$(MAKE) docker-push-cuda -C jupyter-tensorflow
+
+	@echo "\nPushing jupyter-tensorflow-full image...\n"
+	$(MAKE) docker-push-cpu -C jupyter-tensorflow-full
+
+	@echo "\nPushing jupyter-tensorflow-cuda-full image...\n"
+	$(MAKE) docker-push-cuda -C jupyter-tensorflow-full
+
+	@echo "\nAll notebook-server images have been successfully pushed...\n"

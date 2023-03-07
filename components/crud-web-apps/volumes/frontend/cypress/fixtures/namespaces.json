@@ -1,0 +1,21 @@
+{
+  "namespaces": [
+    "auth",
+    "cert-manager",
+    "default",
+    "ingress-nginx",
+    "istio-system",
+    "knative-monitoring",
+    "knative-serving",
+    "kserve",
+    "kube-node-lease",
+    "kube-public",
+    "kube-system",
+    "kubeflow",
+    "kubeflow-skel",
+    "kubeflow-user"
+  ],
+  "status": 200,
+  "success": true,
+  "user": null
+}

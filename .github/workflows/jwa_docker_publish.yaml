@@ -7,13 +7,12 @@ on:
     paths:
       - components/crud-web-apps/jupyter/**
       - components/crud-web-apps/common/**
-  pull_request:
-    branches:
-      - master
-      - v*-branch
-    paths:
-      - components/crud-web-apps/jupyter/**
-      - components/crud-web-apps/common/**
+      - releasing/version/VERSION
+
+env:
+  DOCKER_USER: kubeflownotebookswg
+  IMG: kubeflownotebookswg/jupyter-web-app
+  ARCH: linux/ppc64le,linux/amd64
 
 jobs:
   push_to_registry:
@@ -23,22 +22,41 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
+
     - name: Login to DockerHub
-      if: github.event_name == 'push'
       uses: docker/login-action@v2
       with:
-        username: kubeflownotebookswg
+        username: ${{ env.DOCKER_USER }}
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Run JWA build
-      run: |
-        cd components/crud-web-apps/jupyter
-        export IMG=kubeflownotebookswg/jupyter-web-app
-        make docker-build
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
 
-    - name: Run JWA push
-      if: github.event_name == 'push'
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and push multi-arch docker image
       run: |
         cd components/crud-web-apps/jupyter
-        export IMG=kubeflownotebookswg/jupyter-web-app
-        make docker-push
+        make docker-build-push-multi-arch
+
+    - name: Build and push latest multi-arch docker image 
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export TAG=latest
+        cd components/crud-web-apps/jupyter
+        make docker-build-push-multi-arch
+
+    - name: Build and push multi-arch docker image on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/crud-web-apps/jupyter
+        make docker-build-push-multi-arch

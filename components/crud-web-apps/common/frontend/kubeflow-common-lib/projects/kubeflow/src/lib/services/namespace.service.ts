@@ -47,9 +47,8 @@ export class NamespaceService {
             // Binds a callback that gets invoked anytime the Dashboard's
             // namespace is changed
             cdeh.onNamespaceSelected = this.updateSelectedNamespace.bind(this);
-            cdeh.onAllNamespacesSelected = this.updateAllSelectedNamespaces.bind(
-              this,
-            );
+            cdeh.onAllNamespacesSelected =
+              this.updateAllSelectedNamespaces.bind(this);
           },
         );
 

@@ -16,23 +16,28 @@ import {
   KubeflowModule,
 } from 'kubeflow';
 
-import { IndexComponent } from './pages/index/index.component';
 import { FormDefaultComponent } from './pages/form/form-default/form-default.component';
-import { FormRokComponent } from './pages/form/form-rok/form-rok.component';
 import { IndexDefaultComponent } from './pages/index/index-default/index-default.component';
-import { IndexRokComponent } from './pages/index/index-rok/index-rok.component';
 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { VolumeDetailsPageModule } from './pages/volume-details-page/volume-details-page.module';
+import { ColumnsModule } from './pages/index/columns/columns.module';
+import {
+  MatSnackBarConfig,
+  MAT_SNACK_BAR_DEFAULT_OPTIONS,
+} from '@angular/material/snack-bar';
+
+/**
+ * MAT_SNACK_BAR_DEFAULT_OPTIONS values can be found
+ * here
+ * https://github.com/angular/components/blob/main/src/material/snack-bar/snack-bar-config.ts#L25-L58
+ */
+const VwaSnackBarConfig: MatSnackBarConfig = {
+  duration: 3000,
+};
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    IndexComponent,
-    FormDefaultComponent,
-    FormRokComponent,
-    IndexDefaultComponent,
-    IndexRokComponent,
-  ],
+  declarations: [AppComponent, FormDefaultComponent, IndexDefaultComponent],
   imports: [
     BrowserModule,
     CommonModule,
@@ -43,9 +48,12 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
     FormModule,
     KubeflowModule,
     HttpClientModule,
+    VolumeDetailsPageModule,
+    ColumnsModule,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
+    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: VwaSnackBarConfig },
   ],
   bootstrap: [AppComponent],
 })

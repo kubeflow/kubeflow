@@ -18,10 +18,19 @@
     </lib-form-name-namespace-inputs>
 
     <mat-radio-group formControlName="storage">
-      <mat-radio-button value="object_store" i18n>
+      <mat-radio-button
+        value="object_store"
+        i18n
+        data-cy-form-radio-object-store
+      >
         Object Store
       </mat-radio-button>
-      <mat-radio-button value="pvc" class="radio-pvc" i18n>
+      <mat-radio-button
+        value="pvc"
+        class="radio-pvc"
+        i18n
+        data-cy-form-radio-pvc
+      >
         PVC
       </mat-radio-button>
     </mat-radio-group>
@@ -31,7 +40,7 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'pvc'"
     >
-      <mat-label i18n>PVC Name</mat-label>
+      <mat-label data-cy-form-input-pvc i18n>PVC Name</mat-label>
       <mat-select formControlName="pvcName">
         <mat-option *ngFor="let pvc of pvcNames" [value]="pvc">
           {{ pvc }}
@@ -44,7 +53,7 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'pvc'"
     >
-      <mat-label i18n>Mount Path</mat-label>
+      <mat-label data-cy-form-input-label i18n>Mount Path</mat-label>
       <input
         formControlName="pvcMountPath"
         matInput
@@ -59,9 +68,11 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'object_store'"
     >
-      <mat-label i18n>Object Store Link</mat-label>
+      <mat-label data-cy-form-input-label i18n>Object Store Link</mat-label>
       <input matInput formControlName="objectStoreLink" type="url" />
     </mat-form-field>
+
+    <app-form-configurations [parentForm]="formCtrl"></app-form-configurations>
 
     <button
       mat-raised-button

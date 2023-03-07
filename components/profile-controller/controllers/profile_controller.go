@@ -264,7 +264,19 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 			return reconcile.Result{}, err
 		}
 	} else {
-		logger.Info("No update on resource quota", "spec", instance.Spec.ResourceQuotaSpec.String())
+		found := &corev1.ResourceQuota{}
+		err := r.Get(ctx, types.NamespacedName{Name: KFQUOTA, Namespace: instance.Name}, found)
+		if err == nil {
+			if err := r.Delete(ctx, found); err != nil {
+				logger.Error(err, "error deleting resource quota", "namespace", instance.Name)
+				return ctrl.Result{}, err
+			}
+		} else if !apierrors.IsNotFound(err) {
+			logger.Error(err, "error getting resource quota", "namespace", instance.Name)
+			return ctrl.Result{}, err
+		} else {
+			logger.Info("No update on resource quota", "spec", instance.Spec.ResourceQuotaSpec.String())
+		}
 	}
 	if err := r.PatchDefaultPluginSpec(ctx, instance); err != nil {
 		IncRequestErrorCounter("error patching DefaultPluginSpec", SEVERITY_MAJOR)

@@ -9,6 +9,8 @@ import {
   OnDestroy,
   OnInit,
   ElementRef,
+  SimpleChanges,
+  OnChanges,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -24,28 +26,33 @@ import {
   TABLE_THEME,
   ChipsListValue,
   ComponentValue,
+  LinkValue,
+  LinkType,
 } from '../types';
 import { DateTimeValue } from '../types/date-time';
 import { TemplateValue } from '../types/template';
 import { NamespaceService } from '../../services/namespace.service';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { addColumn, NAMESPACE_COLUMN, removeColumn } from './utils';
 import { MatSort } from '@angular/material/sort';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { FormControl } from '@angular/forms';
-import { map, startWith } from 'rxjs/operators';
 import {
   MatAutocompleteSelectedEvent,
   MatAutocompleteTrigger,
 } from '@angular/material/autocomplete';
 import { DateTimeService } from '../../services/date-time.service';
+import { isEqual } from 'lodash-es';
+import { MemoryValue } from '../types/memory-value';
 
 @Component({
   selector: 'lib-table',
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.scss'],
 })
-export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
+export class TableComponent
+  implements AfterViewInit, OnInit, OnDestroy, OnChanges
+{
   private nsSub = new Subscription();
   private innerData: any[] = [];
   public dataSource = new MatTableDataSource();
@@ -64,10 +71,13 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
 
   chipList = [];
   chips = [];
-  headers = [];
+  headers: { title: string }[] = [];
   isClear: boolean;
-  filteredHeaders: Observable<string[]>;
+  filteredHeaders: { title: string }[] = [];
   chipCtrl = new FormControl();
+  showDate = false;
+  showStatus = false;
+  LinkType = LinkType;
 
   @HostBinding('class.lib-table') selfClass = true;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
@@ -91,18 +101,18 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     this.dataSource.data = newData;
   }
 
+  @Input()
+  highlightedRow: unknown = {};
+
   // Whenever a button in a row is pressed the component will emit an event
   // with information regarding the button that was pressed as well as the
   // row's object.
   @Output() actionsEmitter = new EventEmitter<ActionEvent>();
 
   constructor(public ns: NamespaceService, private dtService: DateTimeService) {
-    this.filteredHeaders = this.chipCtrl.valueChanges.pipe(
-      startWith(null),
-      map((chip: string | null) =>
-        chip ? this.filter(chip) : this.headers.slice(),
-      ),
-    );
+    this.chipCtrl.valueChanges.subscribe(chip => {
+      this.filteredHeaders = this.filter(chip);
+    });
   }
 
   ngOnInit() {
@@ -122,9 +132,26 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     });
 
-    this.sort.sort({ disableClear: true, id: 'name', start: 'asc' });
+    const sortByColumn = this.config.sortByColumn || 'name';
+    const sortDirection = this.config.sortDirection || 'asc';
+    this.sort.sort({
+      disableClear: true,
+      id: sortByColumn,
+      start: sortDirection,
+    });
+  }
 
-    this.config.columns.forEach(column => {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.config) {
+      this.configureFilter(changes.config.currentValue);
+    }
+  }
+
+  configureFilter(config: TableConfig): void {
+    this.headers = [];
+    this.showStatus = false;
+    this.showDate = false;
+    config.columns.forEach(column => {
       if (
         !this.isMenuValue(column.value) &&
         !this.isActionListValue(column.value) &&
@@ -137,7 +164,16 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
           title: column.matHeaderCellDef,
         });
       }
+
+      if (this.isStatusValue(column.value)) {
+        this.showStatus = true;
+      }
+
+      if (this.isDateTimeValue(column.value)) {
+        this.showDate = true;
+      }
     });
+    this.filteredHeaders = this.filter(this.chipCtrl.value);
   }
 
   ngOnDestroy() {
@@ -162,6 +198,16 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
           return valueExtractor.getValue(element);
         }
       }
+      if (this.isLinkValue(valueExtractor)) {
+        if (sortingPreprocessorFn !== undefined) {
+          return sortingPreprocessorFn(valueExtractor.getValue(element));
+        } else {
+          return valueExtractor.getValue(element);
+        }
+      }
+      if (this.isMemoryValue(valueExtractor)) {
+        return valueExtractor.getValue(element);
+      }
       if (this.isDateTimeValue(valueExtractor)) {
         if (valueExtractor.getValue(element) === '') {
           return -1;
@@ -175,35 +221,6 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
       if (this.isComponentValue(valueExtractor)) {
         return sortingPreprocessorFn(element);
       }
-    };
-    this.dataSource.sortData = (data, sort) => {
-      const active = sort.active;
-      const direction = sort.direction;
-      if (!active || direction === '') {
-        return data;
-      }
-      return data.sort((a, b) => {
-        const valueA = this.dataSource.sortingDataAccessor(a, active);
-        const valueB = this.dataSource.sortingDataAccessor(b, active);
-        // If both valueA and valueB exist (truthy), then compare the two. Otherwise, check if
-        // one value exists while the other doesn't. In this case, existing value should come last.
-        // This avoids inconsistent results when comparing values to undefined/null.
-        // If neither value exists, return 0 (equal).
-        let comparatorResult = 0;
-        if (valueA !== null && valueB !== null) {
-          // Check if one value is greater than the other; if equal, comparatorResult should remain 0.
-          if (valueA > valueB) {
-            comparatorResult = 1;
-          } else if (valueA < valueB) {
-            comparatorResult = -1;
-          }
-        } else if (valueA !== null) {
-          comparatorResult = 1;
-        } else if (valueB !== null) {
-          comparatorResult = -1;
-        }
-        return comparatorResult * (direction === 'asc' ? 1 : -1);
-      });
     };
     this.dataSource.sort = this.sort;
     this.sort.disableClear = true;
@@ -237,6 +254,24 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
           isMatchText ||
           (valueExtractor as PropertyValue)
             .getValue(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (this.isLinkValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as LinkValue)
+            .getValue(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (this.isMemoryValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as MemoryValue)
+            .getViewValue(row)
             .toString()
             .toLocaleLowerCase()
             .includes(filterValue);
@@ -316,6 +351,34 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
               isMatchObj &&
               valueExtractor
                 .getValue(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]);
+          }
+        }
+        if (this.isLinkValue(valueExtractor)) {
+          if (filterValue[element] === '""') {
+            isMatchObj =
+              isMatchObj && valueExtractor.getValue(row).length === 0;
+          } else {
+            isMatchObj =
+              isMatchObj &&
+              valueExtractor
+                .getValue(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]);
+          }
+        }
+        if (this.isMemoryValue(valueExtractor)) {
+          if (filterValue[element] === '""') {
+            isMatchObj =
+              isMatchObj && valueExtractor.getViewValue(row).length === 0;
+          } else {
+            isMatchObj =
+              isMatchObj &&
+              valueExtractor
+                .getViewValue(row)
                 .toString()
                 .toLocaleLowerCase()
                 .includes(filterValue[element]);
@@ -463,12 +526,24 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  private filter(value: string): string[] {
+  private filter(value: string | null): { title: string }[] {
+    if (value === null) {
+      return this.headers.slice();
+    }
     const filterValue = value.toLowerCase();
 
     return this.headers.filter(chip =>
       chip.title.toLowerCase().includes(filterValue),
     );
+  }
+
+  highlightRow(row: unknown, highlightedRow: unknown): string {
+    try {
+      return isEqual(row, highlightedRow) ? 'highlight-row' : '';
+    } catch (error) {
+      console.error(error);
+      return '';
+    }
   }
 
   public isActionListValue(obj) {
@@ -507,13 +582,23 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     return obj instanceof PropertyValue;
   }
 
+  public isLinkValue(obj) {
+    return obj instanceof LinkValue;
+  }
+
   public isDateTimeValue(obj) {
     return obj instanceof DateTimeValue;
   }
 
+  public isMemoryValue(obj) {
+    return obj instanceof MemoryValue;
+  }
+
   public actionTriggered(e: ActionEvent) {
     // Forward the emitted ActionEvent
-    this.actionsEmitter.emit(e);
+    if (e instanceof ActionEvent) {
+      this.actionsEmitter.emit(e);
+    }
   }
 
   public newButtonTriggered() {
@@ -521,8 +606,8 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     this.actionsEmitter.emit(ev);
   }
 
-  public linkClicked(col: string, data: any) {
-    const ev = new ActionEvent(`${col}:link`, data);
+  public linkClicked(col: string, data: any, event: Event) {
+    const ev = new ActionEvent(`${col}:link`, data, event);
     this.actionsEmitter.emit(ev);
   }
 

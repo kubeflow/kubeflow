@@ -1,0 +1,70 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- clusterrole-binding.yaml
+- clusterrole.yaml
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- service-account.yaml
+- service.yaml
+- configmap.yaml
+commonLabels:
+  kustomize.component: centraldashboard-angular
+  app: centraldashboard-angular
+  app.kubernetes.io/component: centraldashboard-angular
+  app.kubernetes.io/name: centraldashboard-angular
+images:
+- name: docker.io/kubeflownotebookswg/centraldashboard-angular
+  newName: docker.io/kubeflownotebookswg/centraldashboard-angular
+  newTag: latest
+configMapGenerator:
+- envs:
+  - params.env
+  name: centraldashboard-angular-parameters
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- fieldref:
+    fieldPath: metadata.namespace
+  name: CD_NAMESPACE
+  objref:
+    apiVersion: v1
+    kind: Service
+    name: centraldashboard-angular
+- fieldref:
+    fieldPath: data.CD_CLUSTER_DOMAIN
+  name: CD_CLUSTER_DOMAIN
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: centraldashboard-angular-parameters
+- fieldref:
+    fieldPath: data.CD_USERID_HEADER
+  name: CD_USERID_HEADER
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: centraldashboard-angular-parameters
+- fieldref:
+    fieldPath: data.CD_USERID_PREFIX
+  name: CD_USERID_PREFIX
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: centraldashboard-angular-parameters
+- fieldref:
+    fieldPath: data.CD_REGISTRATION_FLOW
+  name: CD_REGISTRATION_FLOW
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: centraldashboard-angular-parameters
+- fieldref:
+    fieldPath: metadata.name
+  name: CD_CONFIGMAP_NAME
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: centraldashboard-angular-config

@@ -11,7 +11,7 @@
     <mat-icon>keyboard_backspace</mat-icon>
   </button>
 
-  <div class="title-margin title">
+  <div class="title-margin title" data-cy-toolbar-title>
     {{ title }}
   </div>
 
@@ -30,6 +30,7 @@
             [disabled]="button.disabled"
             (click)="button.fn()"
             class="toolbar-button"
+            [attr.data-cy-toolbar-button]="button.text"
           >
             <mat-icon *ngIf="button.icon" class="button-icon">
               {{ button.icon }}
@@ -48,6 +49,7 @@
             [disabled]="button.disabled"
             (click)="button.fn()"
             class="toolbar-button"
+            [attr.data-cy-toolbar-button]="button.text"
           >
             <mat-icon *ngIf="button.icon" class="button-icon">
               {{ button.icon }}

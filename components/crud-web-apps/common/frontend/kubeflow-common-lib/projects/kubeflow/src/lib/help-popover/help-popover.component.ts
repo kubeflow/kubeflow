@@ -8,6 +8,12 @@ import { Component, OnInit, Input } from '@angular/core';
 export class HelpPopoverComponent implements OnInit {
   @Input() popoverPosition = 'below';
 
+  @Input()
+  showStatus: boolean;
+
+  @Input()
+  showDate: boolean;
+
   constructor() {}
 
   ngOnInit(): void {}

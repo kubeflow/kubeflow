@@ -20,7 +20,7 @@ spec:
         envFrom:
           - configMapRef:
               name: config
-        image: public.ecr.aws/j1r0q0g6/notebooks/access-management
+        image: docker.io/kubeflownotebookswg/kfam
         imagePullPolicy: IfNotPresent
         name: kfam
         livenessProbe:

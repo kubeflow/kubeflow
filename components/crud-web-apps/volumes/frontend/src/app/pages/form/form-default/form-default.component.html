@@ -40,7 +40,7 @@
     <!--Storage Class-->
     <mat-form-field appearance="outline" class="wide">
       <mat-label i18n>Storage Class</mat-label>
-      <mat-select formControlName="class">
+      <mat-select formControlName="class" data-cy-form-control-name-class>
         <mat-option value="{none}" i18n>None</mat-option>
         <mat-option *ngFor="let sc of storageClasses" [value]="sc">
           {{ sc }}
@@ -64,12 +64,19 @@
       class="form--button-margin"
       type="submit"
       [disabled]="!formCtrl.valid || blockSubmit"
+      data-cy-button-create
       i18n
     >
       CREATE
     </button>
 
-    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+    <button
+      mat-raised-button
+      type="button"
+      (click)="onCancel()"
+      i18n
+      data-cy-button-cancel
+    >
       CANCEL
     </button>
   </form>

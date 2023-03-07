@@ -17,4 +17,7 @@
     </ng-template>
   </button>
   <mat-error>{{ parseRokUrlError() }}</mat-error>
+  <mat-hint *ngIf="control.valid && dateTime"
+    >Restoring {{ snapshotType }} from {{ dateTime }}</mat-hint
+  >
 </mat-form-field>

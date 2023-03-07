@@ -8,11 +8,13 @@ describe('ActionComponent', () => {
   let component: ActionComponent;
   let fixture: ComponentFixture<ActionComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [ResourceTableModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [ResourceTableModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ActionComponent);

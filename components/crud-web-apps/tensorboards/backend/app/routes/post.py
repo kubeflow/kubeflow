@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 def post_tensorboard(namespace):
 
     body = request.get_json()
-    log.info("Got body: ", body)
+    log.info("Got body: %s", body)
 
     name = body["name"]
 

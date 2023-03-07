@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: tensorboards-web-app
-        image: public.ecr.aws/j1r0q0g6/notebooks/tensorboards-web-app
+        image: docker.io/kubeflownotebookswg/tensorboards-web-app
         ports:
         - containerPort: 5000
         env:

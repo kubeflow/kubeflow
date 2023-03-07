@@ -1,0 +1,48 @@
+<div
+  class="vol-group-container"
+  *ngFor="let volGroup of volGroups; trackBy: groupTrackByFn"
+>
+  <div class="group-key">
+    <div>{{ volGroup.name }}</div>
+    <button mat-button matSuffix mat-icon-button aria-label="Help">
+      <span
+        [libPopover]="popoverCard"
+        [libPopoverPosition]="'after'"
+        [libPopoverHideDelay]="100"
+        [libPopoverShowDelay]="100"
+        class="truncate"
+      >
+        <mat-icon class="icon">help_outline</mat-icon>
+      </span>
+    </button>
+  </div>
+
+  <ng-template #popoverCard>
+    <div class="popoverCard">
+      <p>{{ volGroup.info }}</p>
+      <p>
+        Read more at
+        <a
+          [href]="volGroup.url"
+          target="_blank"
+          rel="noopener"
+          class="lib-link"
+          >{{ volGroup.url }}</a
+        >
+      </p>
+    </div>
+  </ng-template>
+
+  <lib-urls *ngIf="isPVCs(volGroup)" [urlList]="volGroup.array"></lib-urls>
+
+  <mat-chip-list *ngIf="!isPVCs(volGroup)" class="chip-list-wa">
+    <div *ngFor="let chip of volGroup.array; trackBy: chipTrackByFn">
+      <mat-chip color="primary" class="list-chip">
+        {{ chip.value }}
+      </mat-chip>
+    </div>
+  </mat-chip-list>
+</div>
+
+<ng-content class="vertical-align"> </ng-content>
+<div *ngIf="volGroupsEmpty() && loadCompleted">{{ loadErrorMsg }}</div>

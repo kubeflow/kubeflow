@@ -246,6 +246,13 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 		})
 	}
 
+	// copy all of the CR labels to the pod which includes poddefault related labels
+	podLabels := map[string]string{}
+	for k, v := range tb.ObjectMeta.Labels {
+		(podLabels)[k] = v
+	}
+	(podLabels)["app"] = tb.Name
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tb.Name,
@@ -260,7 +267,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": tb.Name},
+					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
 					Affinity:      affinity,

@@ -1,0 +1,51 @@
+{
+  "tensorboards": [
+    {
+      "age": "2022-04-14T14:58:53Z",
+      "logspath": "pvc://blue-book-bulldozers-bfame-pvc/examples/academy/bulldozers-kaggle-competition/logs",
+      "name": "tensorboard-ready",
+      "namespace": "kubeflow-user",
+      "status": {
+        "message": "The Tensorboard server is ready to connect",
+        "phase": "ready",
+        "state": ""
+      }
+    },
+    {
+      "age": "2022-05-14T14:58:53Z",
+      "logspath": "pvc://blue-book-bulldozers-bfame-pvc/examples/academy/bulldozers-kaggle-competition/logs",
+      "name": "tensorboard-unavailable",
+      "namespace": "kubeflow-user",
+      "status": {
+        "message": "unavailable",
+        "phase": "unavailable",
+        "state": ""
+      }
+    },
+    {
+      "age": "2022-07-14T14:58:53Z",
+      "logspath": "pvc://blue-book-bulldozers-bfame-pvc/examples/academy/bulldozers-kaggle-competition/logs",
+      "name": "tensorboard-waiting",
+      "namespace": "kubeflow-user",
+      "status": {
+        "message": "Bound",
+        "phase": "waiting",
+        "state": ""
+      }
+    },
+    {
+      "age": "2022-08-14T14:58:53Z",
+      "logspath": "pvc://blue-book-bulldozers-bfame-pvc/examples/academy/bulldozers-kaggle-competition/logs",
+      "name": "tensorboard-warning",
+      "namespace": "kubeflow-user",
+      "status": {
+        "message": "Bound",
+        "phase": "warning",
+        "state": ""
+      }
+    }
+  ],
+  "user": null,
+  "status": 200,
+  "success": true
+}

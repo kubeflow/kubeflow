@@ -1,0 +1,97 @@
+{
+  "pvcs": [
+    {
+      "age": "Thu, 01 Sep 2022 08:36:40 GMT",
+      "capacity": "5Gi",
+      "class": "",
+      "modes": ["ReadWriteOnce"],
+      "name": "a-pvc-phase-ready-viewer-ready",
+      "namespace": "kubeflow-user",
+      "notebooks": [],
+      "status": {
+        "message": "Bound",
+        "phase": "ready",
+        "state": ""
+      },
+      "viewer": "ready"
+    },
+    {
+      "age": "Thu, 29 Sep 2022 16:25:53 GMT",
+      "capacity": "5Gi",
+      "class": "",
+      "modes": ["ReadWriteOnce"],
+      "name": "a-pvc-phase-ready-viewer-uninitialized",
+      "namespace": "kubeflow-user",
+      "notebooks": [],
+      "status": {
+        "message": "Bound",
+        "phase": "ready",
+        "state": ""
+      },
+      "viewer": "uninitialized"
+    },
+    {
+      "age": "Thu, 14 Apr 2022 12:00:28 GMT",
+      "capacity": "5Gi",
+      "class": "",
+      "modes": ["ReadWriteOnce"],
+      "name": "a-pvc-phase-ready-viewer-waiting",
+      "namespace": "kubeflow-user",
+      "notebooks": [],
+      "status": {
+        "message": "Bound",
+        "phase": "ready",
+        "state": ""
+      },
+      "viewer": "waiting"
+    },
+    {
+      "age": "Tue, 04 Oct 2022 13:01:05 GMT",
+      "capacity": "5Gi",
+      "class": "",
+      "modes": ["ReadWriteOnce"],
+      "name": "a-pvc-phase-unvailable-viewer-unavailable",
+      "namespace": "kubeflow-user",
+      "notebooks": [],
+      "status": {
+        "message": "Pending: This volume will be bound when its first consumer is created. E.g., when you first browse its contents, or attach it to a notebook server",
+        "phase": "unavailable",
+        "state": "WaitForFirstConsumer"
+      },
+      "viewer": "uninitialized"
+    },
+    {
+      "age": "Thu, 01 Sep 2022 08:36:21 GMT",
+      "capacity": "5Gi",
+      "class": "",
+      "modes": ["ReadWriteOnce"],
+      "name": "a-pvc-phase-waiting-viewer-uninitialized",
+      "namespace": "kubeflow-user",
+      "notebooks": ["test-notebook-1", "test-notebook-2"],
+      "status": {
+        "message": "Bound",
+        "phase": "waiting",
+        "state": ""
+      },
+      "viewer": "uninitialized"
+    },
+    {
+      "age": "Thu, 14 Apr 2022 14:58:53 GMT",
+      "capacity": "5Gi",
+      "class": "",
+      "modes": ["ReadWriteOnce"],
+      "name": "a-pvc-phase-warning-viewer-ready",
+      "namespace": "kubeflow-user",
+      "notebooks": [],
+      "status": {
+        "message": "Bound",
+        "phase": "warning",
+        "state": ""
+      },
+      "viewer": "ready"
+    }
+  ],
+  "status": "200",
+  "success": true,
+  "user": "user"
+}

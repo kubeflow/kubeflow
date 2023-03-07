@@ -59,7 +59,7 @@ const actionsCol: TableColumn = {
   value: new ActionListValue([
     new ActionButtonValue({
       name: 'connect',
-      tooltip: $localize`Connect to the Tensorboaard Server`,
+      tooltip: $localize`Connect to the Tensorboard Server`,
       color: 'primary',
       field: 'connectAction',
       text: $localize`CONNECT`,
@@ -74,8 +74,9 @@ const actionsCol: TableColumn = {
   ]),
 };
 
-export const defaultConfig = {
+export const defaultConfig: TableConfig = {
   title: tableConfig.title,
+  dynamicNamespaceColumn: true,
   newButtonText: tableConfig.newButtonText,
   columns: tableConfig.columns.concat(actionsCol),
 };

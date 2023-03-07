@@ -1,0 +1,62 @@
+<mat-form-field appearance="outline" class="wide">
+  <mat-label i18n>Type</mat-label>
+  <mat-select
+    [value]="volumeType"
+    (selectionChange)="typeChanged($event.value)"
+  >
+    <mat-option [value]="NEW_VOLUME_TYPE.EMPTY" i18n> Empty volume </mat-option>
+
+    <mat-option
+      [value]="NEW_VOLUME_TYPE.CUSTOM"
+      matTooltip="Edit the K8s PVC full spec"
+      i18n-matTooltip
+      i18n
+    >
+      Custom (Advanced)
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+<ng-container [ngSwitch]="volumeType">
+  <!-- Custom (YAML editor) -->
+  <ng-container *ngSwitchCase="NEW_VOLUME_TYPE.CUSTOM">
+    <ng-container i18n>Check the </ng-container>
+    <a
+      target="_blank"
+      href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#persistentvolumeclaim-v1-core"
+      >K8s docs</a
+    >
+    <ng-container i18n> for the supported volumes and their specs</ng-container>
+
+    <lib-monaco-editor
+      [(text)]="yaml"
+      language="yaml"
+      [readOnly]="false"
+      [height]="250"
+      class="editor"
+    ></lib-monaco-editor>
+
+    <mat-error *ngIf="errorParsingYaml">{{ errorParsingYaml }}</mat-error>
+  </ng-container>
+
+  <!-- Empty volume -->
+  <ng-container *ngSwitchDefault>
+    <app-volume-name
+      [metadataGroup]="volGroup.get('newPvc.metadata')"
+      [externalName]="externalName"
+    ></app-volume-name>
+
+    <app-volume-size
+      [sizeCtrl]="volGroup.get('newPvc.spec.resources.requests.storage')"
+    ></app-volume-size>
+
+    <app-storage-class
+      *ngIf="volumeType === NEW_VOLUME_TYPE.EMPTY"
+      [scControl]="volGroup.get('newPvc.spec.storageClassName')"
+    ></app-storage-class>
+
+    <app-volume-access-modes
+      [modesCtrl]="volGroup.get('newPvc.spec.accessModes')"
+    ></app-volume-access-modes>
+  </ng-container>
+</ng-container>

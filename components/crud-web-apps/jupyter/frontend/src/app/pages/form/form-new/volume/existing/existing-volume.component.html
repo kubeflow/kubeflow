@@ -1,0 +1,44 @@
+<mat-form-field appearance="outline" class="wide">
+  <mat-label i18n>Type</mat-label>
+  <mat-select [value]="type" (selectionChange)="typeChanged($event.value)">
+    <mat-option [value]="EXISTING_VOLUME_TYPE.PVC" i18n>
+      Kubernetes Volume
+    </mat-option>
+
+    <mat-option
+      [value]="EXISTING_VOLUME_TYPE.CUSTOM"
+      matTooltip="Insert your custom K8s volume spec."
+      i18n-matTooltip
+      i18n
+    >
+      Custom (Advanced)
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+<!-- PVC -->
+<ng-container *ngIf="type === EXISTING_VOLUME_TYPE.PVC; else customSrc">
+  <app-existing-pvc [pvcGroup]="getPvcFormGroup()"> </app-existing-pvc>
+</ng-container>
+
+<!--YAML editor-->
+<ng-template #customSrc>
+  <ng-container i18n>Check the </ng-container>
+  <a
+    href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#volume-v1-core"
+    target="_blank"
+    i18n
+    >K8s docs</a
+  >
+  <ng-container i18n> for the supported volumes and their specs</ng-container>
+
+  <lib-monaco-editor
+    [(text)]="yaml"
+    language="yaml"
+    [readOnly]="false"
+    [height]="250"
+    class="editor"
+  ></lib-monaco-editor>
+
+  <mat-error *ngIf="errorParsingYaml">{{ errorParsingYaml }}</mat-error>
+</ng-template>

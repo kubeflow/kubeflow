@@ -1,0 +1,21 @@
+<div>
+  <lib-heading-row
+    mat-dialog-title
+    heading="{{ data.config.name }}: "
+    subHeading="{{ data.config.Description }}"
+  ></lib-heading-row>
+  <div mat-dialog-content>
+    <lib-monaco-editor
+      [text]="yaml(data.config)"
+      language="yaml"
+      [readOnly]="true"
+      [height]="280"
+    >
+    </lib-monaco-editor>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button [mat-dialog-close]="'cancel'" cdkFocusInitial>
+      CLOSE
+    </button>
+  </div>
+</div>

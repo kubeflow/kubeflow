@@ -30,6 +30,17 @@ export class ConditionsTableComponent {
         condition.statusPhase = STATUS_TYPE.READY;
       }
 
+      // Set default values that are necessary for sorting functionality
+      if (!condition.lastTransitionTime) {
+        condition.lastTransitionTime = '';
+      }
+      if (!condition.message) {
+        condition.message = '';
+      }
+      if (!condition.reason) {
+        condition.reason = '';
+      }
+
       condition.statusMessage = condition.status;
     }
   }

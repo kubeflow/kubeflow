@@ -7,11 +7,13 @@ describe('TitleActionsToolbarComponent', () => {
   let component: TitleActionsToolbarComponent;
   let fixture: ComponentFixture<TitleActionsToolbarComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [TitleActionsToolbarModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [TitleActionsToolbarModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TitleActionsToolbarComponent);

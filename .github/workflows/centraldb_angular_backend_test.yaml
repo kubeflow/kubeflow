@@ -1,0 +1,34 @@
+name: CentralDashboard-angular Backend Tests
+on:
+  pull_request:
+    paths:
+      - components/centraldashboard-angular/backend/**
+
+jobs:
+  run-backend-unittests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 12
+      - name: Run unit tests
+        run: |
+          cd components/centraldashboard-angular/backend/
+          npm i
+          npm run test
+
+  run-backend-tslint:
+    name: TSLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 12
+      - name: Run tslint
+        run: |
+          cd components/centraldashboard-angular/backend/
+          npm i
+          npm run tslint

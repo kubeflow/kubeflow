@@ -1,41 +1,25 @@
 # Step 1: Builds and tests
-FROM node:12.22.12-alpine AS build
+FROM node:12.22.12-bullseye AS build
 
 ARG kubeflowversion
 ARG commit
 ENV BUILD_VERSION=$kubeflowversion
 ENV BUILD_COMMIT=$commit
-ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROME_BIN=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-# Installs latest-stable Chromium package and configures environment for testing
-RUN apk update && apk upgrade && \
-    echo @stable http://nl.alpinelinux.org/alpine/v3.15/community >> /etc/apk/repositories && \
-    echo @stable http://nl.alpinelinux.org/alpine/v3.15/main >> /etc/apk/repositories
-
-RUN apk add --no-cache bash chromium@stable nss@stable \
-    freetype@stable \
-    harfbuzz@stable \
-    ttf-freefont@stable \
-    libstdc++@stable
-
-RUN if [ "$(uname -m)" = "aarch64" ]; then \
-        apk update && apk upgrade && \
-        apk add --no-cache python2 make g++@stable; \
-    fi
+RUN apt update -qq && apt install -qq -y gnulib
 
 COPY . /centraldashboard
 WORKDIR /centraldashboard
 
-RUN npm rebuild && \
-    if [ "$(uname -m)" = "aarch64" ]; then \
-        export CFLAGS=-Wno-error && \
-        export CXXFLAGS=-Wno-error && \
-        npm install; \
-    else \
-        npm install; \
+RUN BUILDARCH="$(dpkg --print-architecture)" &&  npm rebuild && \
+    if [ "$BUILDARCH" = "arm64" ]  ||  \
+    [ "$BUILDARCH" = "armhf" ]; then \
+    export CFLAGS=-Wno-error && \
+    export CXXFLAGS=-Wno-error;  \
     fi && \
-    npm test && \
+    npm install && \
     npm run build && \
     npm prune --production
 
