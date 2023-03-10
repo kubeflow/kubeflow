@@ -85,6 +85,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 type: Array,
                 value: [],
             },
+            legalLinks: {
+                type: Array,
+                value: [],
+            },
             errorText: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
@@ -180,11 +184,13 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             externalLinks,
             quickLinks,
             documentationItems,
+            legalLinks
         } = ev.detail.response;
         this.menuLinks = menuLinks || [];
         this.externalLinks = externalLinks || [];
         this.quickLinks = quickLinks || [];
         this.documentationItems = documentationItems || [];
+        this.legalLinks = legalLinks || [];
     }
 
     /**
