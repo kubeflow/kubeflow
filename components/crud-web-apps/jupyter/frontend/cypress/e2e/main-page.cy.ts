@@ -36,7 +36,6 @@ describe('Main table', () => {
   });
 
   // We use function () in order to be able to access aliases via this
-  // tslint:disable-next-line: space-before-function-paren
   it('renders every Notebook name into the table', function () {
     cy.visit('/');
     cy.wait(['@mockNamespacesRequest', '@mockNotebooksRequest']);
@@ -51,7 +50,6 @@ describe('Main table', () => {
     });
   });
 
-  // tslint:disable-next-line: space-before-function-paren
   it('checks Status icon for all notebooks', function () {
     cy.visit('/');
     cy.wait(['@mockNamespacesRequest', '@mockNotebooksRequest']);
