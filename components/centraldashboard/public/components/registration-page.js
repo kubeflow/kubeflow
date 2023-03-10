@@ -46,6 +46,10 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
                 // eslint-disable-next-line
                 value: '[-a-z0-9\.]',
             },
+            legalLinks: {
+                type: Array,
+                value: [],
+            },
         };
     }
 
@@ -119,6 +123,21 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         this.flowComplete = true;
         this.set('error', {});
         this.fireEvent('flowcomplete');
+    }
+
+    /**
+     * Set state for Central dashboard links
+     * @param {Event} ev AJAX-response
+     */
+    _onHasDashboardLinksResponse(ev) {
+        const {
+            menuLinks,
+            externalLinks,
+            quickLinks,
+            documentationItems,
+            legalLinks
+        } = ev.detail.response;
+        this.legalLinks = legalLinks || [];
     }
 }
 
