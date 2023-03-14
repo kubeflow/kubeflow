@@ -11,7 +11,6 @@ import {
   HTTP_INTERCEPTORS,
   HttpClientXsrfModule,
 } from '@angular/common/http';
-import { HeadersInterceptor } from './services/rok/injector';
 import { PopoverModule } from './popover/popover.module';
 import { TitleActionsToolbarModule } from './title-actions-toolbar/title-actions-toolbar.module';
 import { ConditionsTableModule } from './conditions-table/conditions-table.module';
@@ -46,8 +45,5 @@ import { StatusIconModule } from './status-icon/status-icon.module';
     StatusIconModule,
   ],
   imports: [CommonModule, HttpClientModule, HttpClientXsrfModule],
-  providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: HeadersInterceptor, multi: true },
-  ],
 })
 export class KubeflowModule {}
