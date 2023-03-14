@@ -82,7 +82,7 @@ def set_notebook_image(notebook, body, defaults):
         image_body_field = "customImage"
 
     image = get_form_value(body, defaults, image_body_field, "image")
-    notebook["spec"]["template"]["spec"]["containers"][0]["image"] = image
+    notebook["spec"]["template"]["spec"]["containers"][0]["image"] = image.strip()
 
 
 def set_notebook_image_pull_policy(notebook, body, defaults):
