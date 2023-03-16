@@ -19,7 +19,7 @@ gcloud container clusters create "${CLUSTER_NAME}" \
 --username "admin" \
 --cluster-version "${CLUSTER_VERSION}" \
 --machine-type "custom-6-23040" --num-nodes "1" \
---image-type "UBUNTU" \
+--image-type "UBUNTU_CONTAINERD" \
 --local-ssd-count=4 \
 --disk-type "pd-ssd" --disk-size "50" \
 --no-enable-cloud-logging --no-enable-cloud-monitoring \
