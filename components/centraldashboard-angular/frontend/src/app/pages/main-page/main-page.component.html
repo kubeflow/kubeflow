@@ -5,7 +5,7 @@
     fixedInViewport
     [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
     [mode]="(isHandset$ | async) ? 'over' : 'side'"
-    [opened]="(isHandset$ | async) === false"
+    [opened]="(isHandset$ | async) === false && !isIframed"
   >
     <mat-toolbar class="nav-toolbar">Menu</mat-toolbar>
     <mat-nav-list>
@@ -43,7 +43,7 @@
     </mat-toolbar>
   </mat-sidenav>
   <mat-sidenav-content class="main-page-content">
-    <mat-toolbar class="menu-toolbar" color="primary">
+    <mat-toolbar class="menu-toolbar" color="primary" *ngIf="!isIframed">
       <button
         type="button"
         aria-label="Toggle sidenav"

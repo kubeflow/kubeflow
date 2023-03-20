@@ -42,6 +42,7 @@ export class MainPageComponent implements OnInit {
   public quickLinks: Link[];
   public documentationItems: Link[];
   public currentNamespace: string;
+  public isIframed = false;
 
   constructor(
     private breakpointObserver: BreakpointObserver,
@@ -62,6 +63,15 @@ export class MainPageComponent implements OnInit {
     this.ns.currentNamespace.subscribe((namespace: Namespace) => {
       this.currentNamespace = namespace.namespace;
     });
+
+    /**
+     * Handles case when an iframed page requests an invalid route
+     * by hiding the sidebar and the header resulting in the iframed
+     * CDB showing only the iframe, preventing thus an inception effect
+     */
+    if (window.location !== window.parent.location) {
+      this.isIframed = true;
+    }
   }
 
   storeBuildInfo(platform: PlatformInfo) {
