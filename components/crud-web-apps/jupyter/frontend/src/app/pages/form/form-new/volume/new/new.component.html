@@ -60,3 +60,13 @@
     ></app-volume-access-modes>
   </ng-container>
 </ng-container>
+
+<div class="form-title" i18n>Data persistency</div>
+<mat-checkbox
+  i18n
+  [checked]="volGroup.get('ephemeral').value"
+  (change)="volGroup.get('ephemeral').setValue($event.checked)"
+  [formControl]="volGroup.get('ephemeral')"
+>
+Ephemeral
+</mat-checkbox>

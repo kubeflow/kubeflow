@@ -40,6 +40,7 @@ export function getFormDefaults(): FormGroup {
           }),
         }),
       }),
+      ephemeral: [false, []],
     }),
     affinityConfig: ['', []],
     tolerationGroup: ['', []],

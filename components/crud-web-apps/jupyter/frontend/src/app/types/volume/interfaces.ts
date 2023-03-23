@@ -11,4 +11,5 @@ export interface Volume {
   mount: string;
   newPvc?: V1PersistentVolumeClaim;
   existingSource?: V1Volume;
+  ephemeral?: boolean;
 }

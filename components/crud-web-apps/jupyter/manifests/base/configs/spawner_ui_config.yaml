@@ -150,7 +150,7 @@ spawnerFormDefaults:
     # (to have no default, set `value: null`)
     value:
       mount: /home/jovyan
-
+      ephemeral: false
       # pvc configs for creating new workspace volumes
       # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#persistentvolumeclaim-v1-core
       newPvc:
@@ -175,6 +175,7 @@ spawnerFormDefaults:
     value: []
     #value:
     #  - mount: /home/jovyan/datavol-1
+    #    ephemeral: true
     #    newPvc:
     #      metadata:
     #        name: "{notebook-name}-datavol-1"

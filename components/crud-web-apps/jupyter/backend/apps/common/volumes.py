@@ -4,6 +4,7 @@ The new API Volume will work with objects of the following format:
 
 volume:
   mount: "mount path"
+  ephemeral: "true|false"
   newPvc?:
     metadata: ...
     spec: ...
@@ -14,6 +15,8 @@ volume:
 
 These functions will parse such objects and map them to K8s constructs.
 """
+import copy
+
 from kubernetes import client
 from werkzeug.exceptions import BadRequest
 
@@ -26,6 +29,7 @@ log = logging.getLogger(__name__)
 PVC_SOURCE = "persistentVolumeClaim"
 EXISTING_SOURCE = "existingSource"
 NEW_PVC = "newPvc"
+EPHEMERAL = "ephemeral"
 MOUNT = "mount"
 NAME = "name"
 
@@ -46,6 +50,10 @@ def check_volume_format(api_volume):
     if EXISTING_SOURCE in api_volume and NEW_PVC in api_volume:
         raise BadRequest("Volume has both %s and %s: %s"
                          % (EXISTING_SOURCE, NEW_PVC, api_volume))
+
+    if NEW_PVC in api_volume and EPHEMERAL not in api_volume:
+        raise BadRequest("New volume should have ephemeral property: %s"
+                         % (api_volume))
 
 
 def get_volume_name(api_volume):
@@ -87,6 +95,18 @@ def get_pod_volume(api_volume, pvc):
         return {"name": pvc.metadata.name,
                 "persistentVolumeClaim": {"claimName": pvc.metadata.name}}
 
+    if NEW_PVC in api_volume and api_volume[EPHEMERAL]:
+        ephemeral_spec = copy.deepcopy(api_volume[NEW_PVC])
+        del ephemeral_spec['metadata']['name']
+        return {"name": api_volume[NEW_PVC]['metadata']['name'],
+                "ephemeral": {
+                    "volumeClaimTemplate": {
+                             "metadata": ephemeral_spec["metadata"],
+                             "spec": ephemeral_spec["spec"]
+                        }
+                    }
+                }
+
     # User has explicitly asked to use an existing volume source
     v1_volume = {"name": get_volume_name(api_volume)}
     v1_volume.update(api_volume[EXISTING_SOURCE])
@@ -113,7 +133,7 @@ def get_new_pvc(api_volume) -> client.V1PersistentVolumeClaim:
     api_volume: The JSON V1Volume object, in cammelCase as defined in the docs
     """
     check_volume_format(api_volume)
-    if NEW_PVC not in api_volume:
+    if NEW_PVC not in api_volume or api_volume[EPHEMERAL]:
         return None
 
     pvc = api.deserialize(api_volume[NEW_PVC], "V1PersistentVolumeClaim")

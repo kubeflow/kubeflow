@@ -32,6 +32,7 @@ describe('NewVolumeComponent', () => {
     component = fixture.componentInstance;
     component.volGroup = new FormGroup({
       newPvc: new FormControl(),
+      ephemeral: new FormControl(),
     });
 
     fixture.detectChanges();
