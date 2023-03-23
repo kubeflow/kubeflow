@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { StatusIconComponent } from './status-icon.component';
+import { StatusInfoComponent } from './status-info.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { IconModule } from '../icon/icon.module';
 
 @NgModule({
-  declarations: [StatusIconComponent],
+  declarations: [StatusInfoComponent],
   imports: [CommonModule, MatIconModule, MatProgressSpinnerModule, IconModule],
-  exports: [StatusIconComponent],
+  exports: [StatusInfoComponent],
 })
-export class StatusIconModule {}
+export class StatusInfoModule {}

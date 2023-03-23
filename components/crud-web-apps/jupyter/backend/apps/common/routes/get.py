@@ -6,6 +6,7 @@ from kubeflow.kubeflow.crud_backend import api, logging
 from werkzeug.exceptions import NotFound
 
 from .. import utils
+from .. import status
 from . import bp
 
 log = logging.getLogger(__name__)
@@ -56,17 +57,21 @@ def get_notebooks(namespace):
 
     return api.success_response("notebooks", contents)
 
+
 @bp.route("/api/namespaces/<namespace>/notebooks/<name>")
 def get_notebook(name, namespace):
     notebook = api.get_notebook(name, namespace)
+    notebook["processed_status"] = status.process_status(notebook)
+
     return api.success_response("notebook", notebook)
+
 
 @bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/pod")
 def get_notebook_pod(notebook_name, namespace):
     label_selector = "notebook-name=" + notebook_name
     # There should be only one Pod for each Notebook,
     # so we expect items to have length = 1
-    pods = api.list_pods(namespace = namespace, label_selector = label_selector)
+    pods = api.list_pods(namespace=namespace, label_selector=label_selector)
     if pods.items:
         pod = pods.items[0]
         return api.success_response(
@@ -76,11 +81,9 @@ def get_notebook_pod(notebook_name, namespace):
         raise NotFound("No pod detected.")
 
 
-
-
 @bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/pod/<pod_name>/logs")
 def get_pod_logs(namespace, notebook_name, pod_name):
-    container =  notebook_name
+    container = notebook_name
     logs = api.get_pod_logs(namespace, pod_name, container)
     return api.success_response(
         "logs", logs.split("\n"),
