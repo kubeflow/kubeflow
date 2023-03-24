@@ -18,7 +18,7 @@ spec:
       serviceAccountName: kf-conformance
       containers:
       - name: training-conformance-container
-        image: kubeflow/training-operator-conformance
+        image: kubeflow/training-operator-conformance:v1-e74d74f
         env:
           - name: GANG_SCHEDULER_NAME
             value: "none"
