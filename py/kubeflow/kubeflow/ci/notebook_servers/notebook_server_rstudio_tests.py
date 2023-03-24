@@ -17,7 +17,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         # Test building notebook-server-rstudio image using Kaniko
         dockerfile = ("%s/components/example-notebook-servers"
                       "/rstudio/Dockerfile") % self.src_dir
-        context = "dir://%s/components/example-notebook-servers/rstudio/" % self.src_dir
+        context = "dir://%s/components/example-notebook-servers/rstudio/" % self.src_dir  # noqa: E501
         destination = "notebook-server-rstudio-test"
 
         kaniko_task = self.create_kaniko_task(

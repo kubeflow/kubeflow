@@ -2,8 +2,9 @@
 
 This file tests Profile custom resource creation and deletion.
 Creation:
-  Reads a profile.yaml file and creates profile using create_cluster_custom_object
-  verifies Profile, namespace, serviceAccounts, rolebindings are available
+  Reads a profile.yaml file and creates profile using
+  create_cluster_custom_object verifies Profile, namespace, serviceAccounts,
+  rolebindings are available.
   Profile, namespace are with same names
   ServiceAccounts: "default-editor" and "default-viewer" are created
   Rolebindings: 'kubeflow-admin', 'kubeflow-edit', 'kubeflow-view'
@@ -30,18 +31,14 @@ Manually running the test
 """
 
 import logging
-import os
 import time
 
 import pytest
 import yaml
-
+from kubeflow.testing import util
 from kubernetes import client as k8s_client
 from kubernetes.client.rest import ApiException
 from kubernetes.config import kube_config
-
-from kubeflow.testing import util
-
 from retrying import retry
 
 GROUP = "kubeflow.org"
@@ -108,14 +105,15 @@ def verifyRolebindings(api_client, name):
         logging.info("all default rolebindings are present\n")
     else:
         msg = "Default rolebindings {0}, {1}, {2} not found\n {3}".format(
-            'kubeflow-admin', 'kubeflow-edit', 'kubeflow-view', rolebindingsList)
+            'kubeflow-admin', 'kubeflow-edit', 'kubeflow-view',
+            rolebindingsList)
         logging.error(msg)
         raise RuntimeError(msg)
 
 
 def verifyServiceAccounts(api_client, name):
-    # Verify if serviceAccount's "default-editor" and "default-viewer" are created
-    # in the 'name' namespace
+    # Verify if serviceAccount's "default-editor" and "default-viewer" are
+    # created in the 'name' namespace
     DEFAULT_EDITOR = "default-editor"
     DEFAULT_VIEWER = "default-viewer"
     foundDefEditor = False
@@ -143,7 +141,7 @@ def verifyNamespaceCreation(api_client, name):
     # Verifies the namespace is created with profile 'name' specified.
     coreV1 = k8s_client.CoreV1Api(api_client)
     retry_read_namespace = retry(
-        wait_exponential_multiplier=1000,  # wait 2^i * 1000 ms, on the i-th retry
+        wait_exponential_multiplier=1000,
         wait_exponential_max=60000,  # 60 sec max
     )(coreV1.read_namespace)
     resp = retry_read_namespace(name)
@@ -153,7 +151,7 @@ def verifyNamespaceCreation(api_client, name):
 def verifyProfileCreation(api_client, group, version, name):
     k8s_co = k8s_client.CustomObjectsApi(api_client)
     retry_read_profile = retry(
-        wait_exponential_multiplier=1000,  # wait 2^i * 1000 ms, on the i-th retry
+        wait_exponential_multiplier=1000,
         wait_exponential_max=60000,  # 60 sec max
     )(k8s_co.get_cluster_custom_object)
     resp = retry_read_profile(
@@ -189,7 +187,6 @@ def test_profiles(
         record_xml_attribute,
         profileFile="test_data/profile_v1beta1_profile.yaml"):
     util.set_pytest_junit(record_xml_attribute, "test_profile_e2e")
-    app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     util.maybe_activate_service_account()
     # util.load_kube_config appears to hang on python3
     kube_config.load_kube_config()

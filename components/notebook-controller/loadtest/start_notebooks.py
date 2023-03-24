@@ -1,8 +1,8 @@
 # This script aims to load test Kubeflow Notebook controller by starting
 # certain nubmer of Kubeflow Notebook custom resources.
 #
-# Before the test, make sure you have connected to your desired Kubeflow cluster
-# and have enough Kubernetes resources (or have autoscaling turned on).
+# Before the test, make sure you have connected to your desired Kubeflow
+# cluster and have enough Kubernetes resources (or have autoscaling turned on).
 #
 # To start the load test, you can run
 #   python3.8 start_notebooks.py -l <#notebooks> -n <namespace>
@@ -12,6 +12,7 @@
 
 import argparse
 import subprocess
+
 import yaml
 
 parser = argparse.ArgumentParser(
@@ -49,10 +50,10 @@ parser.add_argument(
 
 def write_notebook_config(config, name, num):
     config['metadata']['name'] = 'jupyter-test-' + str(num)
-    config['spec']['template']['spec']['containers'][0]['name'
-                                                        ] = 'notebook-' + str(num)
-    config['spec']['template']['spec']['volumes'][0]['persistentVolumeClaim'][
-        'claimName'] = 'test-vol-' + str(num)
+    spec = config['spec']['template']['spec']
+    spec['containers'][0]['name'] = 'notebook-' + str(num)
+    pvc = spec['volumes'][0]['persistentVolumeClaim']
+    pvc['claimName'] = 'test-vol-' + str(num)
     with open(name, 'w') as f:
         print(yaml.dump(config), file=f)
 

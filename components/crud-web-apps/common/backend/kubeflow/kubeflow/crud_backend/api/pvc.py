@@ -34,7 +34,8 @@ def get_pvc(pvc, namespace):
 
 def list_pvc_events(namespace, pvc_name):
 
-    field_selector = utils.events_field_selector("PersistentVolumeClaim", pvc_name)
+    field_selector = utils.events_field_selector(
+        "PersistentVolumeClaim", pvc_name)
 
     return events.list_events(namespace, field_selector)
 

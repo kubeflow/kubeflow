@@ -1,4 +1,7 @@
-""""Argo Workflow for building notebook-server-rstudio-tidyverse's OCI image using Kaniko"""
+""""
+Argo Workflow for building notebook-server-rstudio-tidyverse's OCI image using
+Kaniko.
+"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 
@@ -15,6 +18,6 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
         **kwargs)
 
     return builder.build(
-        dockerfile="components/example-notebook-servers/rstudio-tidyverse/Dockerfile",
+        dockerfile="components/example-notebook-servers/rstudio-tidyverse/Dockerfile",  # noqa: E501
         context="components/example-notebook-servers/rstudio-tidyverse/",
         destination=config.NOTEBOOK_SERVER_RSTUDIO_TIDYVERSE)

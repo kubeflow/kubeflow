@@ -1,4 +1,7 @@
-""""Argo Workflow for building notebook-server-codeserver-python's OCI image using Kaniko"""
+""""
+Argo Workflow for building notebook-server-codeserver-python's OCI image
+using Kaniko.
+"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 
@@ -15,6 +18,6 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
         **kwargs)
 
     return builder.build(
-        dockerfile="components/example-notebook-servers/codeserver-python/Dockerfile",
+        dockerfile="components/example-notebook-servers/codeserver-python/Dockerfile",  # noqa: E501
         context="components/example-notebook-servers/codeserver-python/",
         destination=config.NOTEBOOK_SERVER_CODESERVER_PYTHON)

@@ -1,4 +1,6 @@
-""""Argo Workflow for building notebook-server-tensorflow OCI images using Kaniko"""
+""""
+Argo Workflow for building notebook-server-tensorflow OCI images using Kaniko.
+"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 
@@ -15,10 +17,10 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
         **kwargs)
 
     return builder.build(
-        dockerfile="components/example-notebook-servers/jupyter-tensorflow/cpu.Dockerfile",
+        dockerfile="components/example-notebook-servers/jupyter-tensorflow/cpu.Dockerfile",  # noqa: E501
         context="components/example-notebook-servers/jupyter-tensorflow/",
         destination=config.NOTEBOOK_SERVER_JUPYTER_TENSORFLOW,
-        second_dockerfile="components/example-notebook-servers/jupyter-tensorflow/cuda.Dockerfile",
+        second_dockerfile="components/example-notebook-servers/jupyter-tensorflow/cuda.Dockerfile",  # noqa: E501
         second_destination=config.NOTEBOOK_SERVER_JUPYTER_TENSORFLOW_CUDA,
         mem_override="8Gi",
         deadline_override=6000)

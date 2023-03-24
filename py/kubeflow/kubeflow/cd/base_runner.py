@@ -1,6 +1,7 @@
 import os
-import yaml
 from importlib import import_module
+
+import yaml
 
 
 def main(component_name, workflow_name):
@@ -16,4 +17,4 @@ def main(component_name, workflow_name):
 
 
 if __name__ == "__main__":
-    main(component, workflow_name)
+    main(component, workflow_name)  # noqa: F821

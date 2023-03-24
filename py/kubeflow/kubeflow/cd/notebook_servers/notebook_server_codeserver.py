@@ -1,4 +1,6 @@
-""""Argo Workflow for building notebook-server-codeserver's OCI image using Kaniko"""
+""""
+Argo Workflow for building notebook-server-codeserver's OCI image using Kaniko.
+"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 

@@ -1,5 +1,5 @@
 from .. import authz
-from . import custom_api, v1_core, utils, events
+from . import custom_api, events, utils
 
 
 def get_notebook(notebook, namespace):

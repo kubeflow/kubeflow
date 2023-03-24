@@ -17,7 +17,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         # Test building notebook-server-jupyter-pytorch images using Kaniko
         dockerfile = ("%s/components/example-notebook-servers"
                       "/jupyter-pytorch/cpu.Dockerfile") % self.src_dir
-        context = "dir://%s/components/example-notebook-servers/jupyter-pytorch/" % self.src_dir
+        context = "dir://%s/components/example-notebook-servers/jupyter-pytorch/" % self.src_dir  # noqa: E501
         destination = "notebook-server-jupyter-pytorch-cpu-test"
 
         kaniko_task = self.create_kaniko_task(
@@ -31,7 +31,8 @@ class Builder(workflow_utils.ArgoTestBuilder):
         destination_cuda = "notebook-server-jupyter-pytorch-cuda-test"
 
         kaniko_task_cuda = self.create_kaniko_task(
-            task_template, dockerfile_cuda, context, destination_cuda, no_push=True)
+            task_template, dockerfile_cuda, context, destination_cuda,
+            no_push=True)
         argo_build_util.add_task_to_dag(
             workflow, workflow_utils.E2E_DAG_NAME, kaniko_task_cuda, [
                 self.mkdir_task_name])

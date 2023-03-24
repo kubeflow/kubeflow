@@ -1,4 +1,6 @@
-""""Argo Workflow for building notebook-server-scipy's OCI image using Kaniko"""
+""""
+Argo Workflow for building notebook-server-scipy's OCI image using Kaniko.
+"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 
@@ -15,6 +17,6 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
         **kwargs)
 
     return builder.build(
-        dockerfile="components/example-notebook-servers/jupyter-scipy/Dockerfile",
+        dockerfile="components/example-notebook-servers/jupyter-scipy/Dockerfile",  # noqa: E501
         context="components/example-notebook-servers/jupyter-scipy/",
         destination=config.NOTEBOOK_SERVER_JUPYTER_SCIPY)

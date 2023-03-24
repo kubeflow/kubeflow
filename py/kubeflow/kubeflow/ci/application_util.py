@@ -5,9 +5,8 @@ import os
 import pathlib
 import tempfile
 
-from kubeflow.testing import util  # pylint: disable=no-name-in-module
-
 import yaml
+from kubeflow.testing import util  # pylint: disable=no-name-in-module
 
 
 def set_kustomize_image(kustomize_file, image_name, image):
@@ -94,7 +93,7 @@ def regenerate_manifest_tests(manifests_dir):
 
     # TODO(jlewi): This is a weird hack to run make generate for the tests.
     # make generate needs to be run from ${GOPATH}/src/kubeflow/manifests.
-    # Simply setting cwd doesn't appear to impact the script; probably something
-    # to do with symlinks? So we write a simply script that executes a CD
-    # and then runs make generate.
+    # Simply setting cwd doesn't appear to impact the script; probably
+    # something to do with symlinks? So we write a simply script that executes
+    # a CD and then runs make generate.
     util.run(["bash", script], cwd=os.path.join(target, "tests"))

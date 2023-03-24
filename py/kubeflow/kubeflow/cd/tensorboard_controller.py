@@ -1,4 +1,4 @@
-""""Argo Workflow for building Tensorboard Controller's OCI image using Kaniko"""
+""""Argo Workflow for building Tensorboard Controller's image using Kaniko"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 

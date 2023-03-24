@@ -8,7 +8,8 @@ STOP_ANNOTATION = "kubeflow-resource-stopped"
 
 def process_status(notebook):
     """
-    Return status and reason. Status may be [ready|waiting|warning|terminating|stopped]
+    Return status and reason. Status may be:
+    [ready|waiting|warning|terminating|stopped]
     """
     # In case the Notebook has no status
     status_phase, status_message = get_empty_status(notebook)
@@ -30,12 +31,14 @@ def process_status(notebook):
     if status_phase is not None:
         return status.create_status(status_phase, status_message)
 
-    # Extract information about the status from the containerState of the Notebook's status
+    # Extract information about the status from the containerState of the
+    # Notebook's status
     status_phase, status_message = get_status_from_container_state(notebook)
     if status_phase is not None:
         return status.create_status(status_phase, status_message)
 
-    # Extract information about the status from the conditions of the Notebook's status
+    # Extract information about the status from the conditions of the
+    # Notebook's status
     status_phase, status_message = get_status_from_conditions(notebook)
     if status_phase is not None:
         return status.create_status(status_phase, status_message)
@@ -43,13 +46,13 @@ def process_status(notebook):
     # Try to extract information about why the notebook is not starting
     # from the notebook's events (see find_error_event)
     notebook_events = get_notebook_events(notebook)
-
-    # In case there no Events available, show a generic message
-    status_phase, status_message = status.STATUS_PHASE.WARNING, "Couldn't find any information for the status of this notebook."
-
     status_event, reason_event = get_status_from_events(notebook_events)
     if status_event is not None:
         status_phase, status_message = status_event, reason_event
+
+    # In case there no Events available, show a generic message
+    status_phase = status.STATUS_PHASE.WARNING
+    status_message = "Couldn't find any information for the status of this notebook."  # noqa: E501
 
     return status.create_status(status_phase, status_message)
 
@@ -65,10 +68,12 @@ def get_empty_status(notebook):
     current_time = dt.datetime.utcnow().replace(microsecond=0)
     delta = (current_time - nb_creation_time)
 
-    # If the Notebook has no status, the status will be waiting (instead of warning) and we will
-    # show a generic message for the first 10 seconds
+    # If the Notebook has no status, the status will be waiting
+    # (instead of warning) and we will show a generic message for the first 10
+    # seconds
     if not container_state and not conditions and delta.total_seconds() <= 10:
-        status_phase, status_message = status.STATUS_PHASE.WAITING, "Waiting for StatefulSet to create the underlying Pod."
+        status_phase = status.STATUS_PHASE.WAITING
+        status_message = "Waiting for StatefulSet to create the underlying Pod."  # noqa: E501
         return status_phase, status_message
 
     return None, None
@@ -82,11 +87,13 @@ def get_stopped_status(notebook):
     if STOP_ANNOTATION in annotations:
         # If the Notebook is stopped, the status will be stopped
         if ready_replicas == 0:
-            status_phase, status_message = status.STATUS_PHASE.STOPPED, "No Pods are currently running for this Notebook Server."
+            status_phase = status.STATUS_PHASE.STOPPED
+            status_message = "No Pods are currently running for this Notebook Server."  # noqa: E501
             return status_phase, status_message
         # If the Notebook is being stopped, the status will be waiting
         else:
-            status_phase, status_message = status.STATUS_PHASE.WAITING, "Notebook Server is stopping."
+            status_phase = status.STATUS_PHASE.WAITING
+            status_message = "Notebook Server is stopping."
             return status_phase, status_message
 
     return None, None
@@ -97,7 +104,8 @@ def get_deleted_status(notebook):
 
     # If the Notebook is being deleted, the status will be terminating
     if "deletionTimestamp" in metadata:
-        status_phase, status_message = status.STATUS_PHASE.TERMINATING, "Deleting this Notebook Server."
+        status_phase = status.STATUS_PHASE.TERMINATING
+        status_message = "Deleting this Notebook Server."
         return status_phase, status_message
 
     return None, None
@@ -120,13 +128,17 @@ def get_status_from_container_state(notebook):
     if "waiting" in container_state:
         # If the Notebook is initializing, the status will be waiting
         if container_state["waiting"]["reason"] == 'PodInitializing':
-            status_phase, status_message = status.STATUS_PHASE.WAITING, container_state[
-                "waiting"]["reason"]
+            status_phase = status.STATUS_PHASE.WAITING
+            status_message = container_state["waiting"]["reason"]
             return status_phase, status_message
-        # In any other case, the status will be warning with a "reason: message" showing on hover
+        # In any other case, the status will be warning with a "reason:
+        # message" showing on hover
         else:
-            status_phase, status_message = status.STATUS_PHASE.WARNING, container_state[
-                "waiting"]["reason"] + ': ' + container_state["waiting"]["message"]
+            status_phase = status.STATUS_PHASE.WARNING
+
+            reason = container_state["waiting"]["reason"]
+            message = container_state["waiting"]["message"]
+            status_message = '%s: %s' % (reason, message)
             return status_phase, status_message
 
     return None, None
@@ -138,8 +150,8 @@ def get_status_from_conditions(notebook):
     for condition in conditions:
         # The status will be warning with a "reason: message" showing on hover
         if "reason" in condition:
-            status_phase, status_message = status.STATUS_PHASE.WARNING, condition[
-                "reason"] + ': ' + condition["message"]
+            status_phase = status.STATUS_PHASE.WARNING
+            status_message = condition["reason"] + ': ' + condition["message"]
             return status_phase, status_message
 
     return None, None

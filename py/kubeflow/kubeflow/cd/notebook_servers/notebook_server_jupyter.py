@@ -1,4 +1,4 @@
-""""Argo Workflow for building notebook-server-jupyter's OCI image using Kaniko"""
+""""Argo Workflow for building notebook-server-jupyter's image using Kaniko"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 

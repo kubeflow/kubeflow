@@ -16,7 +16,7 @@ class BackendMode(enum.Enum):
 
 def dev_mode_enabled():
     env = current_app.config.get("ENV")
-    return (env == BackendMode.DEVELOPMENT_FULL.value or
+    return (env == BackendMode.DEVELOPMENT_FULL.value or  # noqa: W504
             env == BackendMode.DEVELOPMENT.value)
 
 
