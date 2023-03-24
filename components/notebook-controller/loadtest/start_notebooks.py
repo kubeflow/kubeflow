@@ -48,48 +48,51 @@ parser.add_argument(
 
 
 def write_notebook_config(config, name, num):
-  config['metadata']['name'] = 'jupyter-test-' + str(num)
-  config['spec']['template']['spec']['containers'][0]['name'
-                                                     ] = 'notebook-' + str(num)
-  config['spec']['template']['spec']['volumes'][0]['persistentVolumeClaim'][
-      'claimName'] = 'test-vol-' + str(num)
-  with open(name, 'w') as f:
-    print(yaml.dump(config), file=f)
+    config['metadata']['name'] = 'jupyter-test-' + str(num)
+    config['spec']['template']['spec']['containers'][0]['name'
+                                                        ] = 'notebook-' + str(num)
+    config['spec']['template']['spec']['volumes'][0]['persistentVolumeClaim'][
+        'claimName'] = 'test-vol-' + str(num)
+    with open(name, 'w') as f:
+        print(yaml.dump(config), file=f)
 
 
 def write_pvc_config(config, name, num):
-  config['metadata']['name'] = 'test-vol-' + str(num)
-  with open(name, 'w') as f:
-    print(yaml.dump(config), file=f)
+    config['metadata']['name'] = 'test-vol-' + str(num)
+    with open(name, 'w') as f:
+        print(yaml.dump(config), file=f)
 
 
 def main():
-  args = parser.parse_args()
-  assert args.operation == 'apply' or args.operation == 'delete'
-  notebook_config = None
-  pvc_config = None
-  with open('jupyter_test.yaml', 'r') as f:
-    notebook_config = yaml.safe_load(f.read())
-  with open('jupyter_pvc.yaml', 'r') as f:
-    pvc_config = yaml.safe_load(f.read())
-  for i in range(args.num_notebooks):
-    notebook_name = f'jupyter_test_{i}.yaml'
-    pvc_name = f'jupyter_pvc_{i}.yaml'
-    write_notebook_config(notebook_config, notebook_name, i)
-    write_pvc_config(pvc_config, pvc_name, i)
-    print(f'kubectl {args.operation} -f {notebook_name} ...')
-    subprocess.run([
-        'kubectl', args.operation, '-f', notebook_name, '-n', args.namespace
-    ],
-                   capture_output=True,
-                   check=True)
-    print(f'kubectl {args.operation} -f {pvc_name} ...')
-    subprocess.run([
-        'kubectl', args.operation, '-f', pvc_name, '-n', args.namespace
-    ],
-                   capture_output=True,
-                   check=True)
+    args = parser.parse_args()
+    assert args.operation == 'apply' or args.operation == 'delete'
+    notebook_config = None
+    pvc_config = None
+    with open('jupyter_test.yaml', 'r') as f:
+        notebook_config = yaml.safe_load(f.read())
+    with open('jupyter_pvc.yaml', 'r') as f:
+        pvc_config = yaml.safe_load(f.read())
+    for i in range(args.num_notebooks):
+        notebook_name = f'jupyter_test_{i}.yaml'
+        pvc_name = f'jupyter_pvc_{i}.yaml'
+        write_notebook_config(notebook_config, notebook_name, i)
+        write_pvc_config(pvc_config, pvc_name, i)
+        print(f'kubectl {args.operation} -f {notebook_name} ...')
+        subprocess.run(['kubectl',
+                        args.operation,
+                        '-f',
+                        notebook_name,
+                        '-n',
+                        args.namespace],
+                       capture_output=True,
+                       check=True)
+        print(f'kubectl {args.operation} -f {pvc_name} ...')
+        subprocess.run([
+            'kubectl', args.operation, '-f', pvc_name, '-n', args.namespace
+        ],
+            capture_output=True,
+            check=True)
 
 
 if __name__ == '__main__':
-  main()
+    main()
