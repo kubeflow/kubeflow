@@ -42,4 +42,8 @@ spec:
           value: $(CD_CONFIGMAP_NAME)
         - name: LOGOUT_URL
           value: '/authservice/logout'
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
       serviceAccountName: centraldashboard
