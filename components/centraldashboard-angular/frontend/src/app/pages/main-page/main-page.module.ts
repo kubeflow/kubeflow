@@ -8,9 +8,13 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { AppRoutingModule } from 'src/app/app-routing.module';
+import { NamespaceSelectorComponent } from './namespace-selector/namespace-selector.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
-  declarations: [MainPageComponent],
+  declarations: [MainPageComponent, NamespaceSelectorComponent],
   imports: [
     CommonModule,
     LayoutModule,
@@ -20,6 +24,9 @@ import { AppRoutingModule } from 'src/app/app-routing.module';
     MatIconModule,
     MatListModule,
     AppRoutingModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
   ],
   exports: [MainPageComponent],
 })

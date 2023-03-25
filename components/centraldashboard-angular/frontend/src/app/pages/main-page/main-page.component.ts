@@ -1,13 +1,19 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { CDBBackendService } from 'src/app/services/backend.service';
-import { envInfo } from '../../types/env-info';
 import { DashboardLinks, Link, MenuLink } from 'src/app/types/dashboard-links';
-import { Router } from '@angular/router';
-import { appendBackslash, removePrefixFrom } from 'src/app/shared/utils';
+import { Params, Router } from '@angular/router';
+import {
+  appendBackslash,
+  getUrlFragment,
+  removePrefixFrom,
+} from 'src/app/shared/utils';
+import { EnvironmentService } from 'src/app/services/environment.service';
+import { PlatformInfo } from 'src/app/types/platform-info';
+import { CDBNamespaceService } from 'src/app/services/namespace.service';
+import { Namespace } from 'src/app/types/namespace';
 
 @Component({
   selector: 'app-main-page',
@@ -35,25 +41,30 @@ export class MainPageComponent implements OnInit {
   public externalLinks: any[];
   public quickLinks: Link[];
   public documentationItems: Link[];
+  public currentNamespace: string;
 
   constructor(
     private breakpointObserver: BreakpointObserver,
-    private backend: CDBBackendService,
     private router: Router,
+    private env: EnvironmentService,
+    private ns: CDBNamespaceService,
   ) {}
 
   ngOnInit() {
-    this.backend.getEnvInfo().subscribe((res: envInfo) => {
-      this.handleEnvInfo(res);
+    this.env.platform.subscribe((platform: PlatformInfo) => {
+      this.storeBuildInfo(platform);
     });
 
-    this.backend.getDashboardLinks().subscribe((res: DashboardLinks) => {
-      this.handleDashboardLinks(res);
+    this.env.dashboardLinks.subscribe((links: DashboardLinks) => {
+      this.storeDashboardLinks(links);
+    });
+
+    this.ns.currentNamespace.subscribe((namespace: Namespace) => {
+      this.currentNamespace = namespace.namespace;
     });
   }
 
-  handleEnvInfo(env: envInfo) {
-    const { platform, user, namespaces, isClusterAdmin } = env;
+  storeBuildInfo(platform: PlatformInfo) {
     if (platform?.buildLabel) {
       this.buildLabel = platform.buildLabel;
     }
@@ -69,7 +80,7 @@ export class MainPageComponent implements OnInit {
     return `${label} ${buildValue}`;
   }
 
-  handleDashboardLinks(links: DashboardLinks) {
+  storeDashboardLinks(links: DashboardLinks) {
     const { menuLinks, externalLinks, quickLinks, documentationItems } = links;
     this.menuLinks = menuLinks || [];
     this.externalLinks = externalLinks || [];
@@ -77,15 +88,19 @@ export class MainPageComponent implements OnInit {
     this.documentationItems = documentationItems || [];
   }
 
-  getUrlPath(url: string) {
-    const urlWithoutFragment = url.split('#')[0];
-    return this.appendPrefix(urlWithoutFragment);
+  getUrlPath(url: string, ns: string) {
+    // Remove fragment from URL
+    url = url.split('#')[0];
+    url = this.appendPrefix(url);
+
+    if (!ns) {
+      return url;
+    }
+
+    return url.replace('{ns}', ns);
   }
 
-  getUrlFragment(url: string): string {
-    const fragment = url.split('#')[1];
-    return fragment;
-  }
+  getUrlFragment = getUrlFragment;
 
   appendPrefix(url: string): string {
     return '/_' + url;
@@ -93,9 +108,19 @@ export class MainPageComponent implements OnInit {
 
   isLinkActive(url: string): boolean {
     let browserUrl = this.router.url;
-    browserUrl = appendBackslash(browserUrl);
     browserUrl = removePrefixFrom(browserUrl);
+    const browserUrlObject = new URL(browserUrl, window.location.origin);
+    browserUrl = browserUrlObject.pathname + browserUrlObject.hash;
+    browserUrl = appendBackslash(browserUrl);
     url = appendBackslash(url);
     return browserUrl.startsWith(url);
+  }
+
+  public getNamespaceParams(ns: string): Params | null {
+    let params: Params = {};
+    if (ns) {
+      params['ns'] = ns;
+    }
+    return params;
   }
 }

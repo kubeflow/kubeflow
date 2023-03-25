@@ -12,6 +12,7 @@
       <a
         mat-list-item
         routerLink="/"
+        [queryParams]="getNamespaceParams(currentNamespace)"
         [routerLinkActive]="['active']"
         [routerLinkActiveOptions]="{ exact: true }"
         [attr.data-cy-sidenav-menu-item]="'Home'"
@@ -20,8 +21,9 @@
       <a
         mat-list-item
         *ngFor="let link of menuLinks"
-        [routerLink]="getUrlPath(link.link)"
+        [routerLink]="getUrlPath(link.link, currentNamespace)"
         [fragment]="getUrlFragment(link.link)"
+        [queryParams]="getNamespaceParams(currentNamespace)"
         [class.active]="isLinkActive(link.link)"
         [attr.data-cy-sidenav-menu-item]="link.text"
       >
@@ -51,7 +53,7 @@
       >
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
-      <span>Central Dashboard</span>
+      <app-namespace-selector></app-namespace-selector>
     </mat-toolbar>
     <router-outlet></router-outlet>
   </mat-sidenav-content>
