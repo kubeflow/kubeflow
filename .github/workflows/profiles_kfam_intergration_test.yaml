@@ -19,16 +19,24 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
     - name: Build Profile Controller Image 
       run: |
         cd components/profile-controller
-        make docker-build IMG=${{env.PROFILE_IMG}}
+        ARCH=linux/ppc64le make docker-build-multi-arch IMG=${{env.PROFILE_IMG}}
+        ARCH=linux/amd64 make docker-build-multi-arch IMG=${{env.PROFILE_IMG}}
 
     - name: Build Kfam Image
       run: |
         cd components/access-management
-        make docker-build IMG=${{env.KFAM_IMG}}
+        ARCH=linux/ppc64le make docker-build-multi-arch IMG=${{env.KFAM_IMG}}
+        ARCH=linux/amd64 make docker-build-multi-arch IMG=${{env.KFAM_IMG}}
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
