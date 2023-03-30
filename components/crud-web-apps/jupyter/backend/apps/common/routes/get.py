@@ -1,8 +1,6 @@
 """GET request handlers."""
-from flask import request
 
 from kubeflow.kubeflow.crud_backend import api, logging
-
 from werkzeug.exceptions import NotFound
 
 from .. import utils
@@ -32,7 +30,8 @@ def get_pvcs(namespace):
 def get_poddefaults(namespace):
     pod_defaults = api.list_poddefaults(namespace)
 
-    # Return a list of pod defaults adding custom fields (label, desc) for forms
+    # Return a list of pod defaults adding custom fields (label, desc) for
+    # forms
     contents = []
     for pd in pod_defaults["items"]:
         label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
@@ -81,7 +80,7 @@ def get_notebook_pod(notebook_name, namespace):
         raise NotFound("No pod detected.")
 
 
-@bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/pod/<pod_name>/logs")
+@bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/pod/<pod_name>/logs")  # noqa: E501
 def get_pod_logs(namespace, notebook_name, pod_name):
     container = notebook_name
     logs = api.get_pod_logs(namespace, pod_name, container)

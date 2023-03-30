@@ -8,8 +8,13 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
         name: Name to give to the workflow. This can also be used to name
               things associated with the workflow.
     """
-    builder = kaniko_builder.Builder(name=name, namespace=namespace, bucket=bucket, **kwargs)
+    builder = kaniko_builder.Builder(
+        name=name,
+        namespace=namespace,
+        bucket=bucket,
+        **kwargs)
 
-    return builder.build(dockerfile="components/example-notebook-servers/base/Dockerfile",
-                         context="components/example-notebook-servers/base/",
-                         destination=config.NOTEBOOK_SERVER_BASE)
+    return builder.build(
+        dockerfile="components/example-notebook-servers/base/Dockerfile",
+        context="components/example-notebook-servers/base/",
+        destination=config.NOTEBOOK_SERVER_BASE)
