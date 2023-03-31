@@ -125,8 +125,8 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: docker-build docker-push manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/base/kustomization.yaml
-	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/base/kustomization.yaml
+	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/manager/kustomization.yaml
+	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/manager/kustomization.yaml
 	$(KUSTOMIZE) build config/base | kubectl apply -f -
 
 .PHONY: undeploy

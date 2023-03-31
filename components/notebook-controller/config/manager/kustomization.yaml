@@ -6,3 +6,7 @@ configMapGenerator:
 - name: config
   envs:
   - params.env
+images:
+- name: docker.io/kubeflownotebookswg/notebook-controller
+  newName: docker.io/kubeflownotebookswg/notebook-controller
+  newTag: latest

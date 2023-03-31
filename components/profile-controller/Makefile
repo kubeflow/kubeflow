@@ -107,16 +107,16 @@ uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube
 deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	@echo IMG=${IMG}
 	@echo TAG=${TAG}
-	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/base/kustomization.yaml
-	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/base/kustomization.yaml
+	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/manager/kustomization.yaml
+	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/manager/kustomization.yaml
 	$(KUSTOMIZE) build config/base | kubectl apply -f -
 
 .PHONY: test-overlays
 test-overlays: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config. with overlay changes on top
 	@echo IMG=${IMG}
 	@echo TAG=${TAG}
-	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/base/kustomization.yaml
-	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/base/kustomization.yaml
+	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/manager/kustomization.yaml
+	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/manager/kustomization.yaml
 	$(KUSTOMIZE) build config/overlays/kubeflow | kubectl apply -f -
 
 .PHONY: undeploy

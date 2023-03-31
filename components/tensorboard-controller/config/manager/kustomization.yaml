@@ -1,2 +1,7 @@
 resources:
 - manager.yaml
+
+images:
+- name: docker.io/kubeflownotebookswg/tensorboard-controller
+  newName: docker.io/kubeflownotebookswg/tensorboard-controller
+  newTag: latest

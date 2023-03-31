@@ -9,3 +9,8 @@ configMapGenerator:
   - USERID_HEADER="kubeflow-userid"
   - USERID_PREFIX=
   name: config
+
+images:
+- name: docker.io/kubeflownotebookswg/profile-controller
+  newName: docker.io/kubeflownotebookswg/profile-controller
+  newTag: latest

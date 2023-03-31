@@ -101,7 +101,7 @@ apps = [
     },
     {
         "name": "Notebook Controller",
-        "kustomization": "components/notebook-controller/config/base/kustomization.yaml",
+        "kustomization": "components/notebook-controller/config/manager/kustomization.yaml",
         "images": [
             {
                 "name": "docker.io/kubeflownotebookswg/notebook-controller",
@@ -111,7 +111,7 @@ apps = [
     },
     {
         "name": "Tensorboard Controller",
-        "kustomization": "components/tensorboard-controller/config/base/kustomization.yaml",
+        "kustomization": "components/tensorboard-controller/config/manager/kustomization.yaml",
         "images": [
             {
                 "name": "docker.io/kubeflownotebookswg/tensorboard-controller",
@@ -121,7 +121,7 @@ apps = [
     },
     {
         "name": "Profile Controller",
-        "kustomization": "components/profile-controller/config/base/kustomization.yaml",
+        "kustomization": "components/profile-controller/config/manager/kustomization.yaml",
         "images": [
             {
                 "name": "docker.io/kubeflownotebookswg/profile-controller",
