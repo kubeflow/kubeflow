@@ -16,6 +16,8 @@ import {
 } from '@angular/material/snack-bar';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
 import { SvgIconsService } from './services/svg-icons.service';
+import { NamespaceNeededPageComponent } from './pages/namespace-needed-page/namespace-needed-page.component';
+import { NotFoundPageComponent } from './pages/not-found-page/not-found-page.component';
 
 /**
  * MAT_SNACK_BAR_DEFAULT_OPTIONS values can be found
@@ -34,6 +36,8 @@ const CdbSnackBarConfig: MatSnackBarConfig = {
     HomePageComponent,
     IframeWrapperComponent,
     SafePipe,
+    NamespaceNeededPageComponent,
+    NotFoundPageComponent,
   ],
   imports: [
     BrowserModule,
