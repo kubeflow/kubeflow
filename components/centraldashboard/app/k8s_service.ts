@@ -50,7 +50,7 @@ const APP_API_NAME = 'applications';
 
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
-  private namespace = 'kubeflow';
+  private namespace = process.env.POD_NAMESPACE || 'kubeflow';
   private coreAPI: k8s.Core_v1Api;
   private customObjectsAPI: k8s.Custom_objectsApi;
   private dashboardConfigMap = DASHBOARD_CONFIGMAP;
