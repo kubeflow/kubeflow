@@ -29,6 +29,7 @@ const (
 	DEFAULT_SERVICE_ACCOUNT          = DEFAULT_EDITOR
 
 	ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP = "ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP"
+	DEFAULT_EDITING_IAM_ROLE_TRUST_RELATIONSHIP    = true
 )
 
 type AwsIAMForServiceAccount struct {
@@ -39,15 +40,11 @@ type AwsIAMForServiceAccount struct {
 // Checks if editing the trust relationship for IRSA is on.
 func isUpdateIRSATrustRelationshipEnabled() bool {
 	envVar := os.Getenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP)
-	retVal := true
-	if len(envVar) > 0 {
-		enabled, err := strconv.ParseBool(envVar)
-		if err == nil {
-			retVal = enabled
-		}
-
+	if enabled, err := strconv.ParseBool(envVar); err != nil {
+		return DEFAULT_EDITING_IAM_ROLE_TRUST_RELATIONSHIP
+	} else {
+		return enabled
 	}
-	return retVal
 }
 
 // ApplyPlugin annotate service account with the ARN of the IAM role and update trust relationship of IAM role

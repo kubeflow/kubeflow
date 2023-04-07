@@ -35,6 +35,10 @@ func TestIsUpdateIRSATrustRelationshipEnabled(t *testing.T) {
 	assert.Equal(t, true, isUpdateIRSATrustRelationshipEnabled())
 }
 
+func TestIsUpdateIRSATrustRelationshipDefault(t *testing.T) {
+	assert.Equal(t, true, isUpdateIRSATrustRelationshipEnabled())
+}
+
 func TestAddIAMRoleAnnotation(t *testing.T) {
 	roleName := "arn:aws:iam::34892524:role/s3-reader"
 	sa := &corev1.ServiceAccount{
