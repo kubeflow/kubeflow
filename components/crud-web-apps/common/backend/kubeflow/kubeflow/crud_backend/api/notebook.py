@@ -1,5 +1,5 @@
 from .. import authz
-from . import custom_api, v1_core
+from . import custom_api, events, utils
 
 
 def get_notebook(notebook, namespace):
@@ -55,12 +55,7 @@ def patch_notebook(notebook, namespace, body):
 
 
 def list_notebook_events(notebook, namespace):
-    authz.ensure_authorized(
-        "list", "", "v1", "events", namespace
-    )
 
-    selector = "involvedObject.kind=Notebook,involvedObject.name=" + notebook
+    field_selector = utils.events_field_selector("Notebook", notebook)
 
-    return v1_core.list_namespaced_event(
-        namespace=namespace, field_selector=selector
-    )
+    return events.list_events(namespace, field_selector)

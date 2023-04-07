@@ -33,7 +33,8 @@ def get_pvcs(namespace):
 def get_poddefaults(namespace):
     pod_defaults = api.list_poddefaults(namespace)
 
-    # Return a list of pod defaults adding custom fields (label, desc) for forms
+    # Return a list of pod defaults adding custom fields (label, desc) for
+    # forms
     contents = []
     for pd in pod_defaults["items"]:
         label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]

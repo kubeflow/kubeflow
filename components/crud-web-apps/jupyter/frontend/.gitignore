@@ -45,9 +45,6 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Rok files
-**/browse-in-rok*
-
 # Fonts Files
 /src/assets/fonts
 

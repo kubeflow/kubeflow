@@ -1,7 +1,0 @@
-apiVersion: kubeflow.org/v1alpha1
-kind: PVCViewer
-metadata:
-  name: {name}
-  namespace: {namespace}
-spec:
-  pvc: {name}

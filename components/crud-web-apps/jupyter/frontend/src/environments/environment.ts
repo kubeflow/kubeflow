@@ -13,9 +13,6 @@ export const environment = {
   groupOneIcon: 'static/assets/logos/group-one-icon.svg',
   groupTwoLogo: 'static/assets/logos/group-two-logo.svg',
   groupTwoIcon: 'static/assets/logos/group-two-icon.svg',
-
-  // Rok specifics
-  rokUrl: '',
 };
 /*
  * For easier debugging in development mode, you can import the following file

@@ -21,6 +21,7 @@
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["node_modules/@types"]
   },
+  "exclude": ["src/**/*.spec.ts"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

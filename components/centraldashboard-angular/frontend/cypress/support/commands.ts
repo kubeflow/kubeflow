@@ -97,3 +97,13 @@ Cypress.Commands.add('mockEnvInfoRequest', () => {
     'mockEnvInfoRequest',
   );
 });
+
+Cypress.Commands.add('setNamespaceInLocalStorage', namespace => {
+  cy.fixture('envinfo').then(envInfo => {
+    const user = envInfo.user;
+    const key =
+      '/centraldashboard/selectedNamespace/' + ((user && '.' + user) || '');
+    const value = JSON.stringify(namespace);
+    window.localStorage.setItem(key, value);
+  });
+});

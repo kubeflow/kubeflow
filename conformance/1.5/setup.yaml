@@ -23,8 +23,8 @@ spec:
     name: test@kf-conformance.com
   resourceQuotaSpec:
    hard:
-     cpu: "2"
-     memory: 2Gi
+     cpu: "4"
+     memory: 4Gi
      requests.storage: "5Gi"
 ---
 # Service account used by conformance test

@@ -5,7 +5,7 @@ import { UsedByComponent } from './used-by.component';
 const mockElement = {
   age: 'Mon, 19 Sep 2022 16:39:10 GMT',
   capacity: '5Gi',
-  class: 'rok',
+  class: '',
   modes: ['ReadWriteOnce'],
   name: 'a0-new-image-workspace-d8pc2',
   namespace: 'kubeflow-user',

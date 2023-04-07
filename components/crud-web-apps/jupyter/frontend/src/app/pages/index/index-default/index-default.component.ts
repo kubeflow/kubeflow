@@ -121,7 +121,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         notebook.status.phase = STATUS_TYPE.TERMINATING;
-        notebook.status.message = 'Preparing to delete the Notebook...';
+        notebook.status.message = 'Preparing to delete the Notebook.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -143,7 +143,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       .startNotebook(notebook.namespace, notebook.name)
       .subscribe(_ => {
         notebook.status.phase = STATUS_TYPE.WAITING;
-        notebook.status.message = 'Starting the Notebook Server...';
+        notebook.status.message = 'Starting the Notebook Server.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -156,8 +156,8 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
 
-        notebook.status.phase = STATUS_TYPE.TERMINATING;
-        notebook.status.message = 'Preparing to stop the Notebook Server...';
+        notebook.status.phase = STATUS_TYPE.WAITING;
+        notebook.status.message = 'Preparing to stop the Notebook Server.';
         this.updateNotebookFields(notebook);
       });
   }
