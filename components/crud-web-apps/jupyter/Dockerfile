@@ -45,11 +45,11 @@ FROM python:3.8-slim
 
 WORKDIR /package
 COPY --from=backend-kubeflow-wheel /src .
-RUN pip3 install .
+RUN pip3 install --no-cache-dir .
 
 WORKDIR /src
 COPY ./jupyter/backend/requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY ./jupyter/backend/apps/ ./apps
 COPY ./jupyter/backend/entrypoint.py .
