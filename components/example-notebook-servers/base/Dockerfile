@@ -54,9 +54,7 @@ RUN export GNUPGHOME=/tmp/ \
 
 # install - kubectl
 RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" -o /usr/local/bin/kubectl \
- && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
- && echo "$(cat /tmp/kubectl.sha256) /usr/local/bin/kubectl" | sha256sum --check \
- && rm /tmp/kubectl.sha256 \
+ && echo $(curl -sL https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256) /usr/local/bin/kubectl | sha256sum --check \
  && chmod +x /usr/local/bin/kubectl
 
 # create user and set required ownership
