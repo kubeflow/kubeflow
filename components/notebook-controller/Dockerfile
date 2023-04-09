@@ -12,17 +12,15 @@ FROM golang:${GOLANG_VERSION} as builder
 WORKDIR /workspace
 
 # Copy the Go Modules manifests
-COPY notebook-controller /workspace/notebook-controller
-COPY common /workspace/common
+COPY notebook-controller ./notebook-controller
+COPY common ./common
 
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
-RUN cd /workspace/notebook-controller && go mod download
-
 WORKDIR /workspace/notebook-controller
-
-# Build
-RUN CGO_ENABLED=0 GOOS=linux GO111MODULE=on go build -a -mod=mod -o manager main.go
+RUN go mod download && \
+    # Build
+    CGO_ENABLED=0 GOOS=linux GO111MODULE=on go build -a -mod=mod -o manager main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
