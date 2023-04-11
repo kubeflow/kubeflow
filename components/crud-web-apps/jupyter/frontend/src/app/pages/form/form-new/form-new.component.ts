@@ -50,7 +50,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
 
     // Keep track of the selected namespace
     this.subscriptions.add(
-      this.namespaceService.getSelectedNamespace2().subscribe(namespace => {
+      this.namespaceService.getSelectedNamespace().subscribe(namespace => {
         if (Array.isArray(namespace)) {
           this.goToNotebooks();
         } else {
