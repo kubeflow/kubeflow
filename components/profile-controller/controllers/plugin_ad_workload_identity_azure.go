@@ -47,21 +47,24 @@ type AzureAdWorkloadIdentity struct {
 // ApplyPlugin will grant Azure workload identity to service account DEFAULT_EDITOR
 func (azure *AzureAdWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
-	if err := azure.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger); err != nil {
+
+	logger.Info("Setting up workload identity", "ClientId", azure.AzureIdentityClientId)
+
+	if err := azure.patchSaAnnotation(r, profile.Name, DEFAULT_EDITOR, logger); err != nil {
 		return err
 	}
 
-	logger.Info("Setting up workload identity", "ClientId", azure.AzureIdentityClientId)
-	return nil
+	return azure.patchPodAnnotation(r, profile.Name, logger)
 }
 
-// patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
-func (azure *AzureAdWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
+// patchAnnotation will patch annotation to k8s service account in order to pair up with azure ad identity
+func (azure *AzureAdWorkloadIdentity) patchSaAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
 	ctx := context.Background()
 
 	// Patch service account to enable workload identity
 	found := &corev1.ServiceAccount{}
 	err := r.Get(ctx, types.NamespacedName{Name: ksa, Namespace: namespace}, found)
+
 	if err != nil {
 		return err
 	}
@@ -82,22 +85,31 @@ func (azure *AzureAdWorkloadIdentity) patchAnnotation(r *ProfileReconciler, name
 		}
 	}
 
-	// Patch pods to enable workload identity
-	podFound := &corev1.Pod{}
+	return r.Update(ctx, found)
+}
 
-	if podFound.Labels == nil {
-		podFound.Labels = map[string]string{
+func (azure *AzureAdWorkloadIdentity) patchPodAnnotation(r *ProfileReconciler, namespace string, logger logr.Logger) error {
+	ctx := context.Background()
+
+	// Patch service account to enable workload identity
+	pod := &corev1.Pod{}
+
+	err := r.Get(ctx, types.NamespacedName{Namespace: namespace}, pod)
+
+	if err != nil {
+		return err
+	}
+
+	// Patch pods to enable workload identity
+	if pod.Labels == nil {
+		pod.Labels = map[string]string{
 			AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION: "true",
 		}
 	} else {
-		podFound.Labels[AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION] = "true"
+		pod.Labels[AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION] = "true"
 	}
 
-	// add a label to alls pod to enable workload identity
-
-	// TODO: add a label to all pods in the namespace
-
-	return r.Update(ctx, found)
+	return r.Update(ctx, pod)
 }
 
 func (azure *AzureAdWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
