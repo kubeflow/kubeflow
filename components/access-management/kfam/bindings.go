@@ -37,9 +37,9 @@ const ROLE = "role"
 const GROUP = "group"
 
 var bindingHierarchy = map[string]int{
-	"kubeflow-admin": 1,
-	"kubeflow-edit":  2,
-	"kubeflow-view":  3,
+	"admin": 1,
+	"edit":  2,
+	"view":  3,
 }
 
 //roleBindingNameMap maps frontend role names to k8s role names and vice-versa
@@ -222,6 +222,10 @@ func (c *BindingClient) List(user string, groups []string, namespaces []string, 
 		return nil, fmt.Errorf("at least one of user, groups, or namespaces must be specified")
 	}
 
+	// When we want to list the binding on user's info (user or groups) we return only one binding
+	// per namespace, the binding will be the one with the highest permission.
+	distinctBinding := user != "" || len(groups) > 0
+
 	bindings := []Binding{}
 	for _, ns := range namespaces {
 		roleBindings, err := c.roleBindingLister.RoleBindings(ns).List(labels.Everything())
@@ -237,29 +241,55 @@ func (c *BindingClient) List(user string, groups []string, namespaces []string, 
 
 			// Iterate over the role binding subjects
 			for _, subject := range roleBinding.Subjects {
-				switch subject.Kind {
-				case "User":
-					if user != "" && subject.Name == user {
-						bindings = append(bindings, Binding{
-							User:              &subject,
-							ReferredNamespace: ns,
-							RoleRef:           &roleBinding.RoleRef,
-						})
+
+				if user != "" || len(groups) > 0 {
+					switch subject.Kind {
+					case "User":
+						if user != "" && subject.Name == user {
+							bindings = append(bindings, Binding{
+								User:              &subject,
+								ReferredNamespace: ns,
+								RoleRef: &rbacv1.RoleRef{
+									Kind: roleBinding.RoleRef.Kind,
+									Name: roleBindingNameMap[roleBinding.RoleRef.Name],
+								},
+							})
+						}
+						break
+					case "Group":
+						if contains(groups, subject.Name) {
+							bindings = append(bindings, Binding{
+								User:              &subject,
+								ReferredNamespace: ns,
+								RoleRef: &rbacv1.RoleRef{
+									Kind: roleBinding.RoleRef.Kind,
+									Name: roleBindingNameMap[roleBinding.RoleRef.Name],
+								},
+							})
+						}
 					}
-					break
-				case "Group":
-					if contains(groups, subject.Name) {
-						bindings = append(bindings, Binding{
-							User:              &subject,
-							ReferredNamespace: ns,
-							RoleRef:           &roleBinding.RoleRef,
-						})
-					}
+				} else {
+					// If we do not want to filter based on groups or user we simply add the Subject and RoleRef
+					bindings = append(bindings, Binding{
+						User:              &subject,
+						ReferredNamespace: ns,
+						RoleRef: &rbacv1.RoleRef{
+							Kind: roleBinding.RoleRef.Kind,
+							Name: roleBindingNameMap[roleBinding.RoleRef.Name],
+						},
+					})
 				}
 			}
 		}
 	}
+
 	return &BindingEntries{
-		Bindings: FilterMaxPermissionBindingsByNamespace(bindings),
+		Bindings: func() []Binding {
+			if distinctBinding {
+				return FilterMaxPermissionBindingsByNamespace(bindings)
+			}
+			return bindings
+		}(),
 	}, nil
+
 }
