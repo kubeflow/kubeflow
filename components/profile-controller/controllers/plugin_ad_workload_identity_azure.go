@@ -18,143 +18,84 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"errors"
+
 	"github.com/go-logr/logr"
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/iam/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"regexp"
 )
 
-// plugin kind
-const KIND_WORKLOAD_IDENTITY = "WorkloadIdentity"
+const (
+	KIND_AD_WORKLOAD_IDENTITY      = "AzureAdWorkloadIdentity"
+	AD_DEFAULT_SERVICE_ACCOUNT     = DEFAULT_EDITOR
+	AZURE_CLIENT_ID_ANNOTATION_KEY = "azure.workload.identity/client-id"
+	AZURE_TENANT_ID_ANNOTATION_KEY = "azure.workload.identity/tenant-id"
 
-const GCP_ANNOTATION_KEY = "iam.gke.io/gcp-service-account"
-const GCP_SA_SUFFIX = ".iam.gserviceaccount.com"
-const WORKLOAD_IDENTITY_ROLE = "roles/iam.workloadIdentityUser"
+	AZURE_SA_TOKEN_EXPIRATION_ANNOTATION_KEY = "azure.workload.identity/service-account-token-expiration"
 
-// GcpWorkloadIdentity: plugin that setup GKE workload identity (credentials for GCP API) for target profile namespace.
-type GcpWorkloadIdentity struct {
-	GcpServiceAccount string `json:"gcpServiceAccount,omitempty"`
+	AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION = "azure.workload.identity/use"
+)
+
+// AzureAdWorkloadIdentity: plugin that setup Azure AD workload identity for target profile namespace
+type AzureAdWorkloadIdentity struct {
+	AzureIdentityClientId              string `json:"identityClientId,omitempty"`
+	AzureIdentityTenantId              string `json:"identityTenantId,omitempty"`
+	AzureServiceAccountTokenExpiration string `json:"serviceAccountTokenExpiration,omitempty"`
 }
 
-// ApplyPlugin will grant GCP workload identity to service account DEFAULT_EDITOR
-func (gcp *GcpWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
+// ApplyPlugin will grant Azure workload identity to service account DEFAULT_EDITOR
+func (azure *AzureAdWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
-	if err := gcp.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger); err != nil {
+	if err := azure.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger); err != nil {
 		return err
 	}
-	logger.Info("Setting up iam policy.", "ServiceAccount", gcp.GcpServiceAccount)
-	return gcp.updateWorkloadIdentity(profile.Name, DEFAULT_EDITOR, addBinding)
-}
 
-// GetProjectID will return GCP project id of GcpServiceAccount. Will return empty string if cannot parse GcpServiceAccount
-func (gcp *GcpWorkloadIdentity) GetProjectID() (string, error) {
-	if gcp.GcpServiceAccount[len(gcp.GcpServiceAccount)-len(GCP_SA_SUFFIX):len(gcp.GcpServiceAccount)] !=
-		GCP_SA_SUFFIX {
-		return "", fmt.Errorf("%v is not a valid GCP service account.", gcp.GcpServiceAccount)
-	}
-	re := regexp.MustCompile("\\@(.*?)\\.")
-	match := re.FindStringSubmatch(gcp.GcpServiceAccount)
-	if match == nil {
-		return "", fmt.Errorf("Cannot extract project id from %v.", gcp.GcpServiceAccount)
-	}
-	return match[1], nil
+	logger.Info("Setting up workload identity", "ClientId", azure.AzureIdentityClientId)
+	return nil
 }
 
 // patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
-func (gcp *GcpWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
+func (azure *AzureAdWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
 	ctx := context.Background()
+
+	// Patch service account to enable workload identity
 	found := &corev1.ServiceAccount{}
 	err := r.Get(ctx, types.NamespacedName{Name: ksa, Namespace: namespace}, found)
 	if err != nil {
 		return err
 	}
+
+	if azure.AzureIdentityClientId == "" {
+		return errors.New("failed to setup service account because AzureIdentityClientId is empty")
+	}
+
+	var serviceAccountAnnotations = map[string]string{
+		AZURE_CLIENT_ID_ANNOTATION_KEY: azure.AzureIdentityClientId, AZURE_TENANT_ID_ANNOTATION_KEY: azure.AzureIdentityTenantId, AZURE_SA_TOKEN_EXPIRATION_ANNOTATION_KEY: azure.AzureServiceAccountTokenExpiration,
+	}
+
 	if found.Annotations == nil {
-		found.Annotations = map[string]string{GCP_ANNOTATION_KEY: gcp.GcpServiceAccount}
+		found.Annotations = serviceAccountAnnotations
 	} else {
-		found.Annotations[GCP_ANNOTATION_KEY] = gcp.GcpServiceAccount
-	}
-	logger.Info("Patch Annotation for service account: ", "namespace ", namespace, "name ", ksa)
-	return r.Update(ctx, found)
-}
-
-// updateWorkloadIdentity update GCP service account IAM binding with provided binding update function f
-func (gcp *GcpWorkloadIdentity) updateWorkloadIdentity(namespace string, ksa string, f func(*iam.Policy, string)) error {
-	projectID, err := gcp.GetProjectID()
-	if err != nil {
-		return err
-	}
-	ctx := context.Background()
-	gcpSa := gcp.GcpServiceAccount
-	// Get client.
-	client, err := google.DefaultClient(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return err
-	}
-
-	// Create the Cloud IAM service object.
-	iamService, err := iam.New(client)
-	if err != nil {
-		return err
-	}
-	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", projectID, gcpSa)
-
-	// Get credentials.
-	credentials, err := google.FindDefaultCredentials(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return err
-	}
-
-	// Get policy
-	currentPolicy, err := iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do()
-	if err != nil {
-		return err
-	}
-
-	// Update policy
-	// Use ProjectID from the default credentials for identity namespace if it's not empty in case gcpSa is from a different project
-	ksaProjectID := credentials.ProjectID
-	if ksaProjectID == "" {
-		ksaProjectID = projectID
-	}
-	bindingMember := fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", ksaProjectID, namespace, ksa)
-	f(currentPolicy, bindingMember)
-
-	// Set iam policy
-	req := &iam.SetIamPolicyRequest{
-		Policy: currentPolicy,
-	}
-	_, err = iamService.Projects.ServiceAccounts.SetIamPolicy(saResource, req).Context(ctx).Do()
-	return err
-}
-
-// addBinding add binding for <member, WORKLOAD_IDENTITY_ROLE>
-func addBinding(currentPolicy *iam.Policy, member string) {
-	// add new binding to policy
-	newBinding := iam.Binding{}
-	newBinding.Role = WORKLOAD_IDENTITY_ROLE
-	newBinding.Members = []string{
-		member,
-	}
-	currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
-}
-
-// revokeBinding remove binding for <member, WORKLOAD_IDENTITY_ROLE>
-func revokeBinding(currentPolicy *iam.Policy, member string) {
-	// remove binding member from policy
-	for _, binding := range currentPolicy.Bindings {
-		if binding.Role == WORKLOAD_IDENTITY_ROLE {
-			binding.Members = removeString(binding.Members, member)
+		for k, v := range serviceAccountAnnotations {
+			found.Annotations[k] = v
 		}
 	}
-}
 
-// RevokePlugin: undo changes made by ApplyPlugin.
-func (gcp *GcpWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
-	logger := r.Log.WithValues("profile", profile.Name)
-	logger.Info("Clean up Gcp Workload Identity.", "ServiceAccount", gcp.GcpServiceAccount)
-	return gcp.updateWorkloadIdentity(profile.Name, DEFAULT_EDITOR, revokeBinding)
+	// Patch pods to enable workload identity
+	podFound := &corev1.Pod{}
+
+	if podFound.Labels == nil {
+		podFound.Labels = map[string]string{
+			AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION: "true",
+		}
+	} else {
+		podFound.Labels[AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION] = "true"
+	}
+
+	// add a label to alls pod to enable workload identity
+
+	// TODO: add a label to all pods in the namespace
+
+	return r.Update(ctx, found)
 }
