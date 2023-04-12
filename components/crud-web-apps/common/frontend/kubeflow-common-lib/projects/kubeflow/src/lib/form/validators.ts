@@ -10,7 +10,6 @@ import {
 
 import { Observable, of, timer, of as observableOf } from 'rxjs';
 import { switchMap, map, catchError } from 'rxjs/operators';
-import { RokService } from '../services/rok/rok.service';
 
 const dns1123LabelFmt = '[a-z0-9]([-a-z0-9]*[a-z0-9])?';
 
@@ -129,37 +128,4 @@ export function getNameAsyncValidators(
       getExistingNameValidator(existingNames),
     ]),
   ];
-}
-
-// Rok
-export function getRokUrlError(rokUrlCtrl: AbstractControl) {
-  if (rokUrlCtrl.hasError('required')) {
-    return 'Rok URL cannot be empty';
-  }
-
-  if (rokUrlCtrl.hasError('invalidRokUrl')) {
-    return 'Not a valid Rok URL';
-  }
-}
-
-export function rokUrlValidator(rok: RokService): AsyncValidatorFn {
-  return (control: AbstractControl): Observable<ValidationErrors | null> => {
-    const url = control.value;
-
-    // Don't return error if the url is empty
-    if (url.length === 0) {
-      return of(null);
-    }
-
-    // Ensure a protocol is given
-    // Don't fire while the user is writting
-    return timer(DEBOUNCE_TIME).pipe(
-      switchMap(() =>
-        rok.getObjectMetadata(url, false).pipe(
-          map(resp => null),
-          catchError((msg: string) => observableOf({ invalidRokUrl: true })),
-        ),
-      ),
-    );
-  };
 }

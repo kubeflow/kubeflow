@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { DashboardLinks } from '../types/dashboard-links';
-import { envInfo } from '../types/env-info';
+import { EnvInfo } from '../types/env-info';
 
 @Injectable({
   providedIn: 'root',
@@ -10,10 +10,10 @@ import { envInfo } from '../types/env-info';
 export class CDBBackendService {
   constructor(private http: HttpClient) {}
 
-  public getEnvInfo(): Observable<envInfo> {
+  public getEnvInfo(): Observable<EnvInfo> {
     const url = `api/workgroup/env-info`;
 
-    return this.http.get<envInfo>(url);
+    return this.http.get<EnvInfo>(url);
   }
 
   public getDashboardLinks(): Observable<DashboardLinks> {

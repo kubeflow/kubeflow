@@ -76,9 +76,14 @@ export class ErrorInterceptor implements HttpInterceptor {
   public getBackendErrorLog(error: HttpErrorResponse): string {
     if (error.error === null) {
       return error.message;
+    }
+    // Show the message the backend has sent
+    else if (error.error.log) {
+      return error.error.log;
+    } else if (error.error.error) {
+      return error.error.error;
     } else {
-      // Show the message the backend has sent
-      return error.error.log ? error.error.log : error.error.error;
+      return error.error;
     }
   }
 

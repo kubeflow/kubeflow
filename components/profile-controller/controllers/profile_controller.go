@@ -417,6 +417,13 @@ func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile) istioSecurity.AuthorizationPolicy {
+
+	clusterDomain := "cluster.local"
+	if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
+		clusterDomain = clusterDomainFromEnv
+	}
+	principals := fmt.Sprintf("%s/ns/kubeflow/sa/notebook-controller-service-account", clusterDomain)
+
 	return istioSecurity.AuthorizationPolicy{
 		Action: istioSecurity.AuthorizationPolicy_ALLOW,
 		// Empty selector == match all workloads in namespace
@@ -466,7 +473,7 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 				From: []*istioSecurity.Rule_From{
 					{
 						Source: &istioSecurity.Source{
-							Principals: []string{"cluster.local/ns/kubeflow/sa/notebook-controller-service-account"},
+							Principals: []string{principals},
 						},
 					},
 				},
