@@ -37,6 +37,8 @@ type ProfileSpec struct {
 	// The profile owner
 	Owner rbacv1.Subject `json:"owner,omitempty"`
 
+	Contributors []rbacv1.Subject `json:"contributors,omitempty"`
+
 	Plugins []Plugin `json:"plugins,omitempty"`
 
 	// Resourcequota that will be applied to target namespace

@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -48,7 +49,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-const AUTHZPOLICYISTIO = "ns-owner-access-istio"
+const AUTHZPOLICYISTIO = "ns-access-istio"
 
 // Istio constants
 const ISTIOALLOWALL = "allow-all"
@@ -56,10 +57,13 @@ const ISTIOALLOWALL = "allow-all"
 const KFQUOTA = "kf-resource-quota"
 const PROFILEFINALIZER = "profile-finalizer"
 
+const GROUP = "group"
+
 // annotation key, consumed by kfam API
 const USER = "user"
 const ROLE = "role"
 const ADMIN = "admin"
+const CONTRIBUTOR = "contributor"
 
 // Kubeflow default role names
 // TODO: Make kubeflow roles configurable (krishnadurai)
@@ -89,6 +93,7 @@ type ProfileReconciler struct {
 	Log                        logr.Logger
 	UserIdHeader               string
 	UserIdPrefix               string
+	GroupHeader                string
 	WorkloadIdentity           string
 	DefaultNamespaceLabelsPath string
 }
@@ -226,10 +231,10 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 	// TODO: add role for impersonate permission
 
 	// Update owner rbac permission
-	// When ClusterRole was referred by namespaced roleBinding, the result permission will be namespaced as well.
-	roleBinding := &rbacv1.RoleBinding{
+	// When ClusterRole was referred by namespaced roleBindingOwner, the result permission will be namespaced as well.
+	roleBindingOwner := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{USER: instance.Spec.Owner.Name, ROLE: ADMIN},
+			Annotations: map[string]string{instance.Spec.Owner.Kind: instance.Spec.Owner.Name, ROLE: ADMIN},
 			Name:        "namespaceAdmin",
 			Namespace:   instance.Name,
 		},
@@ -243,12 +248,36 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 			instance.Spec.Owner,
 		},
 	}
-	if err = r.updateRoleBinding(instance, roleBinding); err != nil {
+
+	roleBindingContributors := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{ROLE: CONTRIBUTOR},
+			Name:        "namespaceContributors",
+			Namespace:   instance.Name,
+		},
+		// Use default ClusterRole 'contributors' for profile/namespace contributors
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     kubeflowEdit,
+		},
+		Subjects: instance.Spec.Contributors,
+	}
+
+	if err = r.updateRoleBinding(instance, roleBindingOwner); err != nil {
 		logger.Error(err, "error Updating Owner Rolebinding", "namespace", instance.Name, "name",
 			"defaultEdittor")
 		IncRequestErrorCounter("error updating Owner Rolebinding", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
+
+	if err = r.updateRoleBinding(instance, roleBindingContributors); err != nil {
+		logger.Error(err, "error Updating Contributors Rolebinding", "namespace", instance.Name, "name",
+			"defaultEdittor")
+		IncRequestErrorCounter("error updating Contributors Rolebinding", SEVERITY_MAJOR)
+		return reconcile.Result{}, err
+	}
+
 	// Create resource quota for target namespace if resources are specified in profile.
 	if len(instance.Spec.ResourceQuotaSpec.Hard) > 0 {
 		resourceQuota := &corev1.ResourceQuota{
@@ -417,22 +446,51 @@ func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile) istioSecurity.AuthorizationPolicy {
+
+	var istioUserIdHeaderValues []string
+	var istioGroupHeaderValues []string
+
+	subjects := append(profileIns.Spec.Contributors, profileIns.Spec.Owner)
+	for _, contributor := range subjects {
+		if strings.ToLower(contributor.Kind) == "user" {
+			istioUserIdHeaderValues = append(istioUserIdHeaderValues, r.UserIdPrefix+contributor.Name)
+		} else if strings.ToLower(contributor.Kind) == "group" {
+			istioGroupHeaderValues = append(
+				istioGroupHeaderValues,
+				generateIstioAuthorizationPolicyGroupsValues(contributor.Name)...,
+			)
+		}
+	}
+
+	fmt.Printf("[getAuthorizationPolicy] istioUserIdHeaderValues: %v - istioGroupHeaderValues %v\n", istioUserIdHeaderValues, istioGroupHeaderValues)
+
+	var istioConditions []*istioSecurity.Condition
+
+	if len(istioUserIdHeaderValues) > 0 {
+		istioConditions = append(istioConditions, &istioSecurity.Condition{
+			// Namespace Owner can access all workloads in the
+			// namespace
+			Key:    fmt.Sprintf("request.headers[%v]", r.UserIdHeader),
+			Values: istioUserIdHeaderValues,
+		})
+	}
+
+	if len(istioGroupHeaderValues) > 0 {
+		istioConditions = append(istioConditions, &istioSecurity.Condition{
+			// Namespace Owner can access all workloads in the
+			// namespace
+			Key:    fmt.Sprintf("request.headers[%v]", r.GroupHeader),
+			Values: istioGroupHeaderValues,
+		})
+	}
+
 	return istioSecurity.AuthorizationPolicy{
 		Action: istioSecurity.AuthorizationPolicy_ALLOW,
 		// Empty selector == match all workloads in namespace
 		Selector: nil,
 		Rules: []*istioSecurity.Rule{
 			{
-				When: []*istioSecurity.Condition{
-					{
-						// Namespace Owner can access all workloads in the
-						// namespace
-						Key: fmt.Sprintf("request.headers[%v]", r.UserIdHeader),
-						Values: []string{
-							r.UserIdPrefix + profileIns.Spec.Owner.Name,
-						},
-					},
-				},
+				When: istioConditions,
 			},
 			{
 				When: []*istioSecurity.Condition{
@@ -483,6 +541,15 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 	}
 }
 
+func generateIstioAuthorizationPolicyGroupsValues(group string) []string {
+	return []string{
+		group,
+		fmt.Sprintf("*,%s", group),
+		fmt.Sprintf("*,%s,*", group),
+		fmt.Sprintf("%s,*", group),
+	}
+}
+
 // updateIstioAuthorizationPolicy create or update Istio AuthorizationPolicy
 // resources in target namespace owned by "profileIns". The goal is to allow
 // service access for profile owner.
@@ -491,7 +558,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 
 	istioAuth := &istioSecurityClient.AuthorizationPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{USER: profileIns.Spec.Owner.Name, ROLE: ADMIN},
+			Annotations: map[string]string{"owner": profileIns.Spec.Owner.Name},
 			Name:        AUTHZPOLICYISTIO,
 			Namespace:   profileIns.Name,
 		},

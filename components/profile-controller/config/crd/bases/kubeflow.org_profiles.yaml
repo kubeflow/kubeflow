@@ -61,6 +61,24 @@ spec:
                 - kind
                 - name
                 type: object
+              contributors:
+                items:
+                  description:
+                  properties:
+                    kind:
+                      description: Kind of object being referenced. Values defined by
+                        this API group are "User", "Group", and "ServiceAccount". If
+                        the Authorizer does not recognized the kind value, the Authorizer
+                        should report an error.
+                      type: string
+                    name:
+                      description: Name of the object being referenced.
+                      type: string
+                  required:
+                    - kind
+                    - name
+                  type: object
+                type: array
               plugins:
                 items:
                   description: Plugin is for customize actions on different platform.

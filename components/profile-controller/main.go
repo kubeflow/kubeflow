@@ -40,6 +40,7 @@ import (
 
 const USERIDHEADER = "userid-header"
 const USERIDPREFIX = "userid-prefix"
+const GROUPHEADER = "group-header"
 const WORKLOADIDENTITY = "workload-identity"
 const DEFAULTNAMESPACELABELSPATH = "namespace-labels-path"
 
@@ -63,6 +64,7 @@ func main() {
 	var probeAddr string
 	var userIdHeader string
 	var userIdPrefix string
+	var groupHeader string
 	var workloadIdentity string
 	var defaultNamespaceLabelsPath string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
@@ -74,6 +76,7 @@ func main() {
 		"Determines the namespace in which the leader election configmap will be created.")
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.StringVar(&groupHeader, GROUPHEADER, "kubeflow-groups", "Key of request header containing user's groups")
 	flag.StringVar(&workloadIdentity, WORKLOADIDENTITY, "", "Default identity (GCP service account) for workload_identity plugin")
 	flag.StringVar(&defaultNamespaceLabelsPath, DEFAULTNAMESPACELABELSPATH, "/etc/profile-controller/namespace-labels.yaml", "A YAML file with a map of labels to be set on every Profile namespace")
 	opts := zap.Options{
@@ -102,6 +105,7 @@ func main() {
 		Log:                        ctrl.Log.WithName("controllers").WithName("Profile"),
 		UserIdHeader:               userIdHeader,
 		UserIdPrefix:               userIdPrefix,
+		GroupHeader:                groupHeader,
 		WorkloadIdentity:           workloadIdentity,
 		DefaultNamespaceLabelsPath: defaultNamespaceLabelsPath,
 	}).SetupWithManager(mgr); err != nil {
