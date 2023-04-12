@@ -99,3 +99,23 @@ func (azure *AzureAdWorkloadIdentity) patchAnnotation(r *ProfileReconciler, name
 
 	return r.Update(ctx, found)
 }
+
+func (azure *AzureAdWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
+	ctx := context.Background()
+
+	found := &corev1.ServiceAccount{}
+	err := r.Get(ctx, types.NamespacedName{Name: DEFAULT_EDITOR, Namespace: profile.Name}, found)
+	if err != nil {
+		return err
+	}
+
+	var serviceAccountAnnotations = map[string]string{
+		AZURE_CLIENT_ID_ANNOTATION_KEY: azure.AzureIdentityClientId, AZURE_TENANT_ID_ANNOTATION_KEY: azure.AzureIdentityTenantId, AZURE_SA_TOKEN_EXPIRATION_ANNOTATION_KEY: azure.AzureServiceAccountTokenExpiration,
+	}
+
+	for k := range serviceAccountAnnotations {
+		delete(found.Annotations, k)
+	}
+
+	return r.Update(ctx, found)
+}
