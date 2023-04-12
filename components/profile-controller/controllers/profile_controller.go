@@ -669,7 +669,7 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1.Profile) ([]Plug
 			pluginIns = &GcpWorkloadIdentity{}
 		case KIND_AWS_IAM_FOR_SERVICE_ACCOUNT:
 			pluginIns = &AwsIAMForServiceAccount{}
-		case KIND_AD_WORKLOAD_IDENTITY:
+		case KIND_AZURE_AD_WORKLOAD_IDENTITY:
 			pluginIns = &AzureAdWorkloadIdentity{}
 		default:
 			logger.Info("Plugin not recgonized: ", "Kind", p.Kind)

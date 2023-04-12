@@ -27,10 +27,10 @@ import (
 )
 
 const (
-	KIND_AD_WORKLOAD_IDENTITY      = "AzureAdWorkloadIdentity"
-	AD_DEFAULT_SERVICE_ACCOUNT     = DEFAULT_EDITOR
-	AZURE_CLIENT_ID_ANNOTATION_KEY = "azure.workload.identity/client-id"
-	AZURE_TENANT_ID_ANNOTATION_KEY = "azure.workload.identity/tenant-id"
+	KIND_AZURE_AD_WORKLOAD_IDENTITY = "AzureAdWorkloadIdentity"
+	AD_DEFAULT_SERVICE_ACCOUNT      = DEFAULT_EDITOR
+	AZURE_CLIENT_ID_ANNOTATION_KEY  = "azure.workload.identity/client-id"
+	AZURE_TENANT_ID_ANNOTATION_KEY  = "azure.workload.identity/tenant-id"
 
 	AZURE_SA_TOKEN_EXPIRATION_ANNOTATION_KEY = "azure.workload.identity/service-account-token-expiration"
 
