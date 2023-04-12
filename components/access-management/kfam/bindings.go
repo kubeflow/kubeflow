@@ -36,6 +36,12 @@ const USER = "user"
 const ROLE = "role"
 const GROUP = "group"
 
+var bindingHierarchy = map[string]int{
+	"kubeflow-admin": 1,
+	"kubeflow-edit":  2,
+	"kubeflow-view":  3,
+}
+
 //roleBindingNameMap maps frontend role names to k8s role names and vice-versa
 var roleBindingNameMap = map[string]string{
 	"kubeflow-admin": "admin",
@@ -92,6 +98,40 @@ func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix 
 			},
 		},
 	}
+}
+
+// FilterMaxPermissionBindingsByNamespace takes a slice of Binding and returns a new slice that contains only one binding per
+// ReferredNamespace, with the maximum permission based on a global hierarchy map. The hierarchy is defined as follows:
+//
+// 1. kubeflowAdmin
+// 2. kubeflowEdit
+// 3. kubeflowView
+func FilterMaxPermissionBindingsByNamespace(bindings []Binding) []Binding {
+	var filteredBindings []Binding
+	namespaceBinding := make(map[string]Binding)
+
+	for _, binding := range bindings {
+		ns := binding.ReferredNamespace
+
+		// Check if there is already a binding for this namespace
+		existingBinding, exist := namespaceBinding[ns]
+
+		if !exist {
+			namespaceBinding[ns] = binding
+			continue
+		}
+
+		if bindingHierarchy[existingBinding.RoleRef.Name] > bindingHierarchy[binding.RoleRef.Name] {
+			namespaceBinding[ns] = binding
+		}
+	}
+
+	// Combine the filtered bindings for each namespace
+	for _, binding := range namespaceBinding {
+		filteredBindings = append(filteredBindings, binding)
+	}
+
+	return filteredBindings
 }
 
 func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPrefix string) error {
@@ -178,6 +218,10 @@ func (c *BindingClient) Delete(binding *Binding) error {
 }
 
 func (c *BindingClient) List(user string, groups []string, namespaces []string, role string) (*BindingEntries, error) {
+	if user == "" && len(groups) == 0 && len(namespaces) == 0 {
+		return nil, fmt.Errorf("at least one of user, groups, or namespaces must be specified")
+	}
+
 	bindings := []Binding{}
 	for _, ns := range namespaces {
 		roleBindings, err := c.roleBindingLister.RoleBindings(ns).List(labels.Everything())
@@ -185,44 +229,37 @@ func (c *BindingClient) List(user string, groups []string, namespaces []string, 
 			return nil, err
 		}
 		for _, roleBinding := range roleBindings {
-			userVal, userOk := roleBinding.Annotations[USER]
-			groupVal, groupOk := roleBinding.Annotations[GROUP]
 
-			if !userOk && !groupOk {
+			// Ensure the role is matching
+			if role != "" && roleBinding.RoleRef.Name != role {
 				continue
 			}
-			if user != "" && user != userVal && len(groups) == 0 {
-				continue
+
+			// Iterate over the role binding subjects
+			for _, subject := range roleBinding.Subjects {
+				switch subject.Kind {
+				case "User":
+					if user != "" && subject.Name == user {
+						bindings = append(bindings, Binding{
+							User:              &subject,
+							ReferredNamespace: ns,
+							RoleRef:           &roleBinding.RoleRef,
+						})
+					}
+					break
+				case "Group":
+					if contains(groups, subject.Name) {
+						bindings = append(bindings, Binding{
+							User:              &subject,
+							ReferredNamespace: ns,
+							RoleRef:           &roleBinding.RoleRef,
+						})
+					}
+				}
 			}
-			if len(groups) > 0 && !contains(groups, groupVal) {
-				continue
-			}
-			roleVal, ok := roleBinding.Annotations[ROLE]
-			if !ok {
-				continue
-			}
-			if role != "" && role != roleVal {
-				continue
-			}
-			if len(roleBinding.Subjects) != 1 {
-				return nil, fmt.Errorf("binding subject length not equal to 1, actual length: %v",
-					len(roleBinding.Subjects))
-			}
-			binding := Binding{
-				User: &rbacv1.Subject{
-					Kind: roleBinding.Subjects[0].Kind,
-					Name: roleBinding.Subjects[0].Name,
-				},
-				ReferredNamespace: ns,
-				RoleRef: &rbacv1.RoleRef{
-					Kind: roleBinding.RoleRef.Kind,
-					Name: roleBindingNameMap[roleBinding.RoleRef.Name],
-				},
-			}
-			bindings = append(bindings, binding)
 		}
 	}
 	return &BindingEntries{
-		Bindings: bindings,
+		Bindings: FilterMaxPermissionBindingsByNamespace(bindings),
 	}, nil
 }
