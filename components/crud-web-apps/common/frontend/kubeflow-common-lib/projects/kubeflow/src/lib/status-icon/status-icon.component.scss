@@ -1,15 +1,24 @@
-.small-padding-right {
-  padding-right: 8px;
+.align-middle {
+  vertical-align: middle;
+}
+
+// TODO: snack-bar uses the same colors. you can use a global styles or better use css variables
+.check_circle {
+  color: green;
+}
+
+.unavailable {
+  color: grey;
 }
 
 .warning {
   color: orange;
 }
 
-.check-circle {
-  color: green;
+.error {
+  color: red;
 }
 
-.stop-circle {
+.timelapse {
   color: grey;
 }

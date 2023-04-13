@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { RokUrlModule } from './rok-url/rok-url.module';
 import { EditorModule } from 'kubeflow';
 
 @NgModule({
@@ -24,7 +23,6 @@ import { EditorModule } from 'kubeflow';
     MatSelectModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    RokUrlModule,
     EditorModule,
   ],
   exports: [NewVolumeComponent],

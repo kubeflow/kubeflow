@@ -1,7 +1,7 @@
 import os
 import sys
 
-from apps import default, rok
+from apps import default
 from kubeflow.kubeflow.crud_backend import config, logging
 
 log = logging.getLogger(__name__)
@@ -38,8 +38,6 @@ cfg.PREFIX = PREFIX
 # Load the app based on UI_FLAVOR env var
 if UI_FLAVOR == "default":
     app = default.create_app(APP_NAME, cfg)
-elif UI_FLAVOR == "rok":
-    app = rok.create_app(APP_NAME, cfg)
 else:
     log.error("No UI flavor for '%s'" % UI_FLAVOR)
     sys.exit(1)

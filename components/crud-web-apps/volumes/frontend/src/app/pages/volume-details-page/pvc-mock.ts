@@ -5,9 +5,6 @@ export const mockPvc: V1PersistentVolumeClaim = {
     annotations: {
       'pv.kubernetes.io/bind-completed': 'yes',
       'pv.kubernetes.io/bound-by-controller': 'yes',
-      'rok/origin':
-        'http://rok.rok.svc.cluster.local/swift/v1/kubeflow-user/serving/open-vaccine-model-jwmsx-tutorial-openvaccine-workspace-5mdl2k4?version=2e2fca8d-474b-40b6-9557-492843e2889f',
-      'volume.beta.kubernetes.io/storage-provisioner': 'rok.arrikto.com',
       'volume.kubernetes.io/selected-node': 'orfeas-minikf-dev',
     },
     creationTimestamp: new Date('2022-04-14T12:06:32+00:00'),
@@ -34,7 +31,7 @@ export const mockPvc: V1PersistentVolumeClaim = {
         storage: '5Gi',
       },
     },
-    storageClassName: 'rok',
+    storageClassName: '',
     volumeMode: 'Filesystem',
     volumeName: 'pvc-5e04e9c4-8f59-4afa-bf9a-eb13b1b247af',
   },

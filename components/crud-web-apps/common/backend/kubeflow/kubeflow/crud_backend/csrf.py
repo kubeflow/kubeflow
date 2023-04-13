@@ -32,7 +32,8 @@ cookie is sent by the browser when a cross-site request is made. It defaults to
 "Strict".
 
 References:
--  OWASP CSRF Mitigation: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+-  OWASP CSRF Mitigation:
+   https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html  # noqa: E501
 """
 
 import logging

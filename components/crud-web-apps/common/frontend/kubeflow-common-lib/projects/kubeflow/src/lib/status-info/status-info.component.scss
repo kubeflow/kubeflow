@@ -1,0 +1,12 @@
+.panel-body {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  padding: 1px;
+  display: flex;
+  font-size: 14px;
+}
+
+.panel-message {
+  flex-wrap: wrap;
+  margin: 10px 15px;
+}

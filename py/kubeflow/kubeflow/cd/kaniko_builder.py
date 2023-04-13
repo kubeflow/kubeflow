@@ -14,7 +14,8 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
               mem_override=None, deadline_override=None):
         """Build the Argo workflow graph"""
         workflow = self.build_init_workflow(exit_dag=False)
-        task_template = self.build_task_template(mem_override, deadline_override)
+        task_template = self.build_task_template(
+            mem_override, deadline_override)
 
         # Build component OCI image using Kaniko
         dockerfile = ("%s/%s") % (self.src_dir, dockerfile)
@@ -31,12 +32,12 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
             dockerfile = ("%s/%s") % (self.src_dir, second_dockerfile)
             destination = second_destination
 
-            second_kaniko_task = self.create_kaniko_task(task_template, dockerfile,
-                                              context, destination)
+            second_kaniko_task = self.create_kaniko_task(
+                task_template, dockerfile, context, destination)
 
-            argo_build_util.add_task_to_dag(workflow,
-                                        ci.workflow_utils.E2E_DAG_NAME,
-                                        second_kaniko_task, [self.mkdir_task_name])
+            argo_build_util.add_task_to_dag(
+                workflow, ci.workflow_utils.E2E_DAG_NAME, second_kaniko_task, [
+                    self.mkdir_task_name])
 
         # Set the labels on all templates
         workflow = argo_build_util.set_task_template_labels(workflow)

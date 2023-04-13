@@ -21,7 +21,7 @@ def create_app(name, static_folder, config):
     app.config.from_object(config)
 
     if (config.ENV == BackendMode.DEVELOPMENT.value
-            or config.ENV == BackendMode.DEVELOPMENT_FULL.value):
+            or config.ENV == BackendMode.DEVELOPMENT_FULL.value):  # noqa: W503
         log.warn("RUNNING IN DEVELOPMENT MODE")
 
     # Register all the blueprints
