@@ -233,7 +233,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	log.Info("Start to reconcile pods in profile.", "profile", profile.Name)
 
 	const KIND_AZURE_AD_WORKLOAD_IDENTITY = "AzureAdWorkloadIdentity"
-	const AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION = "azure.workload.identity/use"
+	const AZURE_WORKLOAD_IDENTITY_POD_LABEL = "azure.workload.identity/use"
 	// look over profile plugins
 	for _, plugin := range profile.Spec.Plugins {
 		if plugin.Kind == KIND_AZURE_AD_WORKLOAD_IDENTITY {
@@ -243,10 +243,10 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			log.Info("Applying Azure AD Workload Identity plugin to pod.", "pod", foundPod.Name)
 			if foundPod.Labels == nil {
 				foundPod.Labels = map[string]string{
-					AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION: "true",
+					AZURE_WORKLOAD_IDENTITY_POD_LABEL: "true",
 				}
 			} else {
-				foundPod.Labels[AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION] = "true"
+				foundPod.Labels[AZURE_WORKLOAD_IDENTITY_POD_LABEL] = "true"
 			}
 			r.Update(ctx, foundPod)
 		}

@@ -33,8 +33,6 @@ const (
 	AZURE_TENANT_ID_ANNOTATION_KEY  = "azure.workload.identity/tenant-id"
 
 	AZURE_SA_TOKEN_EXPIRATION_ANNOTATION_KEY = "azure.workload.identity/service-account-token-expiration"
-
-	AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION = "azure.workload.identity/use"
 )
 
 // AzureAdWorkloadIdentity: plugin that setup Azure AD workload identity for target profile namespace
@@ -50,11 +48,11 @@ func (azure *AzureAdWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile 
 
 	logger.Info("Setting up workload identity", "ClientId", azure.AzureIdentityClientId)
 
-	return azure.patchSaAnnotation(r, profile.Name, DEFAULT_EDITOR, logger)
+	return azure.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger)
 }
 
 // patchAnnotation will patch annotation to k8s service account in order to pair up with azure ad identity
-func (azure *AzureAdWorkloadIdentity) patchSaAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
+func (azure *AzureAdWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
 	ctx := context.Background()
 
 	// Patch service account to enable workload identity
