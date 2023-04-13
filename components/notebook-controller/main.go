@@ -31,6 +31,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
+
 	nbv1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1"
 	nbv1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1alpha1"
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
@@ -50,6 +52,7 @@ func init() {
 	utilruntime.Must(nbv1.AddToScheme(scheme))
 	utilruntime.Must(nbv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(nbv1beta1.AddToScheme(scheme))
+	utilruntime.Must(profilev1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 }

@@ -28,10 +28,12 @@ import (
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -122,6 +124,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	// If not found, continue. Is not an event.
 	instance := &v1beta1.Notebook{}
+
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
@@ -219,6 +222,34 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = updateNotebookStatus(r, instance, foundStateful, foundPod, req)
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+
+	// Getting notebook profile
+	profile := &profilev1.Profile{}
+	if err := r.Get(ctx, types.NamespacedName{Name: ss.Namespace}, profile); err != nil {
+		log.Error(err, "unable to fetch Profile")
+		return ctrl.Result{}, ignoreNotFound(err)
+	}
+	log.Info("Start to reconcile pods in profile.", "profile", profile.Name)
+
+	const KIND_AZURE_AD_WORKLOAD_IDENTITY = "AzureAdWorkloadIdentity"
+	const AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION = "azure.workload.identity/use"
+	// look over profile plugins
+	for _, plugin := range profile.Spec.Plugins {
+		if plugin.Kind == KIND_AZURE_AD_WORKLOAD_IDENTITY {
+			// add azure plugin label to pod
+
+			log.Info("Found Azure AD Workload Identity plugin in profile.", "profile", profile.Name)
+			log.Info("Applying Azure AD Workload Identity plugin to pod.", "pod", foundPod.Name)
+			if foundPod.Labels == nil {
+				foundPod.Labels = map[string]string{
+					AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION: "true",
+				}
+			} else {
+				foundPod.Labels[AZURE_WORKLOAD_IDENTITY_POD_ANNOTATION] = "true"
+			}
+			r.Update(ctx, foundPod)
+		}
 	}
 
 	return ctrl.Result{}, nil
