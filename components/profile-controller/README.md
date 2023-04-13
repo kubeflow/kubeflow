@@ -92,7 +92,23 @@ Plugin owners have full control over plugin spec struct and implementation.
   - Type: credential binding
   - IAM For Service Account plugin will grant k8s service account permission of IAM role,
   so pods in profile namespace can authenticate AWS services as IAM role.
-
+  - The CRD is detailed below
+  ```
+  apiVersion: kubeflow.org/v1
+  kind: Profile
+  metadata:
+    name: test-profile
+  spec:
+    owner:
+      kind: User
+      name: user@example.com
+    plugins:
+    - kind: AwsIamForServiceAccount
+      spec:
+        awsIamRole: arn:aws:iam::1234567890:role/test-profile
+        ### Boolean which defaults to false. If set to true IAM roles and policy will not be mutated
+        annotateOnly: true 
+  ```
 # Deployment
 
 Install the `profiles.kubeflow.org` CRD:

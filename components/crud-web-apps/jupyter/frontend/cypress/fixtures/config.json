@@ -91,10 +91,10 @@
             "name": "{notebook-name}-workspace"
           },
           "spec": {
-            "accessModes": ["ReadWriteOnce"],
+            "accessModes": ["ReadWriteMany"],
             "resources": {
               "requests": {
-                "storage": "5Gi"
+                "storage": "20Gi"
               }
             }
           }

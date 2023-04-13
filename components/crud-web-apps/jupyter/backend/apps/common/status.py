@@ -8,54 +8,153 @@ STOP_ANNOTATION = "kubeflow-resource-stopped"
 
 def process_status(notebook):
     """
-    Return status and reason. Status may be [running|waiting|warning|error]
+    Return status and reason. Status may be:
+    [ready|waiting|warning|terminating|stopped]
     """
-    # Check if the Notebook is stopped
-    readyReplicas = notebook.get("status", {}).get("readyReplicas", 0)
+    # In case the Notebook has no status
+    status_phase, status_message = get_empty_status(notebook)
+    if status_phase is not None:
+        return status.create_status(status_phase, status_message)
+
+    # In case the Notebook is being stopped
+    status_phase, status_message = get_stopped_status(notebook)
+    if status_phase is not None:
+        return status.create_status(status_phase, status_message)
+
+    # In case the Notebook is being deleted
+    status_phase, status_message = get_deleted_status(notebook)
+    if status_phase is not None:
+        return status.create_status(status_phase, status_message)
+
+    # In case the Notebook is ready
+    status_phase, status_message = check_ready_nb(notebook)
+    if status_phase is not None:
+        return status.create_status(status_phase, status_message)
+
+    # Extract information about the status from the containerState of the
+    # Notebook's status
+    status_phase, status_message = get_status_from_container_state(notebook)
+    if status_phase is not None:
+        return status.create_status(status_phase, status_message)
+
+    # Extract information about the status from the conditions of the
+    # Notebook's status
+    status_phase, status_message = get_status_from_conditions(notebook)
+    if status_phase is not None:
+        return status.create_status(status_phase, status_message)
+
+    # Try to extract information about why the notebook is not starting
+    # from the notebook's events (see find_error_event)
+    notebook_events = get_notebook_events(notebook)
+    status_event, reason_event = get_status_from_events(notebook_events)
+    if status_event is not None:
+        status_phase, status_message = status_event, reason_event
+
+    # In case there no Events available, show a generic message
+    status_phase = status.STATUS_PHASE.WARNING
+    status_message = "Couldn't find any information for the status of this notebook."  # noqa: E501
+
+    return status.create_status(status_phase, status_message)
+
+
+def get_empty_status(notebook):
+    creation_timestamp = notebook["metadata"]["creationTimestamp"]
+    container_state = notebook["status"]["containerState"]
+    conditions = notebook["status"]["conditions"]
+
+    # Convert a date string of a format to datetime object
+    nb_creation_time = dt.datetime.strptime(
+        creation_timestamp, "%Y-%m-%dT%H:%M:%SZ")
+    current_time = dt.datetime.utcnow().replace(microsecond=0)
+    delta = (current_time - nb_creation_time)
+
+    # If the Notebook has no status, the status will be waiting
+    # (instead of warning) and we will show a generic message for the first 10
+    # seconds
+    if not container_state and not conditions and delta.total_seconds() <= 10:
+        status_phase = status.STATUS_PHASE.WAITING
+        status_message = "Waiting for StatefulSet to create the underlying Pod."  # noqa: E501
+        return status_phase, status_message
+
+    return None, None
+
+
+def get_stopped_status(notebook):
+    ready_replicas = notebook.get("status", {}).get("readyReplicas", 0)
     metadata = notebook.get("metadata", {})
     annotations = metadata.get("annotations", {})
 
     if STOP_ANNOTATION in annotations:
-        if readyReplicas == 0:
-            return status.create_status(
-                status.STATUS_PHASE.STOPPED,
-                "No Pods are currently running for this Notebook Server.",
-            )
+        # If the Notebook is stopped, the status will be stopped
+        if ready_replicas == 0:
+            status_phase = status.STATUS_PHASE.STOPPED
+            status_message = "No Pods are currently running for this Notebook Server."  # noqa: E501
+            return status_phase, status_message
+        # If the Notebook is being stopped, the status will be waiting
         else:
-            return status.create_status(
-                status.STATUS_PHASE.TERMINATING, "Notebook Server is stopping."
-            )
+            status_phase = status.STATUS_PHASE.WAITING
+            status_message = "Notebook Server is stopping."
+            return status_phase, status_message
 
-    # If the Notebook is being deleted, the status will be waiting
+    return None, None
+
+
+def get_deleted_status(notebook):
+    metadata = notebook.get("metadata", {})
+
+    # If the Notebook is being deleted, the status will be terminating
     if "deletionTimestamp" in metadata:
-        return status.create_status(
-            status.STATUS_PHASE.TERMINATING, "Deleting this notebook server"
-        )
+        status_phase = status.STATUS_PHASE.TERMINATING
+        status_message = "Deleting this Notebook Server."
+        return status_phase, status_message
 
-    # Check the status
-    state = notebook.get("status", {}).get("containerState", "")
+    return None, None
 
-    # Use conditions on the Jupyter notebook (i.e., s) to determine overall
-    # status. If no container state is available, we try to extract information
-    # about why the notebook is not starting from the notebook's events
-    # (see find_error_event)
-    if readyReplicas == 1:
-        return status.create_status(status.STATUS_PHASE.READY, "Running")
 
-    if "waiting" in state:
-        return status.create_status(
-            status.STATUS_PHASE.WAITING, state["waiting"]["reason"]
-        )
+def check_ready_nb(notebook):
+    ready_replicas = notebook.get("status", {}).get("readyReplicas", 0)
 
-    # Provide the user with detailed information (if any) about
-    # why the notebook is not starting
-    notebook_events = get_notebook_events(notebook)
-    status_val, reason = status.STATUS_PHASE.WAITING, "Scheduling the Pod"
-    status_event, reason_event = find_error_event(notebook_events)
-    if status_event is not None:
-        status_val, reason = status_event, reason_event
+    # If the Notebook is running, the status will be ready
+    if ready_replicas == 1:
+        status_phase, status_message = status.STATUS_PHASE.READY, "Running"
+        return status_phase, status_message
 
-    return status.create_status(status_val, reason)
+    return None, None
+
+
+def get_status_from_container_state(notebook):
+    container_state = notebook.get("status", {}).get("containerState", {})
+
+    if "waiting" in container_state:
+        # If the Notebook is initializing, the status will be waiting
+        if container_state["waiting"]["reason"] == 'PodInitializing':
+            status_phase = status.STATUS_PHASE.WAITING
+            status_message = container_state["waiting"]["reason"]
+            return status_phase, status_message
+        # In any other case, the status will be warning with a "reason:
+        # message" showing on hover
+        else:
+            status_phase = status.STATUS_PHASE.WARNING
+
+            reason = container_state["waiting"]["reason"]
+            message = container_state["waiting"]["message"]
+            status_message = '%s: %s' % (reason, message)
+            return status_phase, status_message
+
+    return None, None
+
+
+def get_status_from_conditions(notebook):
+    conditions = notebook.get("status", {}).get("conditions", [])
+
+    for condition in conditions:
+        # The status will be warning with a "reason: message" showing on hover
+        if "reason" in condition:
+            status_phase = status.STATUS_PHASE.WARNING
+            status_message = condition["reason"] + ': ' + condition["message"]
+            return status_phase, status_message
+
+    return None, None
 
 
 def get_notebook_events(notebook):
@@ -76,7 +175,7 @@ def get_notebook_events(notebook):
     return nb_events
 
 
-def find_error_event(notebook_events):
+def get_status_from_events(notebook_events):
     """
     Returns status and reason from the latest event that surfaces the cause
     of why the resource could not be created. For a Notebook, it can be due to:
@@ -90,7 +189,7 @@ def find_error_event(notebook_events):
     """
     for e in sorted(notebook_events, key=event_timestamp, reverse=True):
         if e.type == EVENT_TYPE_WARNING:
-            return status.STATUS_PHASE.WAITING, e.message
+            return status.STATUS_PHASE.WARNING, e.message
 
     return None, None
 

@@ -148,16 +148,20 @@ describe('NotebookPageComponent', () => {
 
   it('updateButtons should disable buttons according to notebook status', () => {
     fixture.detectChanges();
-    component.notebook.status.readyReplicas = 1;
-    component.notebook.metadata.annotations['kubeflow-resource-stopped'] =
-      'date now';
-    expect(component.status).toEqual(STATUS_TYPE.TERMINATING);
+    component.notebook.processed_status = {
+      phase: STATUS_TYPE.TERMINATING,
+      state: '',
+      message: 'Terminating',
+    };
+
+    // check the initial state of the buttons
     for (const button of component.buttonsConfig) {
       expect(button.disabled).toBeFalse();
     }
 
     const updateButtons = 'updateButtons';
     component[updateButtons]();
+    // check the buttons state after updateButton() is called
     for (const button of component.buttonsConfig) {
       expect(button.disabled).toBeTrue();
     }
@@ -165,10 +169,11 @@ describe('NotebookPageComponent', () => {
 
   it('updateButtons should update Start/Stop button according to notebook status ', () => {
     fixture.detectChanges();
-    component.notebook.status.readyReplicas = 0;
-    component.notebook.metadata.annotations['kubeflow-resource-stopped'] =
-      Date.now.toString();
-    expect(component.status).toEqual(STATUS_TYPE.STOPPED);
+    component.notebook.processed_status = {
+      phase: STATUS_TYPE.STOPPED,
+      state: '',
+      message: 'No Pods are currently running for this Notebook Server.',
+    };
 
     let flag = component.buttonsConfig
       .map(button => button.text)

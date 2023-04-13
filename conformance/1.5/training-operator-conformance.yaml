@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: training-operator-conformance
+  namespace: kf-conformance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: training-operator-conformance
+  template:
+    metadata:
+      labels:
+        app: training-operator-conformance
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      serviceAccountName: kf-conformance
+      containers:
+      - name: training-conformance-container
+        image: kubeflow/training-operator-conformance:v1-b3095c6
+        env:
+          - name: GANG_SCHEDULER_NAME
+            value: "none"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "1"
+          requests:
+            memory: "64Mi"
+            cpu: "0.5"

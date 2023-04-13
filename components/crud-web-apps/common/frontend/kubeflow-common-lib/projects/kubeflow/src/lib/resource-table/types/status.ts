@@ -71,30 +71,6 @@ export class StatusValue {
     return getAttributeValue(row, this.fieldMessage);
   }
 
-  public getIcon(row: any) {
-    switch (this.getPhase(row)) {
-      case STATUS_TYPE.READY: {
-        return 'check_circle';
-      }
-      case STATUS_TYPE.READY: {
-        return 'warning';
-      }
-      case STATUS_TYPE.UNAVAILABLE: {
-        return 'timelapse';
-      }
-      case STATUS_TYPE.ERROR: {
-        return 'error';
-      }
-      default: {
-        return 'warning';
-      }
-    }
-  }
-
-  public getCssClasses(row: any): string[] {
-    return [this.getPhase(row), 'status'];
-  }
-
   public getTooltip(row: any): string {
     return this.getMessage(row);
   }

@@ -3,6 +3,7 @@ import {
   V1ObjectMeta,
   V1PodSpec,
 } from '@kubernetes/client-node';
+import { STATUS_TYPE } from 'kubeflow';
 import { Condition } from 'src/app/types/condition';
 import { NotebookRawObject } from 'src/app/types/notebook';
 
@@ -92,10 +93,17 @@ const statusObject = {
   readyReplicas: 1,
 };
 
+const statusProcessedObject = {
+  phase: STATUS_TYPE.READY,
+  state: '',
+  message: 'Running',
+};
+
 export const mockNotebook: NotebookRawObject = {
   apiVersion: 'kubeflow.org/v1beta1',
   kind: 'Notebook',
   metadata: metadataObject,
   spec: specObject,
   status: statusObject,
+  processed_status: statusProcessedObject,
 };

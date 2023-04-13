@@ -1,16 +1,9 @@
-export interface envInfo {
+import { Namespace } from './namespace';
+import { PlatformInfo } from './platform-info';
+
+export interface EnvInfo {
   user?: string;
-  platform?: {
-    provider?: string;
-    providerName?: string;
-    buildLabel?: string;
-    buildVersion?: string;
-    buildId?: string;
-  };
-  namespaces?: {
-    user?: string;
-    namespace?: string;
-    role?: string;
-  }[];
+  platform?: PlatformInfo;
+  namespaces?: Namespace[];
   isClusterAdmin?: boolean;
 }
