@@ -462,8 +462,6 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 		}
 	}
 
-	fmt.Printf("[getAuthorizationPolicy] istioUserIdHeaderValues: %v - istioGroupHeaderValues %v\n", istioUserIdHeaderValues, istioGroupHeaderValues)
-
 	var istioConditions []*istioSecurity.Condition
 
 	if len(istioUserIdHeaderValues) > 0 {

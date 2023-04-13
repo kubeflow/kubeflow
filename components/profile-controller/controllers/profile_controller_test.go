@@ -3,7 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	istioSecurity "istio.io/api/security/v1beta1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"reflect"
+	"sort"
 	"testing"
 
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
@@ -187,12 +190,152 @@ func TestGetPluginSpec(t *testing.T) {
 	}
 }
 
+type getAuthorizationPolicySpecSuite struct {
+	profile       *profilev1.Profile
+	expectedWhens map[string][]string
+}
+
+func TestGetAuthorizationPolicy(t *testing.T) {
+	mockReconcilier := createMockReconciler()
+	tests := []getAuthorizationPolicySpecSuite{
+		{
+			profile: &profilev1.Profile{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "k8s-profile",
+				},
+				Spec: profilev1.ProfileSpec{
+					Owner: rbacv1.Subject{
+						Name: "profile-owner",
+						Kind: "User",
+					},
+					Contributors: []rbacv1.Subject{},
+				},
+			},
+			expectedWhens: map[string][]string{
+				"source.namespace": {"k8s-profile"},
+				fmt.Sprintf("request.headers[%v]", mockReconcilier.UserIdHeader): {fmt.Sprintf("%sprofile-owner", mockReconcilier.UserIdPrefix)},
+			},
+		},
+		{
+			profile: &profilev1.Profile{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "k8s-profile",
+				},
+				Spec: profilev1.ProfileSpec{
+					Owner: rbacv1.Subject{
+						Name: "profile-owner",
+						Kind: "User",
+					},
+					Contributors: []rbacv1.Subject{
+						{
+							Name: "profile-member",
+							Kind: "User",
+						},
+					},
+				},
+			},
+			expectedWhens: map[string][]string{
+				"source.namespace": {"k8s-profile"},
+				fmt.Sprintf("request.headers[%v]", mockReconcilier.UserIdHeader): {
+					fmt.Sprintf("%sprofile-owner", mockReconcilier.UserIdPrefix),
+					fmt.Sprintf("%sprofile-member", mockReconcilier.UserIdPrefix),
+				},
+			},
+		},
+		{
+			profile: &profilev1.Profile{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "k8s-profile",
+				},
+				Spec: profilev1.ProfileSpec{
+					Owner: rbacv1.Subject{
+						Name: "profile-group-owner",
+						Kind: "Group",
+					},
+					Contributors: []rbacv1.Subject{
+						{
+							Name: "profile-member",
+							Kind: "User",
+						},
+					},
+				},
+			},
+			expectedWhens: map[string][]string{
+				"source.namespace": {"k8s-profile"},
+				fmt.Sprintf("request.headers[%v]", mockReconcilier.UserIdHeader): {
+					fmt.Sprintf("%sprofile-member", mockReconcilier.UserIdPrefix),
+				},
+				fmt.Sprintf("request.headers[%v]", mockReconcilier.GroupHeader): {
+					"*,profile-group-owner",
+					"*,profile-group-owner,*",
+					"profile-group-owner",
+					"profile-group-owner,*",
+				},
+			},
+		},
+		{
+			profile: &profilev1.Profile{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "k8s-profile",
+				},
+				Spec: profilev1.ProfileSpec{
+					Owner: rbacv1.Subject{
+						Name: "profile-group-owner",
+						Kind: "Group",
+					},
+					Contributors: []rbacv1.Subject{
+						{
+							Name: "profile-group-member",
+							Kind: "Group",
+						},
+					},
+				},
+			},
+			expectedWhens: map[string][]string{
+				"source.namespace": {"k8s-profile"},
+				fmt.Sprintf("request.headers[%v]", mockReconcilier.GroupHeader): {
+					"*,profile-group-owner",
+					"*,profile-group-owner,*",
+					"profile-group-owner",
+					"profile-group-owner,*",
+					"*,profile-group-member",
+					"*,profile-group-member,*",
+					"profile-group-member",
+					"profile-group-member,*",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		policy := createMockReconciler().getAuthorizationPolicy(test.profile)
+		var whens []*istioSecurity.Condition
+		// Collect all when conditions in generated policy
+		for _, rule := range policy.Rules {
+			if rule.When != nil {
+				whens = append(whens, rule.When...)
+			}
+		}
+
+		for _, when := range whens {
+			values, ok := test.expectedWhens[when.Key]
+			// Sort to allow comparison
+			sort.Strings(values)
+			sort.Strings(when.Values)
+
+			assert.True(t, ok, "a `when` condition is in the generated policy without corresponding test case")
+			assert.Equal(t, values, when.Values, "the `when` values does not correspond")
+		}
+	}
+}
+
 func createMockReconciler() *ProfileReconciler {
 	reconciler := &ProfileReconciler{
 		Scheme:                     runtime.NewScheme(),
 		Log:                        ctrl.Log,
-		UserIdHeader:               "dummy",
+		UserIdHeader:               "userid",
 		UserIdPrefix:               "dummy",
+		GroupHeader:                "group",
 		WorkloadIdentity:           "dummy",
 		DefaultNamespaceLabelsPath: "dummy",
 	}
