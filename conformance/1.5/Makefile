@@ -21,9 +21,9 @@ setup:
 
 	kubectl apply -f ./setup.yaml
 
-run: setup run-kfp run-training-operator
+run: setup run-kfp run-katib run-training-operator
 
-report: report-kfp report-training-operator
+report: report-kfp report-katib report-training-operator
 
 clean:
 	kubectl delete -f ./setup.yaml
@@ -48,3 +48,12 @@ report-training-operator:
 		$(shell kubectl get pod -n kf-conformance --selector=app=training-operator-conformance -o jsonpath='{.items[*].metadata.name}') \
 		/tmp/training-operator-conformance.done \
 		/tmp/training-operator-conformance.log
+
+run-katib:
+	kubectl apply -f ./katib-conformance.yaml
+
+report-katib:
+	./report-pod.sh \
+		$(shell kubectl get pod -n kf-conformance --selector=app=katib-conformance -o jsonpath='{.items[*].metadata.name}') \
+		/tmp/katib-conformance.done \
+		/tmp/katib-conformance.log
