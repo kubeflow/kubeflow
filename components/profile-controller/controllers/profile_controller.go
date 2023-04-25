@@ -462,23 +462,29 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 		}
 	}
 
-	var istioConditions []*istioSecurity.Condition
+	var whenConditions []*istioSecurity.Rule
 
 	if len(istioUserIdHeaderValues) > 0 {
-		istioConditions = append(istioConditions, &istioSecurity.Condition{
-			// Namespace Owner can access all workloads in the
-			// namespace
-			Key:    fmt.Sprintf("request.headers[%v]", r.UserIdHeader),
-			Values: istioUserIdHeaderValues,
+		whenConditions = append(whenConditions, &istioSecurity.Rule{When: []*istioSecurity.Condition{
+			{
+				// Namespace Owner can access all workloads in the
+				// namespace
+				Key:    fmt.Sprintf("request.headers[%v]", r.UserIdHeader),
+				Values: istioUserIdHeaderValues,
+			},
+		},
 		})
 	}
 
 	if len(istioGroupHeaderValues) > 0 {
-		istioConditions = append(istioConditions, &istioSecurity.Condition{
-			// Namespace Owner can access all workloads in the
-			// namespace
-			Key:    fmt.Sprintf("request.headers[%v]", r.GroupHeader),
-			Values: istioGroupHeaderValues,
+		whenConditions = append(whenConditions, &istioSecurity.Rule{When: []*istioSecurity.Condition{
+			{
+				// Namespace Owner can access all workloads in the
+				// namespace
+				Key:    fmt.Sprintf("request.headers[%v]", r.GroupHeader),
+				Values: istioGroupHeaderValues,
+			},
+		},
 		})
 	}
 
@@ -486,10 +492,7 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 		Action: istioSecurity.AuthorizationPolicy_ALLOW,
 		// Empty selector == match all workloads in namespace
 		Selector: nil,
-		Rules: []*istioSecurity.Rule{
-			{
-				When: istioConditions,
-			},
+		Rules: append(whenConditions, []*istioSecurity.Rule{
 			{
 				When: []*istioSecurity.Condition{
 					{
@@ -535,7 +538,7 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 					},
 				},
 			},
-		},
+		}...),
 	}
 }
 
