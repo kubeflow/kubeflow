@@ -7,17 +7,5 @@
     "target": "http://localhost:4200",
     "pathRewrite": { "^/static": "" },
     "secure": false
-  },
-  "/rok": {
-    "target": "http://localhost:8000",
-    "secure": false,
-    "pathRewrite": {
-      "^/rok": ""
-    },
-    "headers": {
-      "kubeflow-userid": "user",
-      "x-forwarded-prefix": "/rok/",
-      "x-forwarded-host": "localhost:4200"
-    }
   }
 }

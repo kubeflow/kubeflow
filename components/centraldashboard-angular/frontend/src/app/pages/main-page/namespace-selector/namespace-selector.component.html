@@ -1,0 +1,36 @@
+<mat-form-field appearance="outline" class="namespace-selector">
+  <mat-select
+    [value]="selectedNamespace"
+    [disabled]="!namespacesAvailable"
+    (selectionChange)="onSelectNamespace($event)"
+    [compareWith]="compareWith"
+  >
+    <mat-select-trigger
+      [class.disabled-colors]="!namespacesAvailable"
+      data-cy-selected-namespace
+    >
+      <div class="trigger-inner-wrapper">
+        <mat-icon svgIcon="namespace" class="namespace-icon"></mat-icon>
+        <span class="selected-namespace">
+          {{ selectedNamespace.namespace }}
+          <span class="owner" *ngIf="isSelectedNamespaceOwner()">(Owner)</span>
+        </span>
+      </div>
+    </mat-select-trigger>
+    <mat-option
+      [value]="{ namespace: NO_NAMESPACES }"
+      *ngIf="!namespacesAvailable"
+    >
+      {{ NO_NAMESPACES }}</mat-option
+    >
+    <mat-option
+      *ngFor="let ns of namespaces"
+      [disabled]="ns.disabled"
+      [value]="ns"
+      [attr.data-cy-namespace]="ns.namespace"
+    >
+      {{ ns.namespace }}
+      <span class="owner" *ngIf="isOwner(ns.role)">(Owner)</span></mat-option
+    >
+  </mat-select>
+</mat-form-field>

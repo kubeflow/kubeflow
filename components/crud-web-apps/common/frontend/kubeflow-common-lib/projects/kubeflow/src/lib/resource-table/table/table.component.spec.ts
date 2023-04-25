@@ -20,6 +20,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { quantityToScalar } from './utils';
+import { STATUS_TYPE } from '../status/types';
 
 @Component({
   selector: 'lib-server-type',
@@ -75,7 +76,7 @@ const tableConfig = {
 const tableData = [
   {
     status: {
-      phase: 'ready',
+      phase: STATUS_TYPE.READY,
       message: 'Running',
     },
     name: 'a-notebook',

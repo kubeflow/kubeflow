@@ -45,11 +45,6 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Rok files
-**/browse-in-rok-gray.svg
-**/browse-in-rok-grey.svg
-**/browse-in-rok-blue.svg
-
 # Fonts Files
 /src/assets/fonts
 

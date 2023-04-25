@@ -36,7 +36,6 @@ describe('Main table', () => {
   });
 
   // We use function () in order to be able to access aliases via this
-  // tslint:disable-next-line: space-before-function-paren
   it('renders every Notebook name into the table', function () {
     cy.visit('/');
     cy.wait(['@mockNamespacesRequest', '@mockNotebooksRequest']);
@@ -51,7 +50,6 @@ describe('Main table', () => {
     });
   });
 
-  // tslint:disable-next-line: space-before-function-paren
   it('checks Status icon for all notebooks', function () {
     cy.visit('/');
     cy.wait(['@mockNamespacesRequest', '@mockNotebooksRequest']);
@@ -61,19 +59,19 @@ describe('Main table', () => {
     cy.get('[data-cy-resource-table-row="Status"]').each(element => {
       if (notebooks[i].status.phase === STATUS_TYPE.READY) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'check_circle');
       } else if (notebooks[i].status.phase === STATUS_TYPE.STOPPED) {
         cy.wrap(element)
-          .find('lib-status>lib-icon')
+          .find('lib-status-icon>lib-icon')
           .should('have.attr', 'icon', 'custom:stoppedResource');
       } else if (notebooks[i].status.phase === STATUS_TYPE.UNAVAILABLE) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'timelapse');
       } else if (notebooks[i].status.phase === STATUS_TYPE.WARNING) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'warning');
       } else if (
         notebooks[i].status.phase === STATUS_TYPE.WAITING ||

@@ -62,6 +62,11 @@ declare global {
        * Custom command that mocks Env Info request
        */
       mockEnvInfoRequest(): Chainable<void>;
+
+      /*
+       * Saves namespace in browser's local storage
+       */
+      setNamespaceInLocalStorage(namespace: string): Chainable<void>;
     }
   }
 }

@@ -1,0 +1,53 @@
+@use '../../../../styles/utils' as u;
+
+.namespace-selector.mat-form-field-appearance-outline {
+  font-size: 16px;
+
+  .mat-icon.namespace-icon {
+    @include u.md-icon-size(18px);
+    min-width: 20px;
+    margin-right: 4px;
+
+    svg {
+      fill: #fff;
+    }
+  }
+
+  .mat-form-field-wrapper {
+    padding: 0;
+  }
+
+  .mat-form-field-outline {
+    display: none;
+  }
+
+  .trigger-inner-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .selected-namespace {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mat-select-arrow-wrapper {
+    transform: initial;
+  }
+
+  .mat-select-trigger .disabled-colors {
+    opacity: 0.38;
+    color: #000;
+    .mat-icon.namespace-icon {
+      svg {
+        fill: #000;
+      }
+    }
+  }
+
+  .owner {
+    margin-left: 4px;
+    font-size: 12px;
+  }
+}

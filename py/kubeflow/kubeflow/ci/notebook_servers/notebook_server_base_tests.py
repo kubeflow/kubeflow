@@ -17,11 +17,11 @@ class Builder(workflow_utils.ArgoTestBuilder):
         # Test building notebook-server-base image using Kaniko
         dockerfile = ("%s/components/example-notebook-servers"
                       "/base/Dockerfile") % self.src_dir
-        context = "dir://%s/components/example-notebook-servers/base/" % self.src_dir
+        context = "dir://%s/components/example-notebook-servers/base/" % self.src_dir  # noqa: E501
         destination = "notebook-server-base-test"
 
-        kaniko_task = self.create_kaniko_task(task_template, dockerfile,
-                                              context, destination, no_push=True)
+        kaniko_task = self.create_kaniko_task(
+            task_template, dockerfile, context, destination, no_push=True)
         argo_build_util.add_task_to_dag(workflow,
                                         workflow_utils.E2E_DAG_NAME,
                                         kaniko_task, [self.mkdir_task_name])
