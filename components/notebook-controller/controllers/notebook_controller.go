@@ -400,7 +400,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		container.Ports = []corev1.ContainerPort{
 			{
 				ContainerPort: DefaultContainerPort,
-				Name:          "notebook-port",
+				Name:          "http-" + instance.Name,
 				Protocol:      "TCP",
 			},
 		}
@@ -425,10 +425,12 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 
 func generateService(instance *v1beta1.Notebook) *corev1.Service {
 	// Define the desired Service object
-	port := DefaultContainerPort
+	port := intstr.IntOrString{}
 	containerPorts := instance.Spec.Template.Spec.Containers[0].Ports
 	if containerPorts != nil {
-		port = int(containerPorts[0].ContainerPort)
+		port = intstr.FromInt(int(containerPorts[0].ContainerPort))
+	} else {
+		port = intstr.FromString("http-" + instance.Name)
 	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -443,7 +445,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 					// Make port name follow Istio pattern so it can be managed by istio rbac
 					Name:       "http-" + instance.Name,
 					Port:       DefaultServingPort,
-					TargetPort: intstr.FromInt(port),
+					TargetPort: port,
 					Protocol:   "TCP",
 				},
 			},
