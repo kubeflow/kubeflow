@@ -400,7 +400,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		container.Ports = []corev1.ContainerPort{
 			{
 				ContainerPort: DefaultContainerPort,
-				Name:          "http-" + instance.Name,
+				Name:          "http-port",
 				Protocol:      "TCP",
 			},
 		}
@@ -430,7 +430,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 	if containerPorts != nil {
 		port = intstr.FromInt(int(containerPorts[0].ContainerPort))
 	} else {
-		port = intstr.FromString("http-" + instance.Name)
+		port = intstr.FromString("http-port")
 	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
