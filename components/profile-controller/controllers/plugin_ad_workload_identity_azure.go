@@ -46,7 +46,7 @@ type AzureAdWorkloadIdentity struct {
 func (azure *AzureAdWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
 
-	logger.Info("Setting up workload identity", "ClientId", azure.AzureIdentityClientId)
+	logger.Info("setting up workload identity", "ClientId", azure.AzureIdentityClientId)
 
 	return azure.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger)
 }
