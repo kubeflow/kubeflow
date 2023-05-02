@@ -118,15 +118,17 @@ class ResourceChart extends PolymerElement {
             <section id="chart-container" hidden>
                 <canvas id="chart" height="400" width="400"></canvas>
             </section>
-            <footer>
-                <a id="external-link" href="[[externalLink]]".
-                    target="_blank" tabindex="-1">
-                    <paper-button>
-                        [[externalLinkText]]
-                        <iron-icon icon="launch"></iron-icon>
-                    </paper-button>
-                </a>
-            </footer>
+            <template is="dom-if" if="[[externalLink]]">
+                <footer>
+                    <a id="external-link" href="[[externalLink]]".
+                        target="_blank" tabindex="-1">
+                        <paper-button>
+                            [[externalLinkText]]
+                            <iron-icon icon="launch"></iron-icon>
+                        </paper-button>
+                    </a>
+                </footer>
+            </template>
         </article>
         `]);
     }
