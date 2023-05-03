@@ -9,6 +9,7 @@ import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 import {PrometheusMetricsService} from "./prometheus_metrics_service";
+import {PrometheusDriver} from "prometheus-query";
 
 const isProduction = process.env.NODE_ENV === 'production';
 const codeEnvironment = isProduction?'production':'development';
@@ -46,7 +47,7 @@ async function main() {
   const k8sService = new KubernetesService(new KubeConfig());
 
   const metricsService = PROMETHEUS_URL
-      ? new PrometheusMetricsService(PROMETHEUS_URL, METRICS_DASHBOARD)
+      ? new PrometheusMetricsService(new PrometheusDriver({ endpoint: PROMETHEUS_URL }), METRICS_DASHBOARD)
       : await getMetricsService(k8sService);
 
   console.info(`Using Profiles service at ${profilesServiceUrl}`);

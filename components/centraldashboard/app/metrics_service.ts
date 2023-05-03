@@ -45,5 +45,9 @@ export interface MetricsService {
    */
   getPodMemoryUsage(interval: Interval): Promise<TimeSeriesPoint[]>;
 
+  /**
+   * Return a MetricsInfo object containing the url of the metric dashboard and the
+   * text to display for the redirect button.
+   */
   getChartsLink(): MetricsInfo;
 }

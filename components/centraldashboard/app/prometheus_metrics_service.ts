@@ -5,8 +5,8 @@ export class PrometheusMetricsService implements MetricsService {
     private readonly prometheusDriver: PrometheusDriver;
     private readonly dashboardUrl: string | undefined;
 
-    constructor(prometheusUrl: string, dashboardUrl: string | undefined) {
-        this.prometheusDriver = new PrometheusDriver({ endpoint: prometheusUrl });
+    constructor(prometheusDriver: PrometheusDriver, dashboardUrl: string | undefined) {
+        this.prometheusDriver = prometheusDriver;
         this.dashboardUrl = dashboardUrl;
     }
 
@@ -28,11 +28,11 @@ export class PrometheusMetricsService implements MetricsService {
         return this.convertToTimeSeriesPoints(result);
     }
 
-    private async queryPrometheus(query: string, start: Date | number, end: Date | number = new Date()): Promise<RangeVector[]> {
+    private async queryPrometheus(query: string, start: number, end: number = Date.now()): Promise<RangeVector[]> {
         const result = await this.prometheusDriver.rangeQuery(query, start, end, 10);
         if(result.resultType !== ResponseType.MATRIX) {
-            console.warn(`incompatible result type ${result.resultType}.`);
-            return;
+            console.warn(`The prometheus server returned invalid result type: ${result.resultType}`);
+            return [];
         }
         return result.result as RangeVector[];
     }
@@ -58,7 +58,7 @@ export class PrometheusMetricsService implements MetricsService {
             default:
                 console.warn("unknown interval.");
         }
-        return new Date().getTime() - minutes * 60 * 1000;
+        return Date.now() - minutes * 60 * 1000;
     }
 
     private convertToTimeSeriesPoints(series: RangeVector[]): TimeSeriesPoint[] {
