@@ -29,6 +29,7 @@ jobs:
         cd components/centraldashboard
         ARCH=linux/ppc64le make docker-build-multi-arch
         ARCH=linux/amd64 make docker-build-multi-arch
+        ARCH=linux/arm64 make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
