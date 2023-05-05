@@ -34,7 +34,7 @@ spec:
       containers:
       - name: kfp-conformance
       # TODO: update the image version to 1.0
-        image: gcr.io/ml-pipeline/kfp-conformance:0.1
+        image: gcr.io/ml-pipeline/kfp-conformance:1.7
         resources:
           limits:
             memory: "128Mi"
