@@ -11,7 +11,7 @@ import { FormGpusComponent } from './form-gpus.component';
 import { CommonModule } from '@angular/common';
 
 const JWABackendServiceStub: Partial<JWABackendService> = {
-  getGPUVendors: () => of(),
+  getGPUAllocatable: () => of(),
 };
 
 const SnackBarServiceStub: Partial<SnackBarService> = {

@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { GPUVendor } from 'src/app/types';
+import {AllocatableGPU, GPUVendor} from 'src/app/types';
 import { JWABackendService } from 'src/app/services/backend.service';
 
 @Component({
@@ -11,14 +11,12 @@ import { JWABackendService } from 'src/app/services/backend.service';
 })
 export class FormGpusComponent implements OnInit {
   @Input() parentForm: FormGroup;
-  @Input() vendors: GPUVendor[] = [];
-
+  @Input() vendors: GPUVendor[];
   private gpuCtrl: FormGroup;
-  public installedVendors = new Set<string>();
-
+  private allocatable: AllocatableGPU = {};
+  private installedVendors = new Set<string>();
   subscriptions = new Subscription();
-  maxGPUs = 16;
-  gpusCount = ['1', '2', '4', '8'];
+  gpusCount = [0];
 
   constructor(public backend: JWABackendService) {}
 
@@ -32,17 +30,20 @@ export class FormGpusComponent implements OnInit {
       .setValidators([this.vendorWithNum()]);
 
     this.subscriptions.add(
-      this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
+      this.gpuCtrl.get('vendor').valueChanges.subscribe((n: string) => {
         if (n === 'none') {
-          this.gpuCtrl.get('vendor').disable();
+          this.gpusCount = [0];
         } else {
-          this.gpuCtrl.get('vendor').enable();
+          this.gpusCount = Array(this.allocatable[n] || 0).fill(0).map((_, index) => index + 1);
         }
       }),
     );
 
-    this.backend.getGPUVendors().subscribe(vendors => {
-      this.installedVendors = new Set(vendors);
+    this.backend.getGPUAllocatable().subscribe(allocatableGPUs => {
+      this.allocatable = allocatableGPUs;
+      this.installedVendors = new Set(
+        Object.entries(allocatableGPUs).filter((entry) => entry[1] > 0).map((entry) => entry[0])
+      );
     });
   }
 

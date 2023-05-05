@@ -2,7 +2,7 @@ import { V1Pod } from '@kubernetes/client-node';
 import { BackendResponse } from 'kubeflow';
 import { Config } from './config';
 import { EventObject } from './event';
-import { NotebookRawObject, NotebookResponseObject } from './notebook';
+import {AllocatableGPU, NotebookRawObject, NotebookResponseObject} from './notebook';
 import { PodDefault } from './poddefault';
 import { PvcResponseObject } from './volume';
 
@@ -13,7 +13,7 @@ export interface JWABackendResponse extends BackendResponse {
   pvcs?: PvcResponseObject[];
   config?: Config;
   poddefaults?: PodDefault[];
-  vendors?: string[];
+  allocatable?: AllocatableGPU;
   pod?: V1Pod;
   events?: EventObject[];
 }

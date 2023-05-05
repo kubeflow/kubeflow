@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BackendService, SnackBarService, SnackType } from 'kubeflow';
+import { BackendService, SnackBarService } from 'kubeflow';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {
   NotebookResponseObject,
@@ -10,8 +10,8 @@ import {
   Config,
   PodDefault,
   NotebookFormObject,
-  NotebookProcessedObject,
   PvcResponseObject,
+  AllocatableGPU,
 } from '../types';
 import { V1Pod } from '@kubernetes/client-node';
 import { EventObject } from '../types/event';
@@ -130,13 +130,13 @@ export class JWABackendService extends BackendService {
     );
   }
 
-  public getGPUVendors(): Observable<string[]> {
+  public getGPUAllocatable(): Observable<AllocatableGPU> {
     // Get installed GPU vendors
     const url = `api/gpus`;
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map(data => data.vendors),
+      map(data => data.allocatable),
     );
   }
 

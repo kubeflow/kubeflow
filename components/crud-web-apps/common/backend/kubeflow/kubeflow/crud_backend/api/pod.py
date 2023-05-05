@@ -15,3 +15,6 @@ def get_pod_logs(namespace, pod, container, auth=True):
     return v1_core.read_namespaced_pod_log(
         namespace=namespace, name=pod, container=container
     )
+
+def list_all_pods(field_selector: str):
+    return v1_core.list_pod_for_all_namespaces(field_selector=field_selector)

@@ -80,3 +80,7 @@ export interface NotebookRawObject {
     readyReplicas: number;
   };
 }
+
+export interface AllocatableGPU {
+  [vendor: string]: number;
+}

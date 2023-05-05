@@ -97,10 +97,11 @@ def get_notebook_events(notebook_name, namespace):
 
 
 @bp.route("/api/gpus")
-def get_gpu_vendors():
+def get_gpus_allocatable():
     """
-    Return a list of GPU vendors for which at least one node has the necessary
-    annotation required to schedule pods
+    Return a list of GPU vendors with the corresponding allocatable GPUs.
+    Since GPU on different nodes cannot be allocated together, for each vendor
+    we take the maximum number available per node.
     """
     frontend_config = utils.load_spawner_ui_config()
     gpus_value = frontend_config.get("gpus", {}).get("value", {})
@@ -108,13 +109,24 @@ def get_gpu_vendors():
         v.get("limitsKey", "") for v in gpus_value.get("vendors", [])
     ]
 
-    # Get all of the different resources installed in all nodes
-    installed_resources = set()
     nodes = api.list_nodes().items
+    gpu_configurations = {}
     for node in nodes:
-        installed_resources.update(node.status.capacity.keys())
+        gpus_allocatable = {}
+        for vendor in config_vendor_keys:
+            gpus_allocatable[vendor] = int(node.status.allocatable.get(vendor, 0))
 
-    # Keep the vendors the key of which exists in at least one node
-    available_vendors = installed_resources.intersection(config_vendor_keys)
+        # Get all the pods for a specific node
+        pods = api.list_all_pods(field_selector='spec.nodeName=' + node.metadata.name).items
 
-    return api.success_response("vendors", list(available_vendors))
+        # Listing over all containers
+        for container in [container for pod in pods for container in pod.spec.containers if container.resources.limits]:
+            # For each vendor we subtract the number of gpu specified as limit to the total capacity of the node
+            for vendor in config_vendor_keys:
+                gpus_allocatable[vendor] -= int(container.resources.limits.get(vendor, 0))
+
+        # For each vendor, we set the maximum of gpu that can be used simultaneously
+        for vendor, allocatable in gpus_allocatable.items():
+            gpu_configurations[vendor] = max(allocatable, gpu_configurations.get(vendor, 0))
+
+    return api.success_response("allocatable", gpu_configurations)
