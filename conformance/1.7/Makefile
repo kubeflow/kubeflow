@@ -15,43 +15,53 @@
 TEST_PROFILE ?= kf-conformance-test
 KUBEFLOW_NAMESPACE ?= kubeflow
 
+.PHONY: setup
 setup:
 	# Create the conformance report directory
 	mkdir -p /tmp/kf-conformance
 
 	kubectl apply -f ./setup.yaml
 
+.PHONY: run
 run: setup run-kfp run-katib run-training-operator
 
+.PHONY: report
 report: report-kfp report-katib report-training-operator
 
+.PHONY: clean
 clean:
 	kubectl delete -f ./setup.yaml
 	rm -rf /tmp/kf-conformance
 
 # Component specific tasks
 
+.PHONY: run-kfp
 run-kfp:
 	kubectl apply -f ./kfp-conformance.yaml
 
+.PHONY: report-kfp
 report-kfp:
 	./report-pod.sh \
 		$(shell kubectl get pod -n kf-conformance --selector=app=kfp-conformance -o jsonpath='{.items[*].metadata.name}') \
 		/tmp/kfp-conformance.done \
 		/tmp/kfp-conformance.log
 
+.PHONY: run-training-operator
 run-training-operator:
 	kubectl apply -f ./training-operator-conformance.yaml
 
+.PHONY: report-training-operator
 report-training-operator:
 	./report-pod.sh \
 		$(shell kubectl get pod -n kf-conformance --selector=app=training-operator-conformance -o jsonpath='{.items[*].metadata.name}') \
 		/tmp/training-operator-conformance.done \
 		/tmp/training-operator-conformance.log
 
+.PHONY: run-katib
 run-katib:
 	kubectl apply -f ./katib-conformance.yaml
 
+.PHONY: report-katib
 report-katib:
 	./report-pod.sh \
 		$(shell kubectl get pod -n kf-conformance --selector=app=katib-conformance -o jsonpath='{.items[*].metadata.name}') \
