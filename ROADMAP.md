@@ -1,7 +1,10 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.7 Release, Planned: March 2023 
-The Kubeflow Community plans to deliver its v1.7 release in March 2023, per this [timeline](https://github.com/kubeflow/community/pull/573).   The high level deliveries are being tracked in this [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1).   The v1.7 release process will be managed by the v1.7 [Release Team](https://github.com/kubeflow/internal-acls/pull/576) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md)
+## Kubeflow 1.8 Release, Planned: October 2023
+The Kubeflow Community plans to deliver Kubeflow 1.8 in the October 2023.    The release milestones and features are currently under review.   The 1.8 Release Team has been assembled and their meeting times and notes can be found [here](https://docs.google.com/document/d/1Cs9XYl_SHfGP9vs1eHyqb6JAcpE3ilM-5iRuBnV9AB4/edit).
+
+## Kubeflow 1.7 Release, Delivered: March 2023 
+The Kubeflow Community delivered its v1.7 release in March 2023 per this [timeline](https://github.com/kubeflow/community/pull/573).   The high level deliveries are being tracked in this [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1).   The v1.7 release process will be managed by the v1.7 [Release Team](https://github.com/kubeflow/internal-acls/pull/576) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md)
 
 Notable feature candidates in the [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1) are:
 * Support for Kubernetes 1.25
