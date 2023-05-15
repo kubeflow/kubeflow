@@ -103,6 +103,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')
                     manage-users-view(user='[[user]]', namespaces='[[namespaces]]', multi-owned-namespaces='[[multiOwnedNamespaces]]', is-cluster-admin='[[isClusterAdmin]]')
+                neon-animatable(page='s3proxy')
+                    s3proxy-view()
                 neon-animatable(page='iframe')
                     iframe-container(namespace='[[namespace]]',
                         src='[[iframeSrc]]', page="{{iframePage}}")

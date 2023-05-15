@@ -35,6 +35,7 @@ import './landing-page.js';
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
+import './s3proxy-view.js';
 import './not-found-view.js';
 import './namespace-needed-view.js';
 import './manage-users-view.js';
@@ -273,6 +274,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             }
             if (path && path.includes('{ns}')) {
                 this.page = 'namespace_needed';
+            } else if (newPage === 's3') {
+                // eslint-disable-next-line no-console
+                console.log(this.namespace);
+                this.page = 's3proxy';
             } else {
                 this.page = 'not_found';
             }
