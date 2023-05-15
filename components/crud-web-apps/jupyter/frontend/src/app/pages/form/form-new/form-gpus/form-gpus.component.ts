@@ -34,16 +34,6 @@ export class FormGpusComponent implements OnInit {
       .get('vendor')
       .setValidators([this.vendorWithNum()]);
 
-    // this.subscriptions.add(
-    //   this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
-    //     if (n === 'none') {
-    //       this.gpuCtrl.get('vendor').disable();
-    //     } else {
-    //       this.gpuCtrl.get('vendor').enable();
-    //     }
-    //   }),
-    // );
-
     this.backend.getGPUVendors().subscribe(vendors => {
       this.installedVendors = new Set(vendors);
     });
