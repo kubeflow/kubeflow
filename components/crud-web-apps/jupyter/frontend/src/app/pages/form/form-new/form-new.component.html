@@ -39,12 +39,6 @@
         [vendors]="config?.gpus?.value.vendors"
       ></app-form-gpus>
 
-      <app-form-affinity-tolerations
-          [parentForm]="formCtrl"
-          [affinityConfigs]="config?.affinityConfig?.options"
-          [tolerationGroups]="config?.tolerationGroup?.options"
-        ></app-form-affinity-tolerations>
-
 
       <app-form-workspace-volume
         *ngIf="formCtrl.get('workspace')"
@@ -65,6 +59,12 @@
         <app-form-configurations
           [parentForm]="formCtrl"
         ></app-form-configurations>
+
+        <app-form-affinity-tolerations
+          [parentForm]="formCtrl"
+          [affinityConfigs]="config?.affinityConfig?.options"
+          [tolerationGroups]="config?.tolerationGroup?.options"
+        ></app-form-affinity-tolerations>
 
         <app-form-advanced-options
           [parentForm]="formCtrl"

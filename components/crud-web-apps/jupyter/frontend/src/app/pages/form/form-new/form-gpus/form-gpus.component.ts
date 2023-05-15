@@ -47,13 +47,26 @@ export class FormGpusComponent implements OnInit {
     this.backend.getGPUVendors().subscribe(vendors => {
       this.installedVendors = new Set(vendors);
     });
+
+    this.backend.getGPUCount().subscribe(count => { 
+      this.vendorsNums = new Object(count);
+      (Object.keys(this.vendorsNums)).forEach((key) => {
+        this.vendorinfo += this.vendorsNums[key] + ' ' + key
+      });
+      
+    });
   }
 
   // Vendor handling
   public vendorTooltip(vendor: GPUVendor) {
     if (!this.installedVendors.has(vendor.limitsKey)) {
       return $localize`There are currently no ${vendor.uiName} GPUs in your cluster.`
+    }
+    else {
+      return $localize`There are currently ${this.vendorinfo}  GPUs in your cluster.`;
+    }
   }
+  
 
   // Custom Validation
   public getVendorError() {

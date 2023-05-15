@@ -140,7 +140,7 @@ export class JWABackendService extends BackendService {
     );
   }
 
-  public getAllGPUResource(): Observable<string[]> {
+  public getGPUCount(): Observable<string[]> {
     // Get installed GPU count
     const url = `api/gpus`;
 
