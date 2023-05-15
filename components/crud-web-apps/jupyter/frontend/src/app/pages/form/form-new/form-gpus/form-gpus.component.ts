@@ -16,6 +16,9 @@ export class FormGpusComponent implements OnInit {
   private gpuCtrl: FormGroup;
   public installedVendors = new Set<string>();
 
+  public vendorsNums = {};
+  public vendorinfo = "";
+
   subscriptions = new Subscription();
   maxGPUs = 16;
   gpusCount = ['1', '2', '4', '8'];
@@ -31,15 +34,15 @@ export class FormGpusComponent implements OnInit {
       .get('vendor')
       .setValidators([this.vendorWithNum()]);
 
-    this.subscriptions.add(
-      this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
-        if (n === 'none') {
-          this.gpuCtrl.get('vendor').disable();
-        } else {
-          this.gpuCtrl.get('vendor').enable();
-        }
-      }),
-    );
+    // this.subscriptions.add(
+    //   this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
+    //     if (n === 'none') {
+    //       this.gpuCtrl.get('vendor').disable();
+    //     } else {
+    //       this.gpuCtrl.get('vendor').enable();
+    //     }
+    //   }),
+    // );
 
     this.backend.getGPUVendors().subscribe(vendors => {
       this.installedVendors = new Set(vendors);
@@ -48,9 +51,8 @@ export class FormGpusComponent implements OnInit {
 
   // Vendor handling
   public vendorTooltip(vendor: GPUVendor) {
-    return !this.installedVendors.has(vendor.limitsKey)
-      ? $localize`There are currently no ${vendor.uiName} GPUs in your cluster.`
-      : '';
+    if (!this.installedVendors.has(vendor.limitsKey)) {
+      return $localize`There are currently no ${vendor.uiName} GPUs in your cluster.`
   }
 
   // Custom Validation
