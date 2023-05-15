@@ -126,7 +126,7 @@ def get_gpu_vendors():
             gpu_product = node.metadata.labels["nvidia.com/gpu.product"]
             gpu_count = node.metadata.labels["nvidia.com/gpu.count"]
             if gpu_product in all_gpu_resource:
-                all_gpu_resource[gpu_product] += int(gpu_count)
+                all_gpu_resource[gpu_product] = int(gpu_count)
             else:
                 all_gpu_resource[gpu_product] = 1
 
