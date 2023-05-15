@@ -113,10 +113,27 @@ def get_gpu_vendors():
     # Get all of the different resources installed in all nodes
     installed_resources = set()
     nodes = api.list_nodes().items
+    
+    # Get gpu resource in all nodes
+    all_gpu_resource = {}
+
     for node in nodes:
         installed_resources.update(node.status.capacity.keys())
+
+        # Added for get NFD Label
+        nfd_label = "nvidia.com/gpu.product" 
+        if nfd_label in node.metadata.labels:
+            gpu_product = node.metadata.labels["nvidia.com/gpu.product"]
+            gpu_count = node.metadata.labels["nvidia.com/gpu.count"]
+            if gpu_product in all_gpu_resource:
+                all_gpu_resource[gpu_product] += int(gpu_count)
+            else:
+                all_gpu_resource[gpu_product] = 1
 
     # Keep the vendors the key of which exists in at least one node
     available_vendors = installed_resources.intersection(config_vendor_keys)
 
-    return api.success_response("vendors", list(available_vendors))
+    data_field = ["vendors", "gpuslist"]
+    gpu_resource = [list(available_vendors), all_gpu_resource]
+
+    return api.success_response_gpu(data_field, gpu_resource)
