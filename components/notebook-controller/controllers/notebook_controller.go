@@ -44,7 +44,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const DefaultContainerPort = 8888
@@ -691,7 +690,7 @@ func predNBEvents(r *NotebookReconciler) predicate.Funcs {
 func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// Map function to convert pod events to reconciliation requests
-	mapPodToRequest := func(object client.Object) []reconcile.Request {
+	mapPodToRequest := func(ctx context.Context, object client.Object) []reconcile.Request {
 		return []reconcile.Request{
 			{NamespacedName: types.NamespacedName{
 				Name:      object.GetLabels()["notebook-name"],
@@ -701,7 +700,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	// Map function to convert namespace events to reconciliation requests
-	mapEventToRequest := func(object client.Object) []reconcile.Request {
+	mapEventToRequest := func(ctx context.Context, object client.Object) []reconcile.Request {
 		return []reconcile.Request{
 			{NamespacedName: types.NamespacedName{
 				Name:      object.GetName(),
@@ -715,11 +714,11 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.Service{}).
 		Watches(
-			&source.Kind{Type: &corev1.Pod{}},
+			&corev1.Pod{},
 			handler.EnqueueRequestsFromMapFunc(mapPodToRequest),
 			builder.WithPredicates(predNBPodIsLabeled())).
 		Watches(
-			&source.Kind{Type: &corev1.Event{}},
+			&corev1.Event{},
 			handler.EnqueueRequestsFromMapFunc(mapEventToRequest),
 			builder.WithPredicates(predNBEvents(r)))
 	// watch Istio virtual service
