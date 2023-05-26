@@ -45,8 +45,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        # TODO set image to external repo
-        image: tobiasgoerke/kubeflow-pvc-viewer:test-v3
+        image: kubeflow-pvc-viewer:latest
         name: manager
         securityContext:
           allowPrivilegeEscalation: false

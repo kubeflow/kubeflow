@@ -47,28 +47,3 @@ spec:
   resources:
     requests:
       storage: 1Gi
----
-# We may as well create a pod mounting the PVC.
-# In case the pod is scheduled to another node,
-# our viewer will restart.
-# apiVersion: v1
-# kind: Pod
-# metadata:
-#   name: pvcviewer-sample-mounting-pod
-#   namespace: kubeflow-user-example-com
-# spec:
-#   containers:
-#   - args:
-#     - /bin/sh
-#     - -c
-#     - sleep Infinity
-#     image: busybox:latest
-#     name: main
-#     volumeMounts:
-#       - name: rwo-pvc
-#         mountPath: /data
-#     workingDir: /data
-#   volumes:
-#   - name: rwo-pvc
-#     persistentVolumeClaim:
-#       claimName: pvcviewer-sample

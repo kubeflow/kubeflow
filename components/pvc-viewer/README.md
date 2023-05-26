@@ -1,4 +1,5 @@
 # PVCViewer
+
 Using this component, PVCViewers can easily be created. PVCViewers enable users to open a filebrowser on arbitrary persistent volume claims, letting them inspect, download, upload and manipulate data. 
 
 The PVCViewer API is meant to be extensible and can easily be user for other use-cases, such as launching user-tailored apps (e.g. tensorboards or notebooks).
@@ -48,91 +49,65 @@ spec:
     restart: true
 ```
 
-## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+## Configuring Default values
 
-### Running on the cluster
-1. Install Instances of Custom Resources:
+You may set a `spec.podSpec` to gain control over the started filebrowser. 
 
-```sh
-kubectl apply -f config/samples/
-```
+In case the podSpec is omitted, a default podSpec is inferred.
+You may change the defaults by having the manager mount a config file with defaults and setting the env-variable `DEFAULT_POD_SPEC_PATH`. 
 
-2. Build and push your image to the location specified by `IMG`:
-	
-```sh
-make docker-build docker-push IMG=<some-registry>/pvc-viewer:tag
-```
-	
-3. Deploy the controller to the cluster with the image specified by `IMG`:
+This is especially useful, when you can't control the creation of the `PVCViewer` object, e.g. since it's automatically created by another component such as the volumes UI.
 
-```sh
-make deploy IMG=<some-registry>/pvc-viewer:tag
-```
-
-### Uninstall CRDs
-To delete the CRDs from the cluster:
-
-```sh
-make uninstall
-```
-
-### Undeploy controller
-UnDeploy the controller to the cluster:
-
-```sh
-make undeploy
-```
-
-## Contributing
-See the parent repository for more info on how to contribute.
-
-### How it works
+## How it works
 This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 
 It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster 
+which provides a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster 
 
-### Test It Out
-1. Install the CRDs into the cluster:
-
-```sh
-make install
-```
-
-2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
-
-```sh
-make run
-```
-
-**NOTE:** You can also run this in one step by running: `make install run`
-
-### Modifying the API definitions
+## Modifying the API definitions
 If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
 
 ```sh
 make manifests
 ```
 
-**NOTE:** Run `make --help` for more information on all potential `make` targets
+## Testing 
 
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+In order to test the controller, simply execute:
 
-## License
+```sh
+make test
+```
 
-Copyright 2023.
+## Installing the Controller
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+You’ll need a Kubernetes cluster to run against.
 
-    http://www.apache.org/licenses/LICENSE-2.0
+Also, Istio and Cert-Manager need to be installed. 
+We recommend installing Kubeflow as it bundles all required components.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+1. Install the default config using Kustomize:
 
+```sh
+kubectl apply -k config/default
+```
+
+2. Build the controller image:
+	
+```sh
+docker build -t kubeflow-pvc-viewer:test .
+```
+	
+3. Set the controller to use the image:
+
+```sh
+kubectl -n kubeflow set image deployment pvc-viewer-controller-manager manager=kubeflow-pvc-viewer:test
+```
+
+4. Deploy the example:
+
+```sh
+kubectl apply -k config/samples
+```
+
+After the viewer has been launched, you should be able to open the filebrowser in your browser at `/pvcviewer/kubeflow-user-example-com/pvcviewer-sample/files/`.
