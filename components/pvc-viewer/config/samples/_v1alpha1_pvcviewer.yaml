@@ -9,31 +9,24 @@ spec:
   # The podSpec is applied to the deployment.Spec.Template.Spec
   # and thus, represents the core viewer's application
   # Gets set to a default PodSpec, if not specified
-  # podSpec:
+  # podSpec: {}
+  # If defined, the viewer will be exposed via a Service and a VirtualService
   networking:
     # Specifies the application's target port used by the Service
     targetPort: 8080
-    # If defined, an istio VirtualService is created, pointing to the Service
-    virtualService:
-      # The base prefix is suffixed by '/namespace/name' to create the
-      # VirtualService's prefix and a unique URL for each started viewer
-      basePrefix: "/pvcviewer"
-      # You may specify the VirtualService's rewrite.
-      # If not set, the prefix's value is used
-      rewrite: "/"
-      # By default, no timeout is set
-      # timeout: 30s
-  rwoScheduling:
-    # If set to true, the controller detects RWO-Volumes referred to by the
-    # podSpec and uses affinities to schedule the viewer to nodes
-    # where the volume is currently mounted. This enables the viewer to
-    # access RWO-Volumes, even though they might already be mounted.
-    enabled: true
-    # Using the rwoScheduling feature, the viewer might block other application
-    # from (re-starting). Setting restart to true instructs the controller to
-    # re-compute the affinity in case Pods start using the viewer's RWO-Volumes.
-    # Thus, the viewer might restart on another node without blocking new Pods.
-    restart: true
+    # The base prefix is suffixed by '/namespace/name' to create the
+    # VirtualService's prefix and a unique URL for each started viewer
+    basePrefix: "/pvcviewer"
+    # You may specify the VirtualService's rewrite.
+    # If not set, the prefix's value is used
+    rewrite: "/"
+    # By default, no timeout is set
+    # timeout: 30s
+  # If set to true, the controller detects RWO-Volumes referred to by the
+  # podSpec and uses affinities to schedule the viewer to nodes
+  # where the volume is currently mounted. This enables the viewer to
+  # access RWO-Volumes, even though they might already be mounted.
+  rwoScheduling: true
 ---
 # Create the PVC our viewer is using
 apiVersion: v1

@@ -117,7 +117,7 @@ func (r *PVCViewer) Default() {
 						},
 						{
 							Name:  "FB_BASEURL",
-							Value: fmt.Sprintf("%s/%s/%s/", r.Spec.Networking.VirtualService.BasePrefix, r.Namespace, r.Name),
+							Value: fmt.Sprintf("%s/%s/%s/", r.Spec.Networking.BasePrefix, r.Namespace, r.Name),
 						},
 					},
 					WorkingDir: "/data",

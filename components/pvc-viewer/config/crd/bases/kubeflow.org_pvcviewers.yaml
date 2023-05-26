@@ -39,6 +39,16 @@ spec:
                 description: Specifies custom networking specification for the underlying
                   Service and VirtualService resources
                 properties:
+                  basePrefix:
+                    description: Specifies the prefix to the virtual service's 'prefix'
+                      field. The controller will suffix '/namespace/name' to this
+                      prefix.
+                    type: string
+                  rewrite:
+                    description: Specifies the virtual service's 'rewrite' field.
+                      If omitted, the controller will set the 'rewrite' field to the
+                      same value as the 'prefix' field.
+                    type: string
                   targetPort:
                     anyOf:
                     - type: integer
@@ -46,29 +56,9 @@ spec:
                     description: Specifies the application's target port used by the
                       Deployment's Service.
                     x-kubernetes-int-or-string: true
-                  virtualService:
-                    description: If defined, a virtual service will be created for
-                      the service.
-                    properties:
-                      basePrefix:
-                        description: Specifies the prefix to the virtual service's
-                          'prefix' field. The controller will suffix '/namespace/name'
-                          to this prefix.
-                        type: string
-                      rewrite:
-                        description: Specifies the virtual service's 'rewrite' field.
-                          If omitted, the controller will set the 'rewrite' field
-                          to the same value as the 'prefix' field.
-                        type: string
-                      timeout:
-                        description: The timeout for the virtual service's 'timeout'
-                          field.
-                        type: string
-                    required:
-                    - basePrefix
-                    type: object
-                required:
-                - targetPort
+                  timeout:
+                    description: The timeout for the virtual service's 'timeout' field.
+                    type: string
                 type: object
               podSpec:
                 description: "TODO infer default values if PodSpec is empty Specifies
@@ -6967,32 +6957,15 @@ spec:
                 description: Defines the PVC we want to edit
                 type: string
               rwoScheduling:
-                description: Defines the strategy for handling RWO-PVCs defined in
-                  the podSpec.
-                properties:
-                  enabled:
-                    default: true
-                    description: If set to true, the controller detects RWO-Volumes
-                      referred to by the Pod and uses affinities to schedule the PVCViewer
-                      to nodes where the volume is currently mounted. This enables
-                      the PVCViewer to access RWO-Volumes, even though they might
-                      already be mounted.
-                    type: boolean
-                  restart:
-                    default: false
-                    description: Instructs the controller to restart generated deployments
-                      after they have been created in case the mounted RWO-PVC's node
-                      changes. Therefore, the newly started Pod won't be blocked by
-                      the viewer. This feature only works reliably when used with
-                      one RWO-PVC, as the viewer cannot be simultaneously mount RWO-PVCs
-                      from different nodes.
-                    type: boolean
-                required:
-                - enabled
-                - restart
-                type: object
+                default: false
+                description: If set to true, the controller detects RWO-Volumes referred
+                  to by the Pod and uses affinities to schedule the PVCViewer to nodes
+                  where the volume is currently mounted. This enables the PVCViewer
+                  to access RWO-Volumes, even though they might already be mounted.
+                type: boolean
             required:
             - pvc
+            - rwoScheduling
             type: object
           status:
             description: PVCViewerStatus defines the observed state of PVCViewer

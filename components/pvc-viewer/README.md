@@ -7,6 +7,7 @@ The PVCViewer API is meant to be extensible and can easily be user for other use
 Find the [Pull Request for more info here](https://github.com/kubeflow/kubeflow/pull/6876).
 
 ## Description
+
 The component is meant to be used in interaction with other components, such as the volumes web app. These are to create an instance of the custom resource.
 The controller will then generate deployments, services and virtualservices base on the spec.
 
@@ -19,34 +20,29 @@ metadata:
   name: pvcviewer-sample
   namespace: kubeflow-user-example-com
 spec:
+  # The PVC we are watching
+  pvc: pvcviewer-sample
   # The podSpec is applied to the deployment.Spec.Template.Spec
   # and thus, represents the core viewer's application
-  podSpec:
-    # Your pod spec here
+  # Gets set to a default PodSpec, if not specified
+  # podSpec: {}
+  # If defined, the viewer will be exposed via a Service and a VirtualService
   networking:
     # Specifies the application's target port used by the Service
     targetPort: 8080
-    # If defined, an istio VirtualService is created, pointing to the Service
-    virtualService:
-      # The base prefix is suffixed by '/namespace/name' to create the
-      # VirtualService's prefix and a unique URL for each started viewer
-      basePrefix: "/pvcviewer"
-      # You may specify the VirtualService's rewrite.
-      # If not set, the prefix's value is used
-      rewrite: "/"
-      # By default, no timeout is set
-      # timeout: 30s
-  rwoScheduling:
-    # If set to true, the controller detects RWO-Volumes referred to by the
-    # podSpec and uses affinities to schedule the viewer to nodes
-    # where the volume is currently mounted. This enables the viewer to
-    # access RWO-Volumes, even though they might already be mounted.
-    enabled: true
-    # Using the rwoScheduling feature, the viewer might block other application
-    # from (re-starting). Setting restart to true instructs the controller to
-    # re-compute the affinity in case Pods start using the viewer's RWO-Volumes.
-    # Thus, the viewer might restart on another node without blocking new Pods.
-    restart: true
+    # The base prefix is suffixed by '/namespace/name' to create the
+    # VirtualService's prefix and a unique URL for each started viewer
+    basePrefix: "/pvcviewer"
+    # You may specify the VirtualService's rewrite.
+    # If not set, the prefix's value is used
+    rewrite: "/"
+    # By default, no timeout is set
+    # timeout: 30s
+  # If set to true, the controller detects RWO-Volumes referred to by the
+  # podSpec and uses affinities to schedule the viewer to nodes
+  # where the volume is currently mounted. This enables the viewer to
+  # access RWO-Volumes, even though they might already be mounted.
+  rwoScheduling: true
 ```
 
 ## Configuring Default values

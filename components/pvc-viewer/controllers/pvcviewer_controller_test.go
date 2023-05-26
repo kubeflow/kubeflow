@@ -270,9 +270,7 @@ var _ = Describe("PVCViewer controller", func() {
 				}
 				viewer.Spec.Networking = kubefloworgv1alpha1.Networking{
 					TargetPort: intstr.IntOrString{IntVal: 80},
-					VirtualService: kubefloworgv1alpha1.VirtualService{
-						BasePrefix: basePrefix,
-					},
+					BasePrefix: basePrefix,
 				}
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
@@ -310,9 +308,9 @@ var _ = Describe("PVCViewer controller", func() {
 				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return err
 				}
-				viewer.Spec.Networking.VirtualService.BasePrefix = newBasePrefix
-				viewer.Spec.Networking.VirtualService.Timeout = newTimeout
-				viewer.Spec.Networking.VirtualService.Rewrite = newRewrite
+				viewer.Spec.Networking.BasePrefix = newBasePrefix
+				viewer.Spec.Networking.Timeout = newTimeout
+				viewer.Spec.Networking.Rewrite = newRewrite
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -433,61 +431,6 @@ var _ = Describe("PVCViewer controller", func() {
 				}
 				return deployment.Spec.Template.Spec.Affinity, err
 			}, timeout, interval).ShouldNot(And(BeNil(), WithTransform(testHelper.ExtractNodeName, Equal(nodeName))))
-		})
-
-		createViewerWithRestartFlagAndMountingPod := func(restart bool) (*kubefloworgv1alpha1.PVCViewer, string) {
-			By("Creating a standalone RWO PVC")
-			pvcName := "rwo-pvc"
-			testHelper.CreatePVC(pvcName, corev1.ReadWriteOnce)
-
-			By("Creating a viewer with the restart flag set")
-			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
-				PVC: pvcName,
-				RWOScheduling: kubefloworgv1alpha1.RWOScheduling{
-					Enabled: true,
-					Restart: restart,
-				},
-			})
-			// Wait for deployment to be created without any affinity
-			Eventually(func() (*corev1.Affinity, error) {
-				deployment := &appsv1.Deployment{}
-				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
-					return nil, err
-				}
-				return deployment.Spec.Template.Spec.Affinity, nil
-			}, duration, interval).Should(BeNil())
-
-			By("By creating a Pod mounting the RWO PVC")
-			nodeName := "some-new-node"
-			testHelper.CreatePod("rwo-pod", nodeName, pvcName)
-
-			return pvcViewer, nodeName
-		}
-
-		It("Should not set Affinity (i.e. restart) on Restart=False", func() {
-			pvcViewer, _ := createViewerWithRestartFlagAndMountingPod(false)
-
-			Consistently(func() (*corev1.Affinity, error) {
-				deployment := &appsv1.Deployment{}
-				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
-					return nil, err
-				}
-				return deployment.Spec.Template.Spec.Affinity, nil
-			}, timeout, interval).Should(BeNil())
-		})
-
-		It("Should set Affinity (i.e. restart) on Restart=True", func() {
-			pvcViewer, nodeName := createViewerWithRestartFlagAndMountingPod(true)
-
-			// As we've checked before that the deployment was launched without a node affinity,
-			// having one now would mean the Pod restarted after the Pod was created
-			Eventually(func() (*corev1.Affinity, error) {
-				deployment := &appsv1.Deployment{}
-				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
-					return nil, err
-				}
-				return deployment.Spec.Template.Spec.Affinity, nil
-			}, duration, interval).ShouldNot(And(BeNil(), WithTransform(testHelper.ExtractNodeName, Equal(nodeName))))
 		})
 	})
 })

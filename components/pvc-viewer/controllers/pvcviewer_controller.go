@@ -29,13 +29,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	kubefloworgv1alpha1 "github.com/kubeflow/kubeflow/components/pvc-viewer/api/v1alpha1"
 )
@@ -90,12 +86,6 @@ func (r *PVCViewerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(virtualServiceTemplate).
-		// We are watching Pods so that we can reconcile PVCViewer with restart=True
-		Watches(
-			&source.Kind{Type: &corev1.Pod{}},
-			handler.EnqueueRequestsFromMapFunc(r.findPVCViewersForPod),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
 		Complete(r)
 }
 
@@ -173,8 +163,8 @@ func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.
 	var (
 		// Do not change affinity or rwoClaims by default
 		affinity = deployment.Spec.Template.Spec.Affinity
-		// Affinity is only to be set when rwo scheduling is enabled and the deployment needs to be (re-)started
-		determineAffinity = viewer.Spec.RWOScheduling.Enabled && (createDeployment || viewer.Spec.RWOScheduling.Restart)
+		// Affinity is only to be set when rwo scheduling is enabled and the deployment is to be newly created
+		determineAffinity = viewer.Spec.RWOScheduling && createDeployment
 	)
 
 	if determineAffinity {
@@ -258,7 +248,7 @@ func (r *PVCViewerReconciler) reconcileService(ctx context.Context, log logr.Log
 }
 
 func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
-	if viewer.Spec.Networking == (kubefloworgv1alpha1.Networking{}) || viewer.Spec.Networking.VirtualService == (kubefloworgv1alpha1.VirtualService{}) {
+	if viewer.Spec.Networking == (kubefloworgv1alpha1.Networking{}) {
 		return nil
 	}
 
@@ -281,15 +271,15 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 		createVirtualService = true
 	}
 
-	prefix := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Networking.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
+	prefix := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Networking.BasePrefix, viewer.Namespace, viewer.Name)
 	rewrite := prefix
-	if viewer.Spec.Networking.VirtualService.Rewrite != "" {
-		rewrite = viewer.Spec.Networking.VirtualService.Rewrite
+	if viewer.Spec.Networking.Rewrite != "" {
+		rewrite = viewer.Spec.Networking.Rewrite
 	}
 	service := fmt.Sprintf("%s%s.%s.svc.cluster.local", resourcePrefix, viewer.Name, viewer.Namespace)
 	var timeout *string = nil
-	if viewer.Spec.Networking.VirtualService.Timeout != "" {
-		timeout = &viewer.Spec.Networking.VirtualService.Timeout
+	if viewer.Spec.Networking.Timeout != "" {
+		timeout = &viewer.Spec.Networking.Timeout
 	}
 
 	virtualService.Object["spec"] = map[string]interface{}{
@@ -343,8 +333,8 @@ func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logg
 		return err
 	}
 
-	if viewer.Spec.Networking.VirtualService != (kubefloworgv1alpha1.VirtualService{}) {
-		url := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Networking.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
+	if viewer.Spec.Networking != (kubefloworgv1alpha1.Networking{}) {
+		url := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Networking.BasePrefix, viewer.Namespace, viewer.Name)
 		viewer.Status.URL = &url
 	} else {
 		viewer.Status.URL = nil
@@ -444,65 +434,4 @@ func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Log
 		},
 	}
 	return affinity, nil
-}
-
-// Gets called for each Pod that changes and returns a list of PVCViewer objects
-// that need to be reconciled as these mount the same RWO PVCs that the Pod mounts
-// We might night to recompute the affinity of these PVCViewers, leading to on correct nodes
-func (r *PVCViewerReconciler) findPVCViewersForPod(pod client.Object) []reconcile.Request {
-	// Only process Pending and Running (not Succeeded/Failed/Unknown) pods
-	if !(pod.(*corev1.Pod).Status.Phase == corev1.PodPending || pod.(*corev1.Pod).Status.Phase == corev1.PodRunning) {
-		return []reconcile.Request{}
-	}
-
-	// Ignore pods that are being deleted/terminating
-	if pod.GetDeletionTimestamp() != nil && !pod.GetDeletionTimestamp().IsZero() {
-		return []reconcile.Request{}
-	}
-
-	// Extract mounted volumes from pod
-	pvcNames := make(map[string]bool)
-	for _, volume := range pod.(*corev1.Pod).Spec.Volumes {
-		if volume.PersistentVolumeClaim != nil {
-			pvcNames[volume.PersistentVolumeClaim.ClaimName] = true
-		}
-	}
-
-	// List all PVCViewers in pod's namespace
-	pvcViewerList := &kubefloworgv1alpha1.PVCViewerList{}
-	err := r.List(context.TODO(), pvcViewerList, client.InNamespace(pod.GetNamespace()))
-	if err != nil {
-		log.Log.Error(err, "Failed to list PVCViewers")
-		return []reconcile.Request{}
-	}
-
-	// Check if any of the PVCViewers have restart=True and watches one of the pod's PVCs
-	requests := make([]reconcile.Request, 0)
-	for _, pvcViewer := range pvcViewerList.Items {
-		// Ignore pods that are owned by this PVCViewer
-		if pod.GetLabels()[nameLabelKey] == pvcViewer.Name {
-			continue
-		}
-
-		if !pvcViewer.Spec.RWOScheduling.Restart {
-			// We only care about PVCViewers that have restart=True
-			continue
-		}
-
-		// Trigger reconciliation of that PVCViewer if it watches one of the pod's PVCs
-		for pvcName := range pvcNames {
-			if pvcViewer.Spec.PVC == pvcName {
-				requests = append(requests, reconcile.Request{
-					NamespacedName: types.NamespacedName{
-						Name:      pvcViewer.GetName(),
-						Namespace: pvcViewer.GetNamespace(),
-					},
-				})
-				log.Log.Info("Pod Watch triggering reconcile")
-				break
-			}
-		}
-	}
-
-	return requests
 }

@@ -39,46 +39,27 @@ type PVCViewerSpec struct {
 	// +optional
 	Networking Networking `json:"networking,omitempty"`
 
-	// Defines the strategy for handling RWO-PVCs defined in the podSpec.
-	RWOScheduling RWOScheduling `json:"rwoScheduling,omitempty"`
-}
-
-type RWOScheduling struct {
 	// If set to true, the controller detects RWO-Volumes referred to by
 	// the Pod and uses affinities to schedule the PVCViewer to nodes
 	// where the volume is currently mounted. This enables the PVCViewer
 	// to access RWO-Volumes, even though they might already be mounted.
-	// +kubebuilder:default:=true
-	Enabled bool `json:"enabled"`
-
-	// Instructs the controller to restart generated deployments after they have been created
-	// in case the mounted RWO-PVC's node changes.
-	// Therefore, the newly started Pod won't be blocked by the viewer.
-	// This feature only works reliably when used with one RWO-PVC, as the viewer cannot
-	// be simultaneously mount RWO-PVCs from different nodes.
 	// +kubebuilder:default:=false
-	Restart bool `json:"restart"`
+	RWOScheduling bool `json:"rwoScheduling"`
 }
 
 type Networking struct {
 	// Specifies the application's target port used by the Deployment's Service.
+	// +optional
 	TargetPort intstr.IntOrString `json:"targetPort"`
-
-	// If defined, a virtual service will be created for the service.
-	VirtualService VirtualService `json:"virtualService,omitempty"`
-}
-
-type VirtualService struct {
 	// Specifies the prefix to the virtual service's 'prefix' field.
 	// The controller will suffix '/namespace/name' to this prefix.
+	// +optional
 	BasePrefix string `json:"basePrefix"`
-
 	// Specifies the virtual service's 'rewrite' field.
 	// If omitted, the controller will set the 'rewrite' field to the same
 	// value as the 'prefix' field.
 	// +optional
 	Rewrite string `json:"rewrite,omitempty"`
-
 	// The timeout for the virtual service's 'timeout' field.
 	// +optional
 	Timeout string `json:"timeout,omitempty"`
