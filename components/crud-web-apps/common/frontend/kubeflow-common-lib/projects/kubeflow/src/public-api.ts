@@ -10,7 +10,6 @@ export * from './lib/snack-bar/snack-bar.service';
 export * from './lib/services/namespace.service';
 export * from './lib/services/poller.service';
 export * from './lib/services/backend/backend.service';
-export * from './lib/services/rok/rok.service';
 
 export * from './lib/namespace-select/namespace-select.module';
 
@@ -45,14 +44,12 @@ export * from './lib/title-actions-toolbar/types';
 
 export * from './lib/form/form.module';
 export * from './lib/form/section/section.component';
-export * from './lib/form/rok-url-input/rok-url-input.component';
 
 export * from './lib/resource-table/types';
 export * from './lib/resource-table/status/types';
 export * from './lib/resource-table/table/utils';
 export * from './lib/snack-bar/types';
 export * from './lib/services/backend/types';
-export * from './lib/services/rok/types';
 export * from './lib/confirm-dialog/types';
 export * from './lib/polling/exponential-backoff';
 export * from './lib/form/validators';
@@ -108,3 +105,10 @@ export * from './lib/status-icon/status-icon.module';
 export * from './lib/urls/urls.component';
 export * from './lib/urls/urls.module';
 export * from './lib/urls/types';
+
+export * from './lib/icon/icon.component';
+export * from './lib/icon/icon.module';
+export * from './lib/resource-table/action/action.component';
+
+export * from './lib/status-info/status-info.component';
+export * from './lib/status-info/status-info.module';

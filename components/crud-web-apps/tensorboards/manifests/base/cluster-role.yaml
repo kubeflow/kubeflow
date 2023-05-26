@@ -43,6 +43,14 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - poddefaults
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -69,6 +77,14 @@ rules:
   - list
   - create
   - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - poddefaults
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -89,6 +105,14 @@ rules:
   - storage.k8s.io
   resources:
   - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - poddefaults
   verbs:
   - get
   - list

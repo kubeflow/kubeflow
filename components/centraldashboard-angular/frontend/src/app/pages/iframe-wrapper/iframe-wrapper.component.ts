@@ -7,6 +7,20 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { CDBNamespaceService } from 'src/app/services/namespace.service';
+import {
+  equalUrlPaths,
+  appendBackslash,
+  removePrefixFrom,
+  getQueryParams,
+} from 'src/app/shared/utils';
+import { Namespace } from 'src/app/types/namespace';
+import {
+  ALL_NAMESPACES_EVENT,
+  NAMESPACE_SELECTED_EVENT,
+  APP_CONNECTED_EVENT,
+  MESSAGE,
+} from '../../../../public/library';
 
 @Component({
   selector: 'app-iframe-wrapper',
@@ -21,14 +35,14 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
     return this.prvSrcPath;
   }
   set srcPath(src: string) {
-    src = this.removePrefixFrom(src);
+    src = removePrefixFrom(src);
 
     /**
      * When Istio exports Services, it always expects
      * a '/' at the end. SO we'll need to make sure the
      * links propagated to the iframe end with a '/'
      */
-    src = this.appendBackslash(src);
+    src = appendBackslash(src);
 
     /**
      * The following hacky logic appends the window.location.origin
@@ -51,10 +65,12 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
   }
 
   public iframeLocation: string | undefined = 'about:blank';
+  public currentNamespace: string;
+  public namespaces: Namespace[];
   private urlSub: Subscription;
   private interval: any;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private ns: CDBNamespaceService) {
     /**
      * On router events, we want to ensure that:
      *  - the iframe's src won't be updated when the URLs of the
@@ -73,49 +89,11 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
         ? iframeWindow?.location.pathname + iframeWindow?.location.search
         : iframeWindow?.location.pathname;
 
-      const eventUrl = this.removePrefixFrom(event.url);
-      if (!this.equalUrlPaths(eventUrl, iframeUrl)) {
+      const eventUrl = removePrefixFrom(event.url);
+      if (!equalUrlPaths(eventUrl, iframeUrl)) {
         this.srcPath = event.url;
       }
     });
-  }
-
-  removePrefixFrom(url: string) {
-    return url.includes('/_') ? url.slice(2) : url;
-  }
-
-  /**
-   * We treat URLs with or without a trailing slash as the same
-   * URL. Thus, in order to compare URLs, we need to use
-   * appendBackslash for both URLS to avoid false statements
-   * in cases where they only differ in the trailing slash.
-   */
-  equalUrlPaths(firstUrl: string, secondUrl: string | undefined) {
-    if (!firstUrl && !secondUrl) {
-      console.warn(`Got undefined URLs ${firstUrl} and ${secondUrl}`);
-      return true;
-    }
-    if (!firstUrl || !secondUrl) {
-      return false;
-    }
-    firstUrl = this.appendBackslash(firstUrl);
-    secondUrl = this.appendBackslash(secondUrl);
-    return firstUrl === secondUrl;
-  }
-
-  /**
-   * Appends a trailing slash either at the end of the URL
-   * or at the end of path, just before query parameters
-   */
-  appendBackslash(url: string): string {
-    const href = window.location.origin + url;
-    const urlObject = new URL(href);
-
-    let urlPath = urlObject.pathname;
-    urlPath += urlPath?.endsWith('/') ? '' : '/';
-    const urlParams = urlObject.search;
-
-    return urlPath + urlParams;
   }
 
   ngAfterViewInit() {
@@ -134,21 +112,41 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
       if (currentUrl !== this.iframeLocation) {
         this.iframeLocation = currentUrl;
         const path = iframeWindow?.location.pathname;
-        const queryParams = this.getQueryParams(iframeWindow?.location.search);
-        this.router.navigate(['/_' + path], { queryParams });
+        let queryParams = getQueryParams(iframeWindow?.location.search);
+
+        /**
+         * Append current namespace to query parameters before using router.navigate
+         * since iframe's internal URL doesn't hold any information regarding the
+         * namespace and we want to prevent it from discarding this infromation from
+         * the Browser's URL.
+         */
+        if (!queryParams.ns) {
+          queryParams.ns = this.currentNamespace;
+        }
+
+        /**
+         * Contrary to comparing URLs, here we prefer an undefined string instead
+         * of an empty one, because Angular's router will ignore an undefined
+         * fragment while it will go ahead and append a '#' when the fragment
+         * is an empty string
+         */
+        const fragment = iframeWindow?.location.hash?.split('#')[1];
+        this.router.navigate(['/_' + path], { queryParams, fragment });
       }
     }, 100);
-  }
 
-  getQueryParams(locationSearch: string | undefined): {
-    [key: string]: string;
-  } {
-    const searchParams = new URLSearchParams(locationSearch);
-    const queryParams: { [key: string]: string } = {};
-    searchParams.forEach((value, key) => {
-      queryParams[key] = value;
+    this.ns.namespaces.subscribe((namespaces: Namespace[]) => {
+      this.namespaces = namespaces;
     });
-    return queryParams;
+
+    this.ns.currentNamespace.subscribe((namespace: Namespace) => {
+      this.currentNamespace = namespace.namespace;
+      this.postNamespaceMessage();
+    });
+
+    window.addEventListener(MESSAGE, ev => {
+      this.onMessageReceived(ev);
+    });
   }
 
   ngOnDestroy() {
@@ -160,12 +158,35 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  onLoad(ev: Event) {
-    setTimeout(() => {
+  private postNamespaceMessage() {
+    if (this.currentNamespace === this.ns.ALL_NAMESPACES) {
       this.iframe?.nativeElement?.contentWindow?.postMessage(
-        { type: 'namespace-selected', value: 'kubeflow-user' },
-        '*',
+        {
+          type: ALL_NAMESPACES_EVENT,
+          value: this.namespaces
+            .map(n => n.namespace)
+            .filter(n => n !== this.ns.ALL_NAMESPACES),
+        },
+        this.iframe.nativeElement.contentWindow.origin,
       );
-    }, 4000);
+    } else {
+      this.iframe?.nativeElement?.contentWindow?.postMessage(
+        {
+          type: NAMESPACE_SELECTED_EVENT,
+          value: this.currentNamespace,
+        },
+        this.iframe.nativeElement.contentWindow.origin,
+      );
+    }
+  }
+
+  // Receives a message from an iframe page and passes the selected namespace.
+  private onMessageReceived(event: MessageEvent) {
+    const { data } = event;
+    switch (data.type) {
+      case APP_CONNECTED_EVENT:
+        this.postNamespaceMessage();
+        break;
+    }
   }
 }

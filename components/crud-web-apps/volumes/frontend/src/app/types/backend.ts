@@ -21,6 +21,7 @@ export interface PVCResponseObject {
   name: string;
   namespace: string;
   status: Status;
+  notebooks: string[];
 }
 
 export interface PVCProcessedObject extends PVCResponseObject {

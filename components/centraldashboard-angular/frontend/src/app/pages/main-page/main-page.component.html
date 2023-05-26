@@ -5,17 +5,45 @@
     fixedInViewport
     [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
     [mode]="(isHandset$ | async) ? 'over' : 'side'"
-    [opened]="(isHandset$ | async) === false"
+    [opened]="(isHandset$ | async) === false && !isIframed"
   >
-    <mat-toolbar>Menu</mat-toolbar>
+    <mat-toolbar class="nav-toolbar">Menu</mat-toolbar>
     <mat-nav-list>
-      <a mat-list-item routerLink="/">Home</a>
-      <a mat-list-item routerLink="/_/jupyter/">Jupyter</a>
-      <a mat-list-item routerLink="/_/volumes/">Volume</a>
+      <a
+        mat-list-item
+        routerLink="/"
+        [queryParams]="getNamespaceParams(currentNamespace)"
+        [routerLinkActive]="['active']"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.data-cy-sidenav-menu-item]="'Home'"
+        >Home</a
+      >
+      <a
+        mat-list-item
+        *ngFor="let link of menuLinks"
+        [routerLink]="getUrlPath(link.link, currentNamespace)"
+        [fragment]="getUrlFragment(link.link)"
+        [queryParams]="getNamespaceParams(currentNamespace)"
+        [class.active]="isLinkActive(link.link)"
+        [attr.data-cy-sidenav-menu-item]="link.text"
+      >
+        {{ link.text }}
+      </a>
     </mat-nav-list>
+
+    <mat-toolbar class="footer">
+      <mat-toolbar-row class="footer-text">
+        <span class="buildVersion">
+          {{ buildVersionWithLabel }}
+        </span>
+        <span class="buildId">
+          {{ buildIdWithLabel }}
+        </span>
+      </mat-toolbar-row>
+    </mat-toolbar>
   </mat-sidenav>
   <mat-sidenav-content class="main-page-content">
-    <mat-toolbar color="primary">
+    <mat-toolbar class="menu-toolbar" color="primary" *ngIf="!isIframed">
       <button
         type="button"
         aria-label="Toggle sidenav"
@@ -25,7 +53,7 @@
       >
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
-      <span>Central Dashboard</span>
+      <app-namespace-selector></app-namespace-selector>
     </mat-toolbar>
     <router-outlet></router-outlet>
   </mat-sidenav-content>

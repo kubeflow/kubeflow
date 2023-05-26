@@ -1,18 +1,23 @@
-<mat-icon
-  *ngIf="!stateChanging"
-  class="small-padding-right"
-  [class.warning]="statusIcon === 'warning'"
-  [class.check-circle]="statusIcon === 'check_circle'"
-  [class.stop-circle]="statusIcon === 'stop_circle'"
->
-  {{ statusIcon }}
-</mat-icon>
+<ng-container [ngSwitch]="phase">
+  <ng-template [ngSwitchCase]="STATUS_TYPE.WAITING">
+    <ng-container *ngTemplateOutlet="spinnerTpl"></ng-container>
+  </ng-template>
 
-<mat-progress-spinner
-  *ngIf="stateChanging"
-  class="small-padding-right"
-  mode="indeterminate"
-  diameter="25"
->
-  {{ statusIcon }}
-</mat-progress-spinner>
+  <ng-template [ngSwitchCase]="STATUS_TYPE.TERMINATING">
+    <ng-container *ngTemplateOutlet="spinnerTpl"></ng-container>
+  </ng-template>
+
+  <lib-icon
+    *ngSwitchCase="STATUS_TYPE.STOPPED"
+    icon="custom:stoppedResource"
+    class="align-middle"
+  ></lib-icon>
+
+  <mat-icon *ngSwitchDefault [ngClass]="statusIcon" class="align-middle">
+    {{ statusIcon }}
+  </mat-icon>
+</ng-container>
+
+<ng-template #spinnerTpl>
+  <mat-spinner diameter="24" class="align-middle"></mat-spinner>
+</ng-template>

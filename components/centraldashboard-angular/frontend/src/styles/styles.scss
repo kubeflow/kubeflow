@@ -1,0 +1,61 @@
+/* You can add global styles to this file, and also import other style files */
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+@import '~kubeflow/lib/fonts.scss';
+
+// Use the material icons offline
+@import '~material-icons/iconfont/material-icons.scss';
+
+.cdb-snackbar {
+  .snack-container {
+    width: 200px;
+    white-space: initial;
+    overflow-wrap: break-word;
+
+    span {
+      width: 100%;
+    }
+  }
+}
+
+.lib-link {
+  color: #1a73e8;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lib-link:visited {
+  color: #1a73e8;
+}
+
+.lib-link:hover {
+  text-decoration: underline;
+}
+
+.error-message-container {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.38);
+
+  .message {
+    font-size: 34px;
+    line-height: 36px;
+  }
+
+  .back-to-home {
+    margin-top: 24px;
+    font-size: 20px;
+    letter-spacing: 0.36px;
+  }
+}

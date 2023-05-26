@@ -11,6 +11,7 @@ import {
   ToolbarButton,
   PollerService,
   DashboardState,
+  SnackBarConfig,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -93,11 +94,13 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
           a.event.stopPropagation();
           a.event.preventDefault();
-          this.snackBar.open(
-            'PVC is unavailable now.',
-            SnackType.Warning,
-            3000,
-          );
+          const config: SnackBarConfig = {
+            data: {
+              msg: 'PVC is unavailable now.',
+              snackType: SnackType.Warning,
+            },
+          };
+          this.snackBar.open(config);
           return;
         }
         break;
@@ -113,11 +116,14 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
-        this.snackBar.open(
-          $localize`Volume was submitted successfully.`,
-          SnackType.Success,
-          2000,
-        );
+        const config: SnackBarConfig = {
+          data: {
+            msg: $localize`Volume was submitted successfully.`,
+            snackType: SnackType.Success,
+          },
+          duration: 2000,
+        };
+        this.snackBar.open(config);
         this.poll(this.currNamespace);
       }
     });
@@ -154,6 +160,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   }
 
   public parseDeletionActionStatus(pvc: PVCProcessedObject) {
+    if (pvc.notebooks.length) {
+      return STATUS_TYPE.UNAVAILABLE;
+    }
+
     if (pvc.status.phase !== STATUS_TYPE.TERMINATING) {
       return STATUS_TYPE.READY;
     }

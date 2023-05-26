@@ -1,7 +1,7 @@
 import { Component, Input, HostBinding } from '@angular/core';
 import { ListValueType, ChipDescriptor, ListValue } from '../types';
 import { SnackBarService } from '../../snack-bar/snack-bar.service';
-import { SnackType } from '../../snack-bar/types';
+import { SnackBarConfig, SnackType } from '../../snack-bar/types';
 import { Clipboard } from '@angular/cdk/clipboard';
 
 @Component({
@@ -28,12 +28,26 @@ export class DetailsListItemComponent {
 
   copy() {
     if (!this.copyValue) {
-      this.snack.open('No value to copy to clipboard', SnackType.Warning, 2000);
+      const configWarning: SnackBarConfig = {
+        data: {
+          msg: 'No value to copy to clipboard',
+          snackType: SnackType.Warning,
+        },
+        duration: 2000,
+      };
+      this.snack.open(configWarning);
       return;
     }
 
+    const configInfo: SnackBarConfig = {
+      data: {
+        msg: 'Content copied to clipboard',
+        snackType: SnackType.Info,
+      },
+      duration: 2000,
+    };
     this.clipboard.copy(this.copyValue);
-    this.snack.open('Content copied to clipboard', SnackType.Info, 2000);
+    this.snack.open(configInfo);
   }
 
   getClasses() {

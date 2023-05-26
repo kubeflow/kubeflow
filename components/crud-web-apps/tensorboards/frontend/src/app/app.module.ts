@@ -20,9 +20,21 @@ import {
 
 import { IndexComponent } from './pages/index/index.component';
 import { FormComponent } from './pages/form/form.component';
-
+import { FormConfigurationsModule } from './pages/form/form-configurations/form-configurations.module';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {
+  MatSnackBarConfig,
+  MAT_SNACK_BAR_DEFAULT_OPTIONS,
+} from '@angular/material/snack-bar';
 
+/**
+ * MAT_SNACK_BAR_DEFAULT_OPTIONS values can be found
+ * here:
+ * https://github.com/angular/components/blob/main/src/material/snack-bar/snack-bar-config.ts#L25-L58
+ */
+const TwaSnackBarConfig: MatSnackBarConfig = {
+  duration: 2000,
+};
 @NgModule({
   declarations: [AppComponent, IndexComponent, FormComponent],
   imports: [
@@ -38,9 +50,11 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
     FormModule,
     KubeflowModule,
     HttpClientModule,
+    FormConfigurationsModule,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
+    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: TwaSnackBarConfig },
   ],
   bootstrap: [AppComponent],
 })

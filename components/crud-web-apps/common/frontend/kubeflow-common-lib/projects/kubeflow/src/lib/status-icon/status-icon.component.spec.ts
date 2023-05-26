@@ -19,6 +19,7 @@ describe('StatusIconComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(StatusIconComponent);
     component = fixture.componentInstance;
+
     fixture.detectChanges();
   });
 

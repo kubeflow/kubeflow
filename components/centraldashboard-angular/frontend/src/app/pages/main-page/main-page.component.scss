@@ -1,13 +1,16 @@
 .sidenav-container {
   height: 100%;
+  background: white;
 }
 
 .sidenav {
   width: 200px;
+  // Mat toolbar row has a min-height of 64px
+  margin-bottom: 64px;
 }
 
 .sidenav .mat-toolbar {
-  background: inherit;
+  background: white;
 }
 
 .main-page-content {
@@ -16,8 +19,46 @@
   overflow: hidden;
 }
 
-.mat-toolbar.mat-primary {
+.menu-toolbar {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.nav-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 200px;
+  border-right: solid 1px rgba(0, 0, 0, 0.12);
+}
+
+.footer-text {
+  height: auto;
+  background-color: white;
+  white-space: normal;
+  word-break: break-all;
+  position: absolute;
+  bottom: 0;
+
+  .buildId {
+    display: none;
+  }
+
+  &:hover .buildVersion {
+    display: none;
+  }
+
+  &:hover .buildId {
+    display: inline;
+  }
+}
+
+.active {
+  background-color: #ececec;
 }

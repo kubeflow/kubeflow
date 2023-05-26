@@ -1,0 +1,32 @@
+name: CentralDashboard Frontend Tests
+on:
+  pull_request:
+    paths:
+      - components/centraldashboard/**
+    branches:
+      - master
+      - v*-branch
+
+jobs:
+  frontend-tests:
+    runs-on: ubuntu-latest
+    name: Unit tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node version to 12
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Run frontend tests
+        run: |
+          cd components/centraldashboard
+          npm install
+          CHROMIUM_BIN=$(which chrome) npm run test

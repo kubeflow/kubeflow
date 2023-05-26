@@ -24,7 +24,6 @@ import { MatDialogRef } from '@angular/material/dialog';
   styleUrls: ['./form-default.component.scss'],
 })
 export class FormDefaultComponent implements OnInit, OnDestroy {
-  public TYPE_ROK_SNAPSHOT = 'rok_snapshot';
   public TYPE_EMPTY = 'empty';
 
   public subs = new Subscription();

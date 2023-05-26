@@ -8,6 +8,7 @@ import { ChipsListValue } from './chip-list';
 import { ComponentValue } from './component-value';
 import { MenuValue } from './menu-value';
 import { LinkValue } from './link-value';
+import { MemoryValue } from './memory-value';
 
 export type TextAlignment = 'left' | 'right';
 
@@ -24,7 +25,8 @@ export interface TableColumn {
     | ChipsListValue
     | ComponentValue
     | TemplateValue
-    | LinkValue;
+    | LinkValue
+    | MemoryValue;
   textAlignment?: TextAlignment;
   style?: { [prop: string]: string };
   sort?: boolean;

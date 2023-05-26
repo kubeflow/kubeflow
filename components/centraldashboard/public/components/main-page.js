@@ -39,6 +39,7 @@ import './namespace-needed-view.js';
 import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import './iframe-container.js';
+import './logout-button.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 import {
@@ -87,6 +88,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             errorText: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
+            logoutUrl: {type: String, value: '/logout'},
             platformInfo: Object,
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
@@ -474,6 +476,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {
             this.buildVersion = this.platformInfo.kubeflowVersion;
+        }
+        if (platform.logoutUrl) {
+            this.logoutUrl = platform.logoutUrl;
         }
         // trigger template render
         this.menuLinks = JSON.parse(JSON.stringify(this.menuLinks));

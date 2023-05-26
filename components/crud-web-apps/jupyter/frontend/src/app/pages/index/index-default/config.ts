@@ -4,15 +4,15 @@ import {
   ActionListValue,
   ActionIconValue,
   ActionButtonValue,
-  MenuValue,
   ComponentValue,
   TableConfig,
   DateTimeValue,
   LinkValue,
   LinkType,
+  MemoryValue,
+  quantityToScalar,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
-import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 
 // --- Config for the Resource Table ---
 export const defaultConfig: TableConfig = {
@@ -106,9 +106,10 @@ export const defaultConfig: TableConfig = {
       matColumnDef: 'memory',
       style: { width: '8%' },
       textAlignment: 'right',
-      value: new PropertyValue({ field: 'memory' }),
+      value: new MemoryValue({
+        field: 'memory',
+      }),
       sort: true,
-      sortingPreprocessorFn: quantityToScalar,
     },
 
     {

@@ -1,10 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Location } from '@angular/common';
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { throwError, Observable, of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -12,6 +7,7 @@ import { catchError, map } from 'rxjs/operators';
 import { BackendResponse } from './types';
 import { SnackType } from '../../snack-bar/types';
 import { SnackBarService } from '../../snack-bar/snack-bar.service';
+import { SnackBarConfig } from '../../snack-bar/types';
 
 @Injectable({
   providedIn: 'root',
@@ -178,8 +174,14 @@ export class BackendService {
     // The backend returned an unsuccessful response code.
     // The response body may contain clues as to what went wrong,
     console.error(error);
+    const config: SnackBarConfig = {
+      data: {
+        msg: this.getSnackErrorMessage(error),
+        snackType: SnackType.Error,
+      },
+    };
     if (showSnackBar) {
-      this.snackBar.open(this.getSnackErrorMessage(error), SnackType.Error);
+      this.snackBar.open(config);
     }
 
     return throwError(this.getErrorMessage(error));

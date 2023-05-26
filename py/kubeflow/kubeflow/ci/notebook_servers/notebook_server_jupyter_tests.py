@@ -1,4 +1,6 @@
-""""Argo Workflow for testing notebook-server-jupyter OCI image"""
+""""
+Argo Workflow for testing notebook-server-jupyter OCI image.
+"""
 from kubeflow.kubeflow.ci import workflow_utils
 from kubeflow.testing import argo_build_util
 
@@ -17,11 +19,11 @@ class Builder(workflow_utils.ArgoTestBuilder):
         # Test building notebook-server-jupyter image using Kaniko
         dockerfile = ("%s/components/example-notebook-servers"
                       "/jupyter/Dockerfile") % self.src_dir
-        context = "dir://%s/components/example-notebook-servers/jupyter/" % self.src_dir
+        context = "dir://%s/components/example-notebook-servers/jupyter/" % self.src_dir  # noqa: E501
         destination = "notebook-server-jupyter-test"
 
-        kaniko_task = self.create_kaniko_task(task_template, dockerfile,
-                                              context, destination, no_push=True)
+        kaniko_task = self.create_kaniko_task(
+            task_template, dockerfile, context, destination, no_push=True)
         argo_build_util.add_task_to_dag(workflow,
                                         workflow_utils.E2E_DAG_NAME,
                                         kaniko_task, [self.mkdir_task_name])

@@ -13,9 +13,7 @@
     "kube-system",
     "kubeflow",
     "kubeflow-skel",
-    "kubeflow-user",
-    "rok",
-    "rok-system"
+    "kubeflow-user"
   ],
   "status": 200,
   "success": true,
