@@ -94,7 +94,7 @@ var _ = BeforeSuite(func() {
 	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 
-}, 60)
+})
 
 var _ = AfterSuite(func() {
 	cancel()
@@ -106,5 +106,5 @@ var _ = AfterSuite(func() {
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecsWithDefaultAndCustomReporters(t, "Controller Suite")
+	RunSpecs(t, "Controller Suite")
 }
