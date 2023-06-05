@@ -45,7 +45,8 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: kubeflow-pvc-viewer:latest
+        image: pvcviewer-controller:latest
+        imagePullPolicy: IfNotPresent
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
