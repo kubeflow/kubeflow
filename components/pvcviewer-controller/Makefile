@@ -73,8 +73,17 @@ test: manifests generate fmt vet envtest ## Run tests.
 manager: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
+# Generate certificates that are required by the webhook server.
+.PHONY: generate_certificates
+generate_certificates:
+	mkdir -p /tmp/k8s-webhook-server/serving-certs
+	openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+		-keyout /tmp/k8s-webhook-server/serving-certs/tls.key \
+		-out /tmp/k8s-webhook-server/serving-certs/tls.crt \
+		-subj "/CN=pvcviewer-controller.default.svc"
+
 .PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host.
+run: manifests generate fmt vet generate_certificates ## Run a controller from your host.
 	go run ./main.go
 
 # Run the controller locally with culling enabled
