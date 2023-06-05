@@ -45,7 +45,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: pvcviewer-controller:latest
+        image: docker.io/kubeflownotebookswg/pvcviewer-controller
         imagePullPolicy: IfNotPresent
         name: manager
         securityContext:
