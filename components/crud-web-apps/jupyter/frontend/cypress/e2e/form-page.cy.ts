@@ -1,4 +1,4 @@
-describe('New notebook form', () => {
+describe('New Workbench form', () => {
   beforeEach(() => {
     cy.mockDashboardRequest();
     cy.mockStorageClassesRequests();
@@ -11,9 +11,9 @@ describe('New notebook form', () => {
     });
   });
 
-  it('should have a "New notebook" title', () => {
+  it('should have a "New Workbench" title', () => {
     cy.visit('/new');
-    cy.get('[data-cy-toolbar-title]').contains('New notebook').should('exist');
+    cy.get('[data-cy-toolbar-title]').contains('New workbench').should('exist');
   });
 
   it('should auto update mount value when name change', () => {

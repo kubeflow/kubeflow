@@ -19,10 +19,10 @@ describe('Browser and Iframe URL syncing', () => {
     cy.notebookPodRequest();
     cy.visit('/');
 
-    cy.get('[data-cy-sidenav-menu-item="Notebooks"]')
+    cy.get('[data-cy-sidenav-menu-item="Workbenches"]')
       .should('be.visible')
       .click();
-    cy.getIframeBody().find('button').contains('New Notebook').click();
+    cy.getIframeBody().find('button').contains('New Workbench').click();
     cy.wait('@storageClassRequest');
     cy.equalUrls();
 
@@ -45,7 +45,7 @@ describe('Browser and Iframe URL syncing', () => {
     cy.notebookPodRequest();
     cy.visit('/');
 
-    cy.get('[data-cy-sidenav-menu-item="Notebooks"]')
+    cy.get('[data-cy-sidenav-menu-item="Workbenches"]')
       .should('be.visible')
       .click();
 
@@ -72,7 +72,7 @@ describe('Browser and Iframe URL syncing', () => {
     cy.notebookPodRequest();
     cy.visit('/');
 
-    cy.get('[data-cy-sidenav-menu-item="Notebooks"]')
+    cy.get('[data-cy-sidenav-menu-item="Workbenches"]')
       .should('be.visible')
       .click();
 

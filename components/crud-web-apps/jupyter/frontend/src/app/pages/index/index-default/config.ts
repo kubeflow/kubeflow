@@ -118,15 +118,15 @@ export const defaultConfig: TableConfig = {
       value: new ActionListValue([
         new ActionButtonValue({
           name: 'connect',
-          tooltip: $localize`Connect to this notebook server`,
+          tooltip: $localize`Connect to this workbench server`,
           color: 'primary',
           field: 'connectAction',
           text: $localize`CONNECT`,
         }),
         new ActionIconValue({
           name: 'start-stop',
-          tooltipInit: $localize`Stop this notebook server`,
-          tooltipReady: $localize`Start this notebook server`,
+          tooltipInit: $localize`Stop this workbench server`,
+          tooltipReady: $localize`Start this workbench server`,
           color: '',
           field: 'startStopAction',
           iconInit: 'material:stop',
@@ -134,7 +134,7 @@ export const defaultConfig: TableConfig = {
         }),
         new ActionIconValue({
           name: 'delete',
-          tooltip: $localize`Delete this notebook server`,
+          tooltip: $localize`Delete this workbench server`,
           color: '',
           field: 'deleteAction',
           iconReady: 'material:delete',

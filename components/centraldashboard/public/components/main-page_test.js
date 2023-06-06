@@ -19,7 +19,7 @@ const TEMPLATE = `
 const MENU_LINKS = [
     {
         link: '/jupyter/',
-        text: 'Notebooks',
+        text: 'Workbenches',
     },
     {
         link: '/pipeline/#/pipelines',

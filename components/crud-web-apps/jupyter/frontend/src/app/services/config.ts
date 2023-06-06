@@ -3,8 +3,8 @@ import { DialogConfig } from 'kubeflow';
 // --- Configs for the Confirm Dialogs ---
 export function getDeleteDialogConfig(name: string): DialogConfig {
   return {
-    title: $localize`Are you sure you want to delete this notebook server? ${name}`,
-    message: $localize`Warning: Your data might be lost if the notebook server
+    title: $localize`Are you sure you want to delete this workbench server? ${name}`,
+    message: $localize`Warning: Your data might be lost if the workbench server
                        is not backed by persistent storage`,
     accept: $localize`DELETE`,
     confirmColor: 'warn',
@@ -17,8 +17,8 @@ export function getDeleteDialogConfig(name: string): DialogConfig {
 
 export function getStopDialogConfig(name: string): DialogConfig {
   return {
-    title: $localize`Are you sure you want to stop this notebook server? ${name}`,
-    message: $localize`Warning: Your data might be lost if the notebook server
+    title: $localize`Are you sure you want to stop this workbench server? ${name}`,
+    message: $localize`Warning: Your data might be lost if the workbench server
                        is not backed by persistent storage.`,
     accept: $localize`STOP`,
     confirmColor: 'primary',

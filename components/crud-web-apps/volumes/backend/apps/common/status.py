@@ -32,7 +32,7 @@ def pvc_status(pvc):
         msg = (
             "Pending: This volume will be bound when its first consumer"
             " is created. E.g., when you first browse its contents, or"
-            " attach it to a notebook server"
+            " attach it to a workbench server"
         )
     elif evs[0].reason == "Provisioning":
         phase = status.STATUS_PHASE.WAITING

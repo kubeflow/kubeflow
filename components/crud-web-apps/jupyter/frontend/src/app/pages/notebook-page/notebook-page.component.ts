@@ -141,7 +141,7 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
         text: 'CONNECT',
         icon: 'developer_board',
         disabled: this.status.phase === STATUS_TYPE.READY ? false : true,
-        tooltip: 'Connect to this notebook',
+        tooltip: 'Connect to this workbench',
         fn: () => {
           this.connectToNotebook();
         },
@@ -152,7 +152,7 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
         new ToolbarButton({
           text: 'START',
           icon: 'play_arrow',
-          tooltip: 'Start this notebook',
+          tooltip: 'Start this workbench',
           fn: () => {
             this.startNotebook();
           },
@@ -165,7 +165,7 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
           icon: 'stop',
           disabled:
             this.status.phase === STATUS_TYPE.TERMINATING ? true : false,
-          tooltip: 'Stop this notebook',
+          tooltip: 'Stop this workbench',
           fn: () => {
             this.stopNotebook();
           },
@@ -177,7 +177,7 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
         text: 'DELETE',
         icon: 'delete',
         disabled: this.status.phase === STATUS_TYPE.TERMINATING ? true : false,
-        tooltip: 'Delete this notebook',
+        tooltip: 'Delete this workbench',
         fn: () => {
           this.deleteNotebook();
         },

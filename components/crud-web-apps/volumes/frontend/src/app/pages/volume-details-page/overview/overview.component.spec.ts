@@ -57,7 +57,7 @@ describe('OverviewComponent', () => {
     let podLink = component[newPodLink](
       'podName',
       'namespace',
-      'Notebooks',
+      'Workbenches',
       'viewerUrl',
     );
     expect(podLink.url).toEqual(

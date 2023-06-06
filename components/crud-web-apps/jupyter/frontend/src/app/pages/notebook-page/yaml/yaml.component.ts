@@ -11,7 +11,7 @@ import { NotebookRawObject } from 'src/app/types';
 })
 export class YamlComponent implements OnInit {
   public yaml: string;
-  public selection = 'notebook';
+  public selection = 'workbench';
   public infoMessage = 'Show the full YAML of the ';
   private podYaml = 'Pod information is still being loaded.';
   private prvPod: V1Pod;
@@ -28,7 +28,7 @@ export class YamlComponent implements OnInit {
     }
 
     if (!pod) {
-      this.podYaml = 'No pod available for this notebook.';
+      this.podYaml = 'No pod available for this workbench.';
       if (this.selection === 'pod') {
         this.yaml = this.podYaml;
       }
@@ -46,8 +46,8 @@ export class YamlComponent implements OnInit {
 
   selectionChanged(option: Event) {
     const value = 'value';
-    if (option[value] === 'notebook') {
-      this.selection = 'notebook';
+    if (option[value] === 'workbench') {
+      this.selection = 'workbench';
       this.yaml = this.notebookYaml;
     } else if (option[value] === 'pod') {
       this.selection = 'pod';

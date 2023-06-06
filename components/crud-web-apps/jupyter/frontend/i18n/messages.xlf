@@ -117,7 +117,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="aa98eb3757f779bf6bce68192b5c93831570c9ea" datatype="html">
-        <source>Other possible settings to be applied to the Notebook Server.</source>
+        <source>Other possible settings to be applied to the Workbench Server.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.html</context>
           <context context-type="linenumber">3</context>
@@ -138,7 +138,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="d3f8def051f09bcd2b129a7cd61bb993fe206bce" datatype="html">
-        <source>Configure the Notebook&apos;s Affinity and Tolerations.</source>
+        <source>Configure the Workbench&apos;s Affinity and Tolerations.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-affinity-tolerations/form-affinity-tolerations.component.html</context>
           <context context-type="linenumber">3</context>
@@ -182,7 +182,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="63220bf4b545f3ca1f7b5215f1953b95dc3645e0" datatype="html">
-        <source>Extra layers of configurations that will be applied to the new Notebook. 
+        <source>Extra layers of configurations that will be applied to the new Workbench. 
         (e.g. Insert credentials as Secrets, set Environment Variables.)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-configurations/form-configurations.component.html</context>
@@ -205,7 +205,7 @@
         <note priority="1" from="description">Title for the CPU/RAM form section</note>
       </trans-unit>
       <trans-unit id="6af244dea6f7d8f929b45cd8226522d0e35d7110" datatype="html">
-        <source>Specify the total amount of CPU and RAM reserved by your Notebook Server.
+        <source>Specify the total amount of CPU and RAM reserved by your Workbench Server.
          For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-cpu-ram/form-cpu-ram.component.html</context>
@@ -278,7 +278,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="7110584923376845969" datatype="html">
-        <source>No default Storage Class is set. Can&apos;t create new Disks for the new Notebook. Please use an Existing Disk.</source>
+        <source>No default Storage Class is set. Can&apos;t create new Disks for the new Workbench. Please use an Existing Disk.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.ts</context>
           <context context-type="linenumber">77</context>
@@ -293,7 +293,7 @@
       </trans-unit>
       <trans-unit id="9e62d063b88fdd89761c29f791e7655ce93e0aef" datatype="html">
         <source>Specify the number and Vendor of GPUs that will be assigned to the 
-        Notebook Server&apos;s Container.</source>
+        Workbench Server&apos;s Container.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-gpus/form-gpus.component.html</context>
           <context context-type="linenumber">3,4</context>
@@ -436,7 +436,7 @@
         <note priority="1" from="description">ImagePullPolicy: Never</note>
       </trans-unit>
       <trans-unit id="cee8a23f48b6c7ae06f53a349a12744d3f3d0096" datatype="html">
-        <source>Specify the name of the Notebook Server and the Namespace it will belong to.</source>
+        <source>Specify the name of the Workbench Server and the Namespace it will belong to.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-name/form-name.component.html</context>
           <context context-type="linenumber">3</context>
@@ -464,7 +464,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2959471737957986113" datatype="html">
-        <source>Your workspace will not be persistent. You will lose all data in it, if your notebook is terminated for any reason.</source>
+        <source>Your workspace will not be persistent. You will lose all data in it, if your workbench is terminated for any reason.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-workspace-volume/form-workspace-volume.component.ts</context>
           <context context-type="linenumber">40</context>
@@ -534,14 +534,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3496981118988770473" datatype="html">
-        <source>Are you sure you want to delete this notebook server? <x id="PH" equiv-text="name"/></source>
+        <source>Are you sure you want to delete this workbench server? <x id="PH" equiv-text="name"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6971434231050877464" datatype="html">
-        <source>Warning: Your data might be lost if the notebook server
+        <source>Warning: Your data might be lost if the workbench server
                        is not backed by persistent storage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
@@ -574,14 +574,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2683684114180894925" datatype="html">
-        <source>Are you sure you want to stop this notebook server? <x id="PH" equiv-text="name"/></source>
+        <source>Are you sure you want to stop this workbench server? <x id="PH" equiv-text="name"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1374919527500826150" datatype="html">
-        <source>Warning: Your data might be lost if the notebook server
+        <source>Warning: Your data might be lost if the workbench server
                        is not backed by persistent storage.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
@@ -603,7 +603,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="5114128994255248149" datatype="html">
-        <source>Notebooks</source>
+        <source>Workbenches</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">45</context>
@@ -680,7 +680,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2074758921664227900" datatype="html">
-        <source>Connect to this notebook server</source>
+        <source>Connect to this workbench server</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">113</context>
@@ -694,35 +694,35 @@
         </context-group>
       </trans-unit>
       <trans-unit id="8453883859090217683" datatype="html">
-        <source>Stop this notebook server</source>
+        <source>Stop this workbench server</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">120</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1580383878043741894" datatype="html">
-        <source>Start this notebook server</source>
+        <source>Start this workbench server</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7490997651991943628" datatype="html">
-        <source>Delete this notebook server</source>
+        <source>Delete this workbench server</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
           <context context-type="linenumber">129</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4872314094100927318" datatype="html">
-        <source>Starting Notebook server &apos;<x id="PH" equiv-text="notebook.name"/>&apos;...</source>
+        <source>Starting Workbench server &apos;<x id="PH" equiv-text="notebook.name"/>&apos;...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
           <context context-type="linenumber">159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9162667715823767475" datatype="html">
-        <source>Stopping Notebook server &apos;<x id="PH" equiv-text="notebook.name"/>&apos;...</source>
+        <source>Stopping Workbench server &apos;<x id="PH" equiv-text="notebook.name"/>&apos;...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
           <context context-type="linenumber">202</context>

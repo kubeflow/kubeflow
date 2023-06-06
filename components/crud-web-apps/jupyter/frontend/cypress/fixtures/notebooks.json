@@ -112,7 +112,7 @@
       "serverType": "jupyter",
       "shortImage": "jupyter-scipy:latest",
       "status": {
-        "message": "No Pods are currently running for this Notebook Server.",
+        "message": "No Pods are currently running for this Workbench Server.",
         "phase": "stopped",
         "state": ""
       },

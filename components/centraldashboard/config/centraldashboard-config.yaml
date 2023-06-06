@@ -9,7 +9,7 @@ data:
       "menuLinks": [
         {
           "link": "/jupyter/",
-          "text": "Notebooks",
+          "text": "Workbenches",
           "icon": "book"
         },
         {
@@ -45,8 +45,8 @@ data:
           "link": "/pipeline/#/runs"
         },
         {
-          "text": "Create a new Notebook server",
-          "desc": "Notebook Servers",
+          "text": "Create a new Workbench server",
+          "desc": "Workbench Servers",
           "link": "/jupyter/new?namespace=kubeflow"
         },
         {

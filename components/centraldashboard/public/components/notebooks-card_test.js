@@ -17,7 +17,7 @@ const TEMPLATE = `
 
 const BASE_DATE = new Date('2019-05-01T00:00:00.00Z');
 /**
- * Helper function to return an object representing a Notebooks server response.
+ * Helper function to return an object representing a Workbenches server response.
  * @param {Number} number
  * @param {String} prefix
  * @return {Object}
@@ -39,7 +39,7 @@ function generateNotebooksFetchResponse(number, prefix) {
 }
 
 
-describe('Notebooks Card', () => {
+describe('Workbenches Card', () => {
     let notebooksCard;
     const fetch = window.fetch;
     const mockFetch = jasmine.createSpy();
@@ -63,7 +63,7 @@ describe('Notebooks Card', () => {
         jasmine.Ajax.uninstall();
     });
 
-    it('Shows 5 most recently modified Notebooks from namespace',
+    it('Shows 5 most recently modified Workbenches from namespace',
         async () => {
             mockRequest(notebooksCard, {
                 status: 200,
@@ -131,7 +131,7 @@ describe('Notebooks Card', () => {
             ]);
         });
 
-    it('Handles errors from requests to Notebook servers',
+    it('Handles errors from requests to Workbench servers',
         async () => {
             mockRequest(notebooksCard, {
                 status: 200,
@@ -198,7 +198,7 @@ describe('Notebooks Card', () => {
             ]);
         });
 
-    it('Shows message when no Notebooks are found',
+    it('Shows message when no Workbenches are found',
         async () => {
             mockRequest(notebooksCard, {
                 status: 200,
@@ -234,10 +234,10 @@ describe('Notebooks Card', () => {
                 .getElementById('message');
             expect(header.hasAttribute('hidden')).toBe(false);
             expect(header.innerText).toBe(
-                'No Notebooks in namespace test-namespace');
+                'No Workbenches in namespace test-namespace');
         });
 
-    it('Shows error message when List Notebooks Server request fails',
+    it('Shows error message when List Workbenches Server request fails',
         async () => {
             const responsePromise = mockRequest(notebooksCard, {
                 status: 404,
@@ -249,6 +249,6 @@ describe('Notebooks Card', () => {
 
             const header = notebooksCard.shadowRoot.getElementById('message');
             expect(header.hasAttribute('hidden')).toBe(false);
-            expect(header.innerText).toBe('Error retrieving Notebooks');
+            expect(header.innerText).toBe('Error retrieving Workbenches');
         });
 });
