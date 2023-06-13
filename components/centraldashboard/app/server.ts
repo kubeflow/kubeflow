@@ -8,6 +8,8 @@ import {DefaultApi} from './clients/profile_controller';
 import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
+import {PrometheusMetricsService} from "./prometheus_metrics_service";
+import {PrometheusDriver} from "prometheus-query";
 
 const isProduction = process.env.NODE_ENV === 'production';
 const codeEnvironment = isProduction?'production':'development';
@@ -29,6 +31,8 @@ const {
   USERID_HEADER = 'X-Goog-Authenticated-User-Email',
   USERID_PREFIX = 'accounts.google.com:',
   REGISTRATION_FLOW = "true",
+  PROMETHEUS_URL = undefined,
+  METRICS_DASHBOARD = undefined,
 } = process.env;
 
 
@@ -41,7 +45,11 @@ async function main() {
 
   const app: express.Application = express();
   const k8sService = new KubernetesService(new KubeConfig());
-  const metricsService = await getMetricsService(k8sService);
+
+  const metricsService = PROMETHEUS_URL
+      ? new PrometheusMetricsService(new PrometheusDriver({ endpoint: PROMETHEUS_URL }), METRICS_DASHBOARD)
+      : await getMetricsService(k8sService);
+
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
 

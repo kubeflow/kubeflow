@@ -40,6 +40,7 @@ export class DashboardView extends utilitiesMixin(PolymerElement) {
                 observer: '_namespaceChanged',
             },
             platformDetails: Object,
+            metrics: Object,
             platformInfo: {
                 type: Object,
                 observer: '_platformInfoChanged',
