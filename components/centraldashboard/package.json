@@ -67,7 +67,7 @@
         "@types/dotenv": "^6.1.1",
         "@vaadin/vaadin-grid": "^5.4.9",
         "@webcomponents/webcomponentsjs": "^2.3.0",
-        "chart.js": "^2.8.0",
+        "chart.js": "^2.9.4",
         "chartjs-plugin-crosshair": "^1.1.4",
         "express": "^4.17.1",
         "node-fetch": "^2.6.7",
