@@ -95,7 +95,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
-		log.Info("Found event for Notebook. Re-emitting...")
+		log.Info("Found event for Workbench. Re-emitting...")
 
 		// Find the Notebook that corresponds to the triggered event
 		involvedNotebook := &v1beta1.Notebook{}
@@ -106,12 +106,12 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		involvedNotebookKey := types.NamespacedName{Name: nbName, Namespace: req.Namespace}
 		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
-			log.Error(err, "unable to fetch Notebook by looking at event")
+			log.Error(err, "unable to fetch Workbench by looking at event")
 			return ctrl.Result{}, ignoreNotFound(err)
 		}
 
 		// re-emit the event in the Notebook CR
-		log.Info("Emitting Notebook Event.", "Event", event)
+		log.Info("Emitting Workbench Event.", "Event", event)
 		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
 			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
 		return ctrl.Result{}, nil
@@ -123,7 +123,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// If not found, continue. Is not an event.
 	instance := &v1beta1.Notebook{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
-		log.Error(err, "unable to fetch Notebook")
+		log.Error(err, "unable to fetch Workbench")
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
 
@@ -210,7 +210,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	foundPod := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
-		log.Info(fmt.Sprintf("No Pods are currently running for Notebook Server: %s in namesace: %s.", instance.Name, instance.Namespace))
+		log.Info(fmt.Sprintf("No Pods are currently running for Workbench Server: %s in namesace: %s.", instance.Name, instance.Namespace))
 	} else if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -235,7 +235,7 @@ func updateNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 		return err
 	}
 
-	log.Info("Updating Notebook CR Status", "status", status)
+	log.Info("Updating Workbench CR Status", "status", status)
 	nb.Status = status
 	return r.Status().Update(ctx, nb)
 }
@@ -246,7 +246,7 @@ func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
 	// Initialize Notebook CR Status
-	log.Info("Initializing Notebook CR Status")
+	log.Info("Initializing Workbench CR Status")
 	status := v1beta1.NotebookStatus{
 		Conditions:     make([]v1beta1.NotebookCondition, 0),
 		ReadyReplicas:  sts.Status.ReadyReplicas,
@@ -263,7 +263,7 @@ func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 	// the container that has the same name as the CR.
 	// If no container of same name is found, the state of the CR is not updated.
 	notebookContainerFound := false
-	log.Info("Calculating Notebook's  containerState")
+	log.Info("Calculating Workbench's  containerState")
 	for i := range pod.Status.ContainerStatuses {
 		if pod.Status.ContainerStatuses[i].Name != nb.Name {
 			continue
@@ -275,7 +275,7 @@ func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 
 		// Update Notebook CR's status.ContainerState
 		cs := pod.Status.ContainerStatuses[i].State
-		log.Info("Updating Notebook CR state: ", "state", cs)
+		log.Info("Updating Workbench CR state: ", "state", cs)
 
 		status.ContainerState = cs
 		notebookContainerFound = true
@@ -283,14 +283,14 @@ func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 	}
 
 	if !notebookContainerFound {
-		log.Error(nil, "Could not find container with the same name as Notebook "+
+		log.Error(nil, "Could not find container with the same name as Workbench "+
 			"in containerStates of Pod. Will not update notebook's "+
 			"status.containerState ")
 	}
 
 	// Mirroring pod condition
 	notebookConditions := []v1beta1.NotebookCondition{}
-	log.Info("Calculating Notebook's Conditions")
+	log.Info("Calculating Workbench's Conditions")
 	for i := range pod.Status.Conditions {
 		condition := PodCondToNotebookCond(pod.Status.Conditions[i])
 		notebookConditions = append(notebookConditions, condition)
@@ -620,7 +620,7 @@ func nbNameFromInvolvedObject(c client.Client, object *corev1.ObjectReference) (
 			return nbName, nil
 		}
 	}
-	return "", fmt.Errorf("object isn't related to a Notebook")
+	return "", fmt.Errorf("object isn't related to a Workbench")
 }
 
 func nbNameExists(client client.Client, nbName string, namespace string) bool {

@@ -98,12 +98,12 @@ func main() {
 
 	if err = (&controllers.NotebookReconciler{
 		Client:        mgr.GetClient(),
-		Log:           ctrl.Log.WithName("controllers").WithName("Notebook"),
+		Log:           ctrl.Log.WithName("controllers").WithName("Workbench"),
 		Scheme:        mgr.GetScheme(),
 		Metrics:       controller_metrics.NewMetrics(mgr.GetClient()),
 		EventRecorder: mgr.GetEventRecorderFor("notebook-controller"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Notebook")
+		setupLog.Error(err, "unable to create controller", "controller", "Workbench")
 		os.Exit(1)
 	} //+kubebuilder:scaffold:builder
 

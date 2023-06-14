@@ -88,12 +88,12 @@ def get_stopped_status(notebook):
         # If the Notebook is stopped, the status will be stopped
         if ready_replicas == 0:
             status_phase = status.STATUS_PHASE.STOPPED
-            status_message = "No Pods are currently running for this Notebook Server."  # noqa: E501
+            status_message = "No Pods are currently running for this Workbench Server."  # noqa: E501
             return status_phase, status_message
         # If the Notebook is being stopped, the status will be waiting
         else:
             status_phase = status.STATUS_PHASE.WAITING
-            status_message = "Notebook Server is stopping."
+            status_message = "Workbench Server is stopping."
             return status_phase, status_message
 
     return None, None
@@ -105,7 +105,7 @@ def get_deleted_status(notebook):
     # If the Notebook is being deleted, the status will be terminating
     if "deletionTimestamp" in metadata:
         status_phase = status.STATUS_PHASE.TERMINATING
-        status_message = "Deleting this Notebook Server."
+        status_message = "Deleting this Workbench Server."
         return status_phase, status_message
 
     return None, None

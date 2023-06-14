@@ -4,7 +4,7 @@ REGISTRY ?= kubeflownotebookswg
 
 .PHONY: docker-build
 docker-build: build-jupyter-pytorch-full build-jupyter-tensorflow-full build-jupyter-scipy build-codeserver-python build-rstudio-tidyverse
-		@echo "\nAll notebook-server images have been successfully built...\n"
+		@echo "\nAll workbench-server images have been successfully built...\n"
 
 .PHONY: build-jupyter-pytorch-full
 build-jupyter-pytorch-full: build-jupyter-pytorch-full-cpu build-jupyter-pytorch-full-cuda
@@ -94,4 +94,4 @@ docker-push:
 	@echo "\nPushing jupyter-tensorflow-cuda-full image...\n"
 	$(MAKE) docker-push-cuda -C jupyter-tensorflow-full
 
-	@echo "\nAll notebook-server images have been successfully pushed...\n"
+	@echo "\nAll workbench-server images have been successfully pushed...\n"

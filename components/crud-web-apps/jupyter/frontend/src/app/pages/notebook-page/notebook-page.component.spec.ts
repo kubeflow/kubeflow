@@ -172,7 +172,7 @@ describe('NotebookPageComponent', () => {
     component.notebook.processed_status = {
       phase: STATUS_TYPE.STOPPED,
       state: '',
-      message: 'No Pods are currently running for this Notebook Server.',
+      message: 'No Pods are currently running for this Workbench Server.',
     };
 
     let flag = component.buttonsConfig

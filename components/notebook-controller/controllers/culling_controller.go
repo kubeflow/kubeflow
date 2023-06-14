@@ -94,7 +94,7 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Remove LAST_ACTIVITY_ANNOTATION and LAST_ACTIVITY_TIMESTAMP_CHECK
 	// annotations for CR objects
 	if StopAnnotationIsSet(instance.ObjectMeta) {
-		log.Info("Notebook is already stopping")
+		log.Info("Workbench is already stopping")
 		removeAnnotations(&instance.ObjectMeta, r.Log)
 		err = r.Update(ctx, instance)
 		if err != nil {
@@ -148,7 +148,7 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Check if the Notebook needs to be stopped
 	if notebookIsIdle(instance.ObjectMeta, r.Log) {
 		log.Info(fmt.Sprintf(
-			"Notebook %s/%s needs culling. Updating Notebook CR Annotations...",
+			"Notebook %s/%s needs culling. Updating Workbench CR Annotations...",
 			instance.Namespace, instance.Name))
 
 		// Set Stop Annotation to the Notebook CR
@@ -180,7 +180,7 @@ func notebookIsIdle(meta metav1.ObjectMeta, log logr.Logger) bool {
 	// Being idle means that the Notebook can be culled/stopped
 	if meta.GetAnnotations() != nil {
 		if StopAnnotationIsSet(meta) {
-			log.Info("Notebook is already stopping")
+			log.Info("Workbench is already stopping")
 			return false
 		}
 		// Read the current LAST_ACTIVITY_ANNOTATION
@@ -264,7 +264,7 @@ func updateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta, log logr.Logg
 		log.Info("Could not GET the kernels status. Will not update last-activity.")
 		return
 	} else if len(kernels) == 0 {
-		log.Info("Notebook has no kernels. Will not update last-activity")
+		log.Info("Workbench has no kernels. Will not update last-activity")
 		return
 	}
 
