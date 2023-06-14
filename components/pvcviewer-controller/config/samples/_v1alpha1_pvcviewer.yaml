@@ -1,0 +1,42 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: PVCViewer
+metadata:
+  name: pvcviewer-sample
+  namespace: kubeflow-user-example-com
+spec:
+  # The PVC we are watching
+  pvc: pvcviewer-sample
+  # The podSpec is applied to the deployment.Spec.Template.Spec
+  # and thus, represents the core viewer's application
+  # Gets set to a default PodSpec, if not specified
+  # podSpec: {}
+  # If defined, the viewer will be exposed via a Service and a VirtualService
+  networking:
+    # Specifies the application's target port used by the Service
+    targetPort: 8080
+    # The base prefix is suffixed by '/namespace/name' to create the
+    # VirtualService's prefix and a unique URL for each started viewer
+    basePrefix: "/pvcviewer"
+    # You may specify the VirtualService's rewrite.
+    # If not set, the prefix's value is used
+    rewrite: "/"
+    # By default, no timeout is set
+    # timeout: 30s
+  # If set to true, the controller detects RWO-Volumes referred to by the
+  # podSpec and uses affinities to schedule the viewer to nodes
+  # where the volume is currently mounted. This enables the viewer to
+  # access RWO-Volumes, even though they might already be mounted.
+  rwoScheduling: true
+---
+# Create the PVC our viewer is using
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvcviewer-sample
+  namespace: kubeflow-user-example-com
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
