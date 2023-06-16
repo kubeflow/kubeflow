@@ -57,13 +57,13 @@ jobs:
     - name: Docker build
       run: |
         docker build \
-          -t ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/kfam:${{ github.sha }} \
+          -t ${{ env.REGISTRY }}.azurecr.io/kubeflow/kfam:${{ github.sha }} \
           components/access-management/
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
       with:
-        image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/kfam:${{ github.sha }}
+        image-name: ${{ env.REGISTRY }}.azurecr.io/kubeflow/kfam:${{ github.sha }}
         severity-threshold: CRITICAL
         run-quality-checks: false
 
@@ -81,5 +81,5 @@ jobs:
     - name: Docker push
       if: steps.should-i-push.outputs.boolean == 'true'
       run: |
-        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/kfam:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}.azurecr.io/kubeflow/kfam:${{ github.sha }}
     # Push once, https://github.com/StatCan/kubeflow/pull/87
