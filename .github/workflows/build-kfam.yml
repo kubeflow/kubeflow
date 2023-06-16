@@ -1,0 +1,85 @@
+name: component/kfam
+on:
+  push:
+    branches:
+      - stc-master
+    paths:
+      - components/access-management/**
+  pull_request:
+    types:
+      - 'opened'
+      - 'reopened'
+# Environment variables available to all jobs and steps in this workflow
+env:
+  REGISTRY_NAME: k8scc01covidacr
+  DEV_REGISTRY_NAME: k8scc01covidacrdev
+  CLUSTER_NAME: k8s-cancentral-02-covid-aks
+  CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    # Determine if pushing to Prod or Dev ACR
+    - name: Set ENV variables for a PR containing the auto-deploy tag
+      if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'auto-deploy')
+      run: echo "REGISTRY=${{env.DEV_REGISTRY_NAME}}.azurecr.io" >> "$GITHUB_ENV"
+   
+    - name: Set ENV variable for pushes to master
+      if: github.event_name == 'push' && github.ref == 'refs/heads/stc-master'
+      run: echo "REGISTRY=${{env.REGISTRY_NAME}}.azurecr.io" >> "$GITHUB_ENV"
+
+    # Connect to Azure Container registry (ACR)
+    - uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+        
+    # Connect to DEV Azure Container registry (ACR)
+    - uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.DEV_REGISTRY_NAME }}.azurecr.io
+        username: ${{ secrets.DEV_REGISTRY_USERNAME }}
+        password: ${{ secrets.DEV_REGISTRY_PASSWORD }}
+
+    - name: Free disk space
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi $(docker image ls -aq)
+        df -h
+
+    # Container build to a Azure Container registry (ACR)
+    - name: Docker build
+      run: |
+        docker build \
+          -t ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/kfam:${{ github.sha }} \
+          components/access-management/
+
+    # Scan image for vulnerabilities
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/kfam:${{ github.sha }}
+        severity-threshold: CRITICAL
+        run-quality-checks: false
+
+    # Pushes if this is a push to master or an update to a PR that has auto-deploy label
+    - name: Test if we should push to ACR
+      id: should-i-push
+      if: |
+        github.event_name == 'push' ||
+        (
+          github.event_name == 'pull_request' &&
+          contains( github.event.pull_request.labels.*.name, 'auto-deploy')
+        )
+      run: echo "::set-output name=boolean::true"
+
+    - name: Docker push
+      if: steps.should-i-push.outputs.boolean == 'true'
+      run: |
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/kfam:${{ github.sha }}
+    # Push once, https://github.com/StatCan/kubeflow/pull/87
