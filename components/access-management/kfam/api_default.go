@@ -143,6 +143,7 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if !internalUser(useremail) && internal_fdi_bucket {
 		IncRequestCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path)
 		w.WriteHeader(http.StatusForbidden)
+		return
 	}
 
 	// ---------------------------------------------------------- //
