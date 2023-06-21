@@ -27,13 +27,18 @@ def delete_pvc(pvc, namespace):
         pod_names = [p.metadata.name for p in non_viewer_pods]
         raise exceptions.Conflict("Cannot delete PVC '%s' because it is being"
                                   " used by pods: %s" % (pvc, pod_names))
-    
+
     # For each associated viewer pod delete its parent
     for viewer_pod in viewer_pods:
         viewer = viewer_utils.get_owning_viewer(viewer_pod)
         if not viewer:
-            logging.warn("Viewer pod %s/%s is missing the label value %s required to identify its parent",
-                         namespace, viewer_pod.metadata.name, viewer_utils.VIEWER_LABEL)
+            logging.warn(
+                "Viewer pod %s/%s is missing the label value %s "
+                "required to identify its parent",
+                namespace,
+                viewer_pod.metadata.name,
+                viewer_utils.VIEWER_LABEL,
+            )
         delete_viewer(viewer, namespace)
 
     log.info("Deleting PVC %s/%s...", namespace, pvc)

@@ -1,4 +1,3 @@
-from kubeflow.kubeflow.crud_backend import helpers
 import os
 import yaml
 from string import Template
@@ -61,7 +60,7 @@ def _substitute_env_variables(data, variables):
     elif isinstance(data, str):
         try:
             data = Template(data).substitute(**variables)
-        except:
+        except ValueError:
             pass
     return data
 
@@ -70,7 +69,7 @@ def is_viewer_pod(pod):
     """
     Returns True if the pod is a viewer pod, False otherwise.
     """
-    return get_owning_viewer(pod) != None
+    return get_owning_viewer(pod) is not None
 
 
 def get_owning_viewer(pod):
