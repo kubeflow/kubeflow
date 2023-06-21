@@ -102,4 +102,12 @@ export class VWABackendService extends BackendService {
       .delete<VWABackendResponse>(url)
       .pipe(catchError(error => this.handleError(error, false)));
   }
+
+  public deleteViewer(namespace: string, pvc: string) {
+    const url = `api/namespaces/${namespace}/viewers/${pvc}`;
+
+    return this.http
+      .delete<VWABackendResponse>(url)
+      .pipe(catchError(error => this.handleError(error, false)));
+  }
 }
