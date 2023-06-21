@@ -28,9 +28,11 @@
     [matTooltip]="'The PVCViewer is currently starting.'"
     matTooltipClass="custom-tooltip"
   >
-    <button *ngIf="isPhaseWaiting()" mat-icon-button disabled>
-      <lib-icon [icon]="action.iconReady"></lib-icon>
-    </button>
+    <mat-spinner
+      *ngIf="isPhaseWaiting()"
+      [diameter]="24"
+      style="margin: 0 auto"
+    ></mat-spinner>
   </div>
 
   <div
