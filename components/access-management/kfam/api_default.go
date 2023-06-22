@@ -121,10 +121,10 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	useremail := c.getUserEmail(r.Header)
 
 	// --------------------- Added by souheil.yazji --------------------------- //
-	// get profile from namespace
+	// get profile from namespace, the controller arbitrarly(?) fails to fetch profiles. Retry
 	profileName, err := c.profileClient.Get(binding.ReferredNamespace, metav1.GetOptions{})
 	if err != nil {
-		IncRequestErrorCounter("Permissions check error, failed to get profile", "", action, r.URL.Path,
+		IncRequestErrorCounter("Profile fetch failed", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
@@ -133,12 +133,15 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	// check value of label
 	internal_fdi_bucket, err := strconv.ParseBool(profileName.Labels[EXISTS_INTERNAL_BLOB_STORAGE])
 	if err != nil {
-		IncRequestErrorCounter("Label parse failure", "", action, r.URL.Path,
+		IncRequestErrorCounter("Label parse failed", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("useremail: %s | profileName: %s | LabelValue: %t | c.userIdHeader: %s | c.userIdPrefix: %s",
+		useremail, profileName.Name, internal_fdi_bucket, c.userIdHeader, c.userIdPrefix)
 	// respond forbidden if label is set and attempted to add non-internal user email
 	if !internalUser(useremail) && internal_fdi_bucket {
 		IncRequestCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path)
@@ -342,6 +345,7 @@ func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string
 	return isAdmin || (prof.Spec.Owner.Name == queryUser)
 }
 
+// returns false if not internal
 func internalUser(email string) bool {
 	for _, domain := range employeeDomains {
 		if strings.HasSuffix(email, domain) {
