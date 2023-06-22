@@ -140,10 +140,10 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	log.Printf("useremail: %s | profileName: %s | LabelValue: %t | c.userIdHeader: %s | c.userIdPrefix: %s",
-		useremail, profileName.Name, internal_fdi_bucket, c.userIdHeader, c.userIdPrefix)
+	log.Printf("useremail: %s | profileName: %s | LabelValue: %t | binding.user: %s",
+		useremail, profileName.Name, internal_fdi_bucket, binding.User.Name)
 	// respond forbidden if label is set and attempted to add non-internal user email
-	if !internalUser(useremail) && internal_fdi_bucket {
+	if !internalUser(binding.User.Name) && internal_fdi_bucket {
 		IncRequestCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path)
 		w.WriteHeader(http.StatusForbidden)
 		return
