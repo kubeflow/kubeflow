@@ -124,7 +124,7 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	// get profile from namespace
 	profileName, err := c.profileClient.Get(binding.ReferredNamespace, metav1.GetOptions{})
 	if err != nil {
-		IncRequestErrorCounter("Permissions check error", "", action, r.URL.Path,
+		IncRequestErrorCounter("Permissions check error, failed to get profile", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
