@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
@@ -32,6 +33,10 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
+
+var employeeDomains [2]string = [2]string{"cloud.statcan.ca", "statcan.gc.ca"}
+
+const EXISTS_INTERNAL_BLOB_STORAGE = "state.aaw.statcan.gc.ca/exists-internal-blob-storage"
 
 type KfamV1Alpha1Interface interface {
 	CreateBinding(w http.ResponseWriter, r *http.Request)
@@ -114,6 +119,37 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	}
 	// check permission before create binding
 	useremail := c.getUserEmail(r.Header)
+
+	// --------------------- Added by souheil.yazji --------------------------- //
+	// get profile from namespace, the controller arbitrarly(?) fails to fetch profiles. Retry
+	profileName, err := c.profileClient.Get(binding.ReferredNamespace, metav1.GetOptions{})
+	if err != nil {
+		IncRequestErrorCounter("Profile fetch failed", "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		writeResponse(w, []byte(err.Error()))
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	// check value of label
+	internal_fdi_bucket, err := strconv.ParseBool(profileName.Labels[EXISTS_INTERNAL_BLOB_STORAGE])
+	if err != nil {
+		IncRequestErrorCounter("Label parse failed", "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		writeResponse(w, []byte(err.Error()))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("useremail: %s | profileName: %s | LabelValue: %t | binding.user: %s",
+		useremail, profileName.Name, internal_fdi_bucket, binding.User.Name)
+	// respond forbidden if label is set and attempted to add non-internal user email
+	if !internalUser(binding.User.Name) && internal_fdi_bucket {
+		IncRequestCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// ---------------------------------------------------------- //
 	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
 		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix)
 		if err != nil {
@@ -307,4 +343,14 @@ func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string
 		return false
 	}
 	return isAdmin || (prof.Spec.Owner.Name == queryUser)
+}
+
+// returns false if not internal
+func internalUser(email string) bool {
+	for _, domain := range employeeDomains {
+		if strings.HasSuffix(email, domain) {
+			return true
+		}
+	}
+	return false
 }

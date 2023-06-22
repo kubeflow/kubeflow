@@ -1,13 +1,13 @@
-name: component/centraldashboard
+name: component/access-management
 on:
   push:
     branches:
       - stc-master
     paths:
-      - components/centraldashboard/**
+      - components/access-management/**
   pull_request:
     paths:
-      - components/centraldashboard/**
+      - components/access-management/**
     types:
       - 'opened'
       - 'synchronize'
@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Determine if pushing to ACR or DEV ACR
+    # Determine if pushing to Prod or Dev ACR
     - name: Set ENV variables for a PR containing the auto-deploy tag
       if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'auto-deploy')
       run: echo "REGISTRY=${{env.DEV_REGISTRY_NAME}}.azurecr.io" >> "$GITHUB_ENV"
@@ -40,7 +40,7 @@ jobs:
         login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-
+        
     # Connect to DEV Azure Container registry (ACR)
     - uses: azure/docker-login@v1
       with:
@@ -60,17 +60,15 @@ jobs:
     - name: Docker build
       run: |
         docker build \
-          -t ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }} \
-          --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
-          --build-arg commit=$(git rev-parse HEAD) \
-          components/centraldashboard/
+          -t ${{ env.REGISTRY }}/kubeflow/kfam:${{ github.sha }} \
+          components/access-management/
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
       with:
-       image-name: ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
-       severity-threshold: CRITICAL
-       run-quality-checks: false
+        image-name: ${{ env.REGISTRY }}/kubeflow/kfam:${{ github.sha }}
+        severity-threshold: CRITICAL
+        run-quality-checks: false
 
     # Pushes if this is a push to master or an update to a PR that has auto-deploy label
     - name: Test if we should push to ACR
@@ -86,5 +84,5 @@ jobs:
     - name: Docker push
       if: steps.should-i-push.outputs.boolean == 'true'
       run: |
-        docker push ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/kubeflow/kfam:${{ github.sha }}
     # Push once, https://github.com/StatCan/kubeflow/pull/87
