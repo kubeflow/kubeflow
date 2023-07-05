@@ -5,15 +5,15 @@ The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this ti
 
 ### Themes
 * Kubernetes 1.25 and 1.26 support
-* Kubeflow Pipelines v2.0 release
-* Kubeflow security (TBD)
-* Kubeflow upgrade process (TBD)
-* Kubeflow backwards compatibility (TBD)
+* Kubeflow Pipelines v2.0 GA release
+* Security plan for future releases, specifying what are the security requirements and actions required by each WG. On that same area, there are efforts for improving security scans and support for rootless container images.
+* Training Operator support for the koordinator gang scheduler and CEL validation
+* Adding oauth2-proxy as an alternative for oidc-authservice (to be deprecated soon)
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
-* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [Training Operators](https://github.com/kubeflow/training-operator/issues/1809)
 * [KServe](https://github.com/kserve/kserve/issues/2676)
-* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/issues/2156)
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
 * [Notebooks](https://github.com/kubeflow/kubeflow/issues/7125)
 * [Manifests](https://github.com/kubeflow/manifests/issues/2456)
