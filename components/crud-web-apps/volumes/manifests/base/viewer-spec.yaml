@@ -28,6 +28,7 @@ podTemplate:
         - name: viewer-volume
           mountPath: /data
       workingDir: /data
+      serviceAccountName: default-editor
 networking:
   targetPort: 8080
   basePrefix: "/pvcviewers"
