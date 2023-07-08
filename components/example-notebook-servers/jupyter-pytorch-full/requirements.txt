@@ -14,7 +14,7 @@ matplotlib==3.4.2
 pandas==1.2.4
 scikit-image==0.18.1
 scikit-learn==0.24.2
-scipy==1.7.0
+scipy==1.10.0
 seaborn==0.11.1
 xgboost==1.4.2
 
