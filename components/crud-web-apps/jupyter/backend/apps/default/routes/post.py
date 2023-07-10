@@ -1,6 +1,7 @@
 from flask import request
 
-from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging, authn
+from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging, \
+    authn
 
 from ...common import form, utils, volumes
 from . import bp
