@@ -10,7 +10,7 @@
   {{ sharedMemory }}
 </lib-details-list-item>
 
-<lib-details-list-item key="Notebook creator">
+<lib-details-list-item *ngIf="notebookCreator" key="Notebook creator">
   {{ notebookCreator }}
 </lib-details-list-item>
 
