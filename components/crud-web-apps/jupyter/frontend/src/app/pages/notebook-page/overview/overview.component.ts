@@ -159,7 +159,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     if (!notebook?.metadata?.annotations) {
       return null;
     }
-    return notebook.metadata.annotations["notebooks.kubeflow.org/creator"];
+    return notebook.metadata.annotations['notebooks.kubeflow.org/creator'];
   }
 
   get cpuRequests(): string {
