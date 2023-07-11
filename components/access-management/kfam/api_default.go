@@ -12,6 +12,7 @@ package kfam
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"path"
@@ -144,6 +145,7 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 		useremail, profileName.Name, internal_fdi_bucket, binding.User.Name)
 	// respond forbidden if label is set and attempted to add non-internal user email
 	if !internalUser(binding.User.Name) && internal_fdi_bucket {
+		err := errors.New("forbidden: an attempt to add an external user to a namespace with internal fdi Bucket was made")
 		IncRequestErrorCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path,
 			SEVERITY_MAJOR)
 		writeResponse(w, []byte(err.Error()))
