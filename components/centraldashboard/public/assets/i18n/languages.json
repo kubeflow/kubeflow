@@ -206,7 +206,7 @@
             "manageUsersViewContributor.phdAddByEmail":"Ajouter par adresse courriel",
             "manageUsersViewContributor.errorContributor": "Échec de la récupération de la liste de contributeurs pour {ownedNamespace}, car:",
             "manageUsersViewContributor.errorCreateGeneral": "Échec lors de l'ajout d'un courriel. Veuillez vous assurez que le format est valide et qu'il n'y a pas de duplicat dans cet espace de noms.",
-            "manageUsersViewContributor.errorCreateFDI": "Ne peut pas ajouter un utilisateur externe à un espace de noms qui contient des buckets seulement internes. Veuillez contacter l'équipe d'AAW",
+            "manageUsersViewContributor.errorCreateFDI": "Ne peut pas ajouter un utilisateur externe à un espace de noms qui contient des seaux seulement internes. Veuillez contacter l'équipe d'ETAA",
             "manageUsersViewContributor.errorDeleteGeneral": "Échec lors de la supression du courriel. Veuillez réessayer.",
             "s3Proxy.defaultMessage": "Cet espace de noms n'inclue pas S3 proxy. Pour commencer à utiliser S3 proxy, veuilliez choisir de participer au service."
         }
