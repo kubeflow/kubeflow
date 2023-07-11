@@ -83,9 +83,15 @@ export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin
             const error = this._isolateErrorFromIronRequest(e);
             // eslint-disable-next-line no-console
             console.log(error);
-            this.contribCreateError =
-                'manageUsersViewContributor.errorCreateGeneral';
-            return;
+            if (error.search('fdi') == -1) {
+                this.contribCreateError =
+                    'manageUsersViewContributor.errorCreateGeneral';
+                return;
+            } else {
+                this.contribCreateError =
+                    'manageUsersViewContributor.errorCreateFDI';
+                return;
+            }
         }
         this.contributorList = e.detail.response;
         this.newContribEmail = this.contribCreateError = '';
