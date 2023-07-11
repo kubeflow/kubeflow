@@ -81,8 +81,6 @@ export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin
     handleContribCreate(e) {
         if (e.detail.error) {
             const error = this._isolateErrorFromIronRequest(e);
-            // eslint-disable-next-line no-console
-            console.log(error);
             if (error.search('fdi') == -1) {
                 this.contribCreateError =
                     'manageUsersViewContributor.errorCreateGeneral';
