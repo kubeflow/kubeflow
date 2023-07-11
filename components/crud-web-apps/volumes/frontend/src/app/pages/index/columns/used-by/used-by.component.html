@@ -1,0 +1,23 @@
+<div class="used-by-container truncate">
+  <span
+    [libPopover]="popoverCard"
+    [libPopoverPosition]="'before'"
+    [libPopoverHideDelay]="100"
+    [libPopoverShowDelay]="100"
+  >
+    <lib-urls
+      *ngFor="let nb of element.notebooks"
+      [urlList]="[getUrlItem(nb, element)]"
+    >
+    </lib-urls>
+  </span>
+</div>
+
+<ng-template #popoverCard>
+  <div class="popoverCard">
+    <p>Notebooks</p>
+    <li *ngFor="let nb of element.notebooks">
+      <lib-urls [urlList]="[getUrlItem(nb, element)]"></lib-urls>
+    </li>
+  </div>
+</ng-template>

@@ -1,0 +1,55 @@
+name: PodDefaults Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/admission-webhook/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: poddefaults-webhook
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build PodDefaults Image 
+      run: |
+        cd components/admission-webhook
+        make docker-build
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Images into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Install cert-manager
+      run: ./components/testing/gh-actions/install_cert_manager.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/admission-webhook/manifests/overlays/cert-manager
+        kubectl create ns kubeflow
+
+        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook
+        export PR_PODDEFAULTS_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_PODDEFAULTS_IMG}=${PR_PODDEFAULTS_IMG}
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l app=poddefaults --for=condition=Ready --timeout=300s

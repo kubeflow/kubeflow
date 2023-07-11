@@ -1,6 +1,14 @@
 <div class="form--section-bottom">
-  <div class="header">
+  <div class="header" data-cy-form-section-header>
     <lib-icon *ngIf="icon" [icon]="icon"></lib-icon>{{ title }}
+    <mat-icon
+      class="icon"
+      *ngIf="helpText"
+      [matTooltip]="helpText"
+      matTooltipPosition="above"
+    >
+      help
+    </mat-icon>
   </div>
   <p>{{ text }}</p>
   <p *ngIf="readOnly">*The cluster admin has disabled setting this section!</p>

@@ -1,0 +1,38 @@
+apiVersion: kubeflow.org/v1beta1
+kind: Notebook
+metadata:
+  labels:
+    app: test-notebook
+  name: test-notebook
+  namespace: kubeflow-user
+spec:
+  template:
+    spec:
+      containers:
+        - image: nginx
+          imagePullPolicy: IfNotPresent
+          name: test-notebook
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: /home/jovyan
+              name: test-notebook-workspace
+      serviceAccountName: default-editor
+      volumes:
+        - name: test-notebook-workspace
+          persistentVolumeClaim:
+            claimName: test-notebook-workspace
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-notebook-workspace
+  namespace: kubeflow-user
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

@@ -6,8 +6,6 @@ on:
     paths:
       - components/centraldashboard/**
   pull_request:
-    paths:
-      - components/centraldashboard/**
     types:
       - 'opened'
       - 'synchronize'

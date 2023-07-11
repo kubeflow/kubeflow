@@ -6,11 +6,11 @@ configMapGenerator:
 - name: tensorboard-controller-config
   literals:
   - RWO_PVC_SCHEDULING="True"
-  - TENSORBOARD_IMAGE=tensorflow/tensorflow:2.1.0
+  - TENSORBOARD_IMAGE=tensorflow/tensorflow:2.5.1
   - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
 patchesStrategicMerge:
 - patches/add_controller_config.yaml
 images:
-- name: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
-  newName: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
-  newTag: v1.5.0
+- name: docker.io/kubeflownotebookswg/tensorboard-controller
+  newName: docker.io/kubeflownotebookswg/tensorboard-controller
+  newTag: v1.7.0

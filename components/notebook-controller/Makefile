@@ -1,6 +1,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= notebook-controller
 TAG ?= $(shell git describe --tags --always --dirty)
+ARCH ?= linux/amd64
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
@@ -76,14 +77,34 @@ manager: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+# Run the controller locally with culling enabled
+.PHONY: run-culling
+run-culling: generate fmt vet manifests
+	ENABLE_CULLING=true \
+	CLUSTER_DOMAIN=cluster.local \
+	CULL_IDLE_TIME=10 \
+	IDLENESS_CHECK_PERIOD=1 \
+	DEV=true \
+	go run ./main.go
+
 ##@ Build
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
+docker-build: ## Build docker image with the manager.
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}:${TAG}
+
+.PHONY: docker-build-multi-arch
+docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
+	cd .. && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f ./notebook-controller/Dockerfile .
+
+
+.PHONY: docker-build-push-multi-arch
+docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
+	cd .. && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ./notebook-controller/Dockerfile .
+
 
 .PHONY: image
 image: docker-build docker-push ## Build and push docker image with the manager.
@@ -103,7 +124,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+deploy: docker-build docker-push manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/base/kustomization.yaml
 	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/base/kustomization.yaml
 	$(KUSTOMIZE) build config/base | kubectl apply -f -

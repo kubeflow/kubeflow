@@ -1,5 +1,3 @@
-from kubernetes import client
-
 from .. import authz
 from . import custom_api
 

@@ -1,0 +1,53 @@
+name: TWA Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/crud-web-apps/tensorboards/**
+      - components/crud-web-apps/common/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: tensorboards-web-app
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build TWA Image 
+      run: |
+        cd components/crud-web-apps/tensorboards
+        make docker-build 
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Image into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/crud-web-apps/tensorboards/manifests/overlays/istio
+        kubectl create ns kubeflow
+
+        export CURRENT_TWA_IMG=docker.io/kubeflownotebookswg/tensorboards-web-app
+        export PR_TWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_TWA_IMG}=${PR_TWA_IMG}
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l app=tensorboards-web-app --for=condition=Ready --timeout=300s

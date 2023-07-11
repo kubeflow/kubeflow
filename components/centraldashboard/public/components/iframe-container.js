@@ -4,11 +4,14 @@
 import {html, PolymerElement} from '@polymer/polymer';
 
 import {
-    IFRAME_CONNECTED_EVENT,
+    APP_CONNECTED_EVENT,
     MESSAGE,
     NAMESPACE_SELECTED_EVENT,
     PARENT_CONNECTED_EVENT,
+    ALL_NAMESPACES_EVENT,
 } from '../library.js';
+
+import {ALL_NAMESPACES} from './namespace-selector';
 
 export class IframeContainer extends PolymerElement {
     static get template() {
@@ -31,6 +34,7 @@ export class IframeContainer extends PolymerElement {
 
     static get properties() {
         return {
+            namespaces: Array,
             namespace: {type: String, observer: '_sendNamespaceMessage'},
             src: {type: String, observer: '_srcChanged'},
             page: {type: String, notify: true},
@@ -90,10 +94,18 @@ export class IframeContainer extends PolymerElement {
      */
     _sendNamespaceMessage() {
         if (!(this._iframeOrigin && this.namespace)) return;
-        this.$.iframe.contentWindow.postMessage({
-            type: NAMESPACE_SELECTED_EVENT,
-            value: this.namespace,
-        }, this._iframeOrigin);
+        if (this.namespace === ALL_NAMESPACES) {
+            this.$.iframe.contentWindow.postMessage({
+                type: ALL_NAMESPACES_EVENT,
+                value: this.namespaces.map((n) => n.namespace)
+                    .filter((n) => n !== ALL_NAMESPACES),
+            }, this._iframeOrigin);
+        } else {
+            this.$.iframe.contentWindow.postMessage({
+                type: NAMESPACE_SELECTED_EVENT,
+                value: this.namespace,
+            }, this._iframeOrigin);
+        }
     }
 
     /**
@@ -104,7 +116,7 @@ export class IframeContainer extends PolymerElement {
         const {data, origin} = event;
         this._iframeOrigin = origin;
         switch (data.type) {
-        case IFRAME_CONNECTED_EVENT:
+        case APP_CONNECTED_EVENT:
             this.$.iframe.contentWindow.postMessage({
                 type: PARENT_CONNECTED_EVENT,
                 value: null,

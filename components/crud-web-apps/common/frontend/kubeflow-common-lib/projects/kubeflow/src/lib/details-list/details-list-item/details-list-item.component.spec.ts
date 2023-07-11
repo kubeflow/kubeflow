@@ -9,15 +9,17 @@ describe('DetailsListItemComponent', () => {
   let component: DetailsListItemComponent;
   let fixture: ComponentFixture<DetailsListItemComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [DetailsListModule],
-      providers: [
-        DetailsListItemComponent,
-        { provide: SnackBarService, useClass: MockSnackBarService },
-      ],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [DetailsListModule],
+        providers: [
+          DetailsListItemComponent,
+          { provide: SnackBarService, useClass: MockSnackBarService },
+        ],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DetailsListItemComponent);

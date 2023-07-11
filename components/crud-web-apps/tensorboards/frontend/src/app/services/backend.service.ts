@@ -7,6 +7,7 @@ import {
   TensorboardResponseObject,
   TWABackendResponse,
   TensorboardPostObject,
+  PodDefault,
 } from '../types';
 
 @Injectable({
@@ -17,7 +18,7 @@ export class TWABackendService extends BackendService {
     super(http, snackBar);
   }
   // GET Tensorboards
-  public getTensorboards(
+  private getNamespacedTensorboards(
     namespace: string,
   ): Observable<TensorboardResponseObject[]> {
     const url = `api/namespaces/${namespace}/tensorboards`;
@@ -28,6 +29,25 @@ export class TWABackendService extends BackendService {
     );
   }
 
+  private getTensorBoardsAllNamespaces(
+    namespaces: string[],
+  ): Observable<TensorboardResponseObject[]> {
+    return this.getObjectsAllNamespaces(
+      this.getNamespacedTensorboards.bind(this),
+      namespaces,
+    );
+  }
+
+  public getTensorBoards(
+    ns: string | string[],
+  ): Observable<TensorboardResponseObject[]> {
+    if (Array.isArray(ns)) {
+      return this.getTensorBoardsAllNamespaces(ns);
+    }
+
+    return this.getNamespacedTensorboards(ns);
+  }
+
   // GET PVC names
   public getPVCNames(namespace: string): Observable<string[]> {
     const url = `api/namespaces/${namespace}/pvcs`;
@@ -35,6 +55,16 @@ export class TWABackendService extends BackendService {
     return this.http.get<TWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map((resp: TWABackendResponse) => resp.pvcs),
+    );
+  }
+
+  public getPodDefaults(ns: string): Observable<PodDefault[]> {
+    // Get existing PodDefaults in a namespace
+    const url = `api/namespaces/${ns}/poddefaults`;
+
+    return this.http.get<TWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: TWABackendResponse) => resp.poddefaults),
     );
   }
 

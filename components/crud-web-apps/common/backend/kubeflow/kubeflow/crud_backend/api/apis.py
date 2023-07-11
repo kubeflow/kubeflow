@@ -7,6 +7,6 @@ except ConfigException:
     config.load_kube_config()
 
 # Create the Apis
-v1_core = client.Core_v1Api()
-custom_api = client.Custom_objectsApi()
+v1_core = client.CoreV1Api()
+custom_api = client.CustomObjectsApi()
 storage_api = client.StorageV1Api()

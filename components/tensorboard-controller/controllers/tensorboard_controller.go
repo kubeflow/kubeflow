@@ -80,6 +80,14 @@ func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return reconcile.Result{}, err
 	}
 
+	// tensorboards-web-app deletes objects using foreground deletion policy, Tensorboard CR will stay until all owned objects are deleted
+	// reconcile loop might keep on trying to recreate the resources that the API server tries to delete.
+	// so when Tensorboard CR is terminating, reconcile loop should do nothing
+
+	if !instance.DeletionTimestamp.IsZero() {
+		return ctrl.Result{}, nil
+	}
+
 	// Reconcile k8s deployment.
 	deployment, err := generateDeployment(instance, logger, r)
 	if err != nil {
@@ -238,6 +246,13 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 		})
 	}
 
+	// copy all of the CR labels to the pod which includes poddefault related labels
+	podLabels := map[string]string{}
+	for k, v := range tb.ObjectMeta.Labels {
+		(podLabels)[k] = v
+	}
+	(podLabels)["app"] = tb.Name
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tb.Name,
@@ -252,7 +267,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": tb.Name},
+					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
 					Affinity:      affinity,

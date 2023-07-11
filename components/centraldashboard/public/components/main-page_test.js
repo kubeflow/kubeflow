@@ -3,6 +3,7 @@ import 'jasmine-ajax';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './main-page';
+import {ALL_NAMESPACES} from './namespace-selector';
 import {mockRequest} from '../ajax_test_helper';
 
 const FIXTURE_ID = 'main-page-fixture';
@@ -250,7 +251,7 @@ describe('Main Page', () => {
         expect(Array.from(namespaceSelector.shadowRoot
             .querySelectorAll('paper-item'))
             .map((n) => n.innerText.trim()))
-            .toEqual(['default', 'kubeflow', 'namespace-2']);
+            .toEqual([ALL_NAMESPACES, 'default', 'kubeflow', 'namespace-2']);
     });
 
     it('Pushes to history when iframe page changes', () => {

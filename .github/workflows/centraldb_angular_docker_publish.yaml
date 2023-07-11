@@ -1,0 +1,54 @@
+name: Build & Publish CentralDashboard-Angular Docker image
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/centraldashboard-angular/**
+      - releasing/version/VERSION
+
+env:
+  DOCKER_USER: kubeflownotebookswg
+  IMG: kubeflownotebookswg/centraldashboard-angular
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ env.DOCKER_USER }}
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Run CentralDashboard-Angular build/push
+      run: |
+        cd components/centraldashboard-angular
+        make docker-build docker-push
+    
+    - name: Run CentralDashboard-Angular build/push latest
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export TAG=latest
+        cd components/centraldashboard-angular
+        make docker-build docker-push
+
+    - name: Run CentralDashboard-Angular build/push on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/centraldashboard-angular
+        make docker-build docker-push

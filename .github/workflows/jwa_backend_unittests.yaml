@@ -1,0 +1,28 @@
+name: JWA Backend Tests
+on:
+  pull_request:
+    paths:
+      - components/crud-web-apps/jupyter/backend/**
+
+jobs:
+  run-backend-unittests:
+    name: Unittests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install KinD
+        run: ./components/testing/gh-actions/install_kind.sh
+      - name: Create KinD Cluster
+        run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.7'
+      - name: Setup Python environment
+        run: |
+          cd components/crud-web-apps/jupyter/backend
+          make install-deps
+      - name: Run unittests
+        run: |
+          cd components/crud-web-apps/jupyter/backend
+          make unittest

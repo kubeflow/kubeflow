@@ -40,4 +40,6 @@ spec:
           value: $(CD_REGISTRATION_FLOW)
         - name: DASHBOARD_LINKS_CONFIGMAP
           value: $(CD_CONFIGMAP_NAME)
+        - name: LOGOUT_URL
+          value: '/authservice/logout'
       serviceAccountName: centraldashboard

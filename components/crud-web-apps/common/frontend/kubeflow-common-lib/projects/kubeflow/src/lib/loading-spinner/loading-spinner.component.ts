@@ -14,6 +14,8 @@ import {
 })
 export class LoadingSpinnerComponent implements AfterViewInit {
   @Input() diameter = 32;
+  @Input()
+  message: string;
   @ViewChild('spinnerWrapper')
   wrapper: ElementRef;
 

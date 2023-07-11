@@ -1,0 +1,62 @@
+name: Profiles/KFAM Integration Tests
+on:
+  pull_request:
+    paths:
+      - components/profile-controller/**
+      - components/access-management/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  PROFILE_IMG: profile-controller
+  KFAM_IMG: kfam
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build Profile Controller Image 
+      run: |
+        cd components/profile-controller
+        make docker-build IMG=${{env.PROFILE_IMG}}
+
+    - name: Build Kfam Image
+      run: |
+        cd components/access-management
+        make docker-build IMG=${{env.KFAM_IMG}}
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Images into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.PROFILE_IMG}}:${{env.TAG}}
+        kind load docker-image ${{env.KFAM_IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/profile-controller/config/overlays/kubeflow
+        kubectl create ns kubeflow
+
+        export CURRENT_PROFILE_IMG=docker.io/kubeflownotebookswg/profile-controller
+        export CURRENT_KFAM_IMG=docker.io/kubeflownotebookswg/kfam
+        export PR_PROFILE_IMG=${{env.PROFILE_IMG}}:${{env.TAG}}
+        export PR_KFAM_IMG=${{env.KFAM_IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_PROFILE_IMG}=${PR_PROFILE_IMG} ${CURRENT_KFAM_IMG}=${PR_KFAM_IMG} 
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s

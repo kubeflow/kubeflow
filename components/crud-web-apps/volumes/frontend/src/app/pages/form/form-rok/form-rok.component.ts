@@ -17,6 +17,8 @@ import { FormDefaultComponent } from '../form-default/form-default.component';
 import { environment } from '@app/environment';
 import { rokStorageClassValidator } from './utils';
 import { concatMap } from 'rxjs/operators';
+import { HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-form-rok',
@@ -105,23 +107,16 @@ export class FormRokComponent
     this.rok.initCSRF();
   }
 
-  public rokUrlChanged(url: string) {
-    this.rok.getObjectMetadata(url).subscribe({
-      next: headers => {
-        // Autofill the name
-        let size = parseInt(headers.get('content-length'), 10);
-        size = size / Math.pow(1024, 3);
-        this.formCtrl.get('size').setValue(size);
-        this.snack.open(
-          'Successfully retrieved snapshot information.',
-          SnackType.Success,
-          3000,
-        );
-      },
-      error: err => {
-        this.snack.open(`'${url}' is not a valid Rok URL`, SnackType.Error, -1);
-      },
-    });
+  public rokUrlChanged(headers: HttpHeaders) {
+    // Autofill the name
+    let size = parseInt(headers.get('content-length'), 10);
+    size = size / Math.pow(1024, 3);
+    this.formCtrl.get('size').setValue(size);
+    this.snack.open(
+      'Successfully retrieved snapshot information.',
+      SnackType.Success,
+      3000,
+    );
   }
 
   /*

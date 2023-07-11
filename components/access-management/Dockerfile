@@ -4,12 +4,14 @@ FROM golang:${GOLANG_VERSION} as builder
 WORKDIR /workspace
 
 COPY . .
-RUN go mod download
+
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
-        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -gcflags 'all=-N -l' -o access-management main.go; \
-    else \
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags 'all=-N -l' -o access-management main.go; \
+        go mod download; \
+    elif [ "$(uname -m)" = "ppc64le" ]; then \
+        git config --global http.sslVerify false &&  go mod download; \
     fi
+
+RUN CGO_ENABLED=0 GOOS=linux go build -gcflags 'all=-N -l' -o access-management main.go
 
 RUN chmod a+rx access-management
 

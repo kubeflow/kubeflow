@@ -1,0 +1,52 @@
+name: Tensorboard Controller Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/tensorboard-controller/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: tensorboard-controller
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build Tensorboard Controller Image 
+      run: |
+        cd components/tensorboard-controller
+        make docker-build 
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Images into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/tensorboard-controller/config/overlays/kubeflow
+        kubectl create ns kubeflow
+
+        export CURRENT_TENSORBOARD_IMG=docker.io/kubeflownotebookswg/tensorboard-controller
+        export PR_TENSORBOARD_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_TENSORBOARD_IMG}=${PR_TENSORBOARD_IMG}
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l app=tensorboard-controller --for=condition=Ready --timeout=300s

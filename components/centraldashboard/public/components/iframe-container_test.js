@@ -1,7 +1,7 @@
 import '@polymer/test-fixture/test-fixture';
 
 import {
-    IFRAME_CONNECTED_EVENT,
+    APP_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT,
     PARENT_CONNECTED_EVENT,
 } from '../library.js';
@@ -96,7 +96,7 @@ describe('Iframe Container', () => {
     it('Should send messages to iframed page', async () => {
         const origin = window.location.origin;
         // Simulate message being sent from iframe
-        window.postMessage({type: IFRAME_CONNECTED_EVENT});
+        window.postMessage({type: APP_CONNECTED_EVENT});
         await sleep(1);
         expect(postMessageSpy.calls.count()).toBe(1);
         expect(postMessageSpy.calls.argsFor(0)).toEqual([

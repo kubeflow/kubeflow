@@ -1,0 +1,53 @@
+name: JWA Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/crud-web-apps/jupyter/**
+      - components/crud-web-apps/common/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: jupyter-web-app
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build JWA Image 
+      run: |
+        cd components/crud-web-apps/jupyter
+        make docker-build 
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Image into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/crud-web-apps/jupyter/manifests/overlays/istio
+        kubectl create ns kubeflow
+
+        export CURRENT_JWA_IMG=docker.io/kubeflownotebookswg/jupyter-web-app
+        export PR_JWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_JWA_IMG}=${PR_JWA_IMG}
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l app=jupyter-web-app --for=condition=Ready --timeout=300s

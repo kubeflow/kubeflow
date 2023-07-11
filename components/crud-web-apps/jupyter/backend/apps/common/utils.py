@@ -130,7 +130,7 @@ def notebook_dict_from_k8s_obj(notebook):
         "name": notebook["metadata"]["name"],
         "namespace": notebook["metadata"]["namespace"],
         "serverType": server_type,
-        "age": helpers.get_uptime(notebook["metadata"]["creationTimestamp"]),
+        "age": notebook["metadata"]["creationTimestamp"],
         "last_activity": get_notebook_last_activity(notebook),
         "image": cntr["image"],
         "shortImage": cntr["image"].split("/")[-1],
@@ -139,4 +139,5 @@ def notebook_dict_from_k8s_obj(notebook):
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),
+        "metadata": notebook["metadata"]
     }

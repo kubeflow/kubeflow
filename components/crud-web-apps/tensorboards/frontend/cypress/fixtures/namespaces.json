@@ -1,0 +1,14 @@
+{
+  "namespaces": [
+    "auth",
+    "cert-manager",
+    "default",
+    "istio-system",
+    "kube-system",
+    "kubeflow",
+    "kubeflow-user"
+  ],
+  "status": 200,
+  "success": true,
+  "user": null
+}

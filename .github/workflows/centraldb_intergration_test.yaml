@@ -1,0 +1,59 @@
+name: CentralDashboard Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/centraldashboard/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: centraldashboard
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build CentralDashboard Image
+      run: |
+        cd components/centraldashboard
+        ARCH=linux/ppc64le make docker-build-multi-arch
+        ARCH=linux/amd64 make docker-build-multi-arch
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Images into KinD Cluster
+      run: |
+        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/centraldashboard/manifests/overlays/kserve
+        kubectl create ns kubeflow
+
+        export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard
+        export PR_CENTRALDB_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_CENTRALDB_IMG}=${PR_CENTRALDB_IMG}
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l app=centraldashboard --for=condition=Ready --timeout=300s

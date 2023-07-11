@@ -1,0 +1,59 @@
+<lib-form-section
+  title="CPU / RAM"
+  i18n-title="Title for the CPU/RAM form section"
+  helpText="Configure the resources allocated to the notebook. Minimum and maximum values correspond to K8s requests and limits for the resources of the underlying Pod."
+>
+  <div class="row">
+    <!--CPU-->
+    <lib-positive-number-input
+      class="column"
+      min="0"
+      step="0.1"
+      [sizeControl]="parentForm.get('cpu')"
+      label="Minimum CPU"
+      i18n-label
+    ></lib-positive-number-input>
+
+    <!--RAM-->
+    <lib-positive-number-input
+      class="column"
+      min="0"
+      step="0.1"
+      [sizeControl]="parentForm.get('memory')"
+      label="Minimum Memory Gi"
+      i18n-label
+    ></lib-positive-number-input>
+  </div>
+
+  <lib-advanced-options>
+    <div class="row">
+      <!--CPU-->
+      <div class="column">
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label i18n>Maximum CPU</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0.1"
+            step="0.1"
+            [formControl]="parentForm.get('cpuLimit')"
+          />
+        </mat-form-field>
+      </div>
+
+      <!--RAM-->
+      <div class="column">
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label i18n>Maximum Memory Gi</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0.1"
+            step="0.1"
+            [formControl]="parentForm.get('memoryLimit')"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+  </lib-advanced-options>
+</lib-form-section>

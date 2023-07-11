@@ -1,0 +1,52 @@
+name: CentralDashboard-Angular Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/centraldashboard-angular/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: centraldashboard-angular
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build CentralDashboard-Angular Image 
+      run: |
+        cd components/centraldashboard-angular
+        make docker-build 
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Images into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/centraldashboard-angular/manifests/overlays/kserve
+        kubectl create ns kubeflow
+
+        export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard-angular
+        export PR_CENTRALDB_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_CENTRALDB_IMG}=${PR_CENTRALDB_IMG}
+
+        kustomize build . | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l app=centraldashboard-angular --for=condition=Ready --timeout=300s

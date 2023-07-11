@@ -8,6 +8,7 @@ export * from './lib/snack-bar/snack-bar.module';
 export * from './lib/snack-bar/snack-bar.service';
 
 export * from './lib/services/namespace.service';
+export * from './lib/services/poller.service';
 export * from './lib/services/backend/backend.service';
 export * from './lib/services/rok/rok.service';
 
@@ -48,6 +49,7 @@ export * from './lib/form/rok-url-input/rok-url-input.component';
 
 export * from './lib/resource-table/types';
 export * from './lib/resource-table/status/types';
+export * from './lib/resource-table/table/utils';
 export * from './lib/snack-bar/types';
 export * from './lib/services/backend/types';
 export * from './lib/services/rok/types';
@@ -70,6 +72,9 @@ export * from './lib/services/date-time.service';
 export * from './lib/panel/panel.module';
 export * from './lib/panel/panel.component';
 
+export * from './lib/editor/editor.component';
+export * from './lib/editor/editor.module';
+
 export * from './lib/namespace-select/namespace-select.component';
 export * from './lib/form/name-namespace-inputs/name-namespace-inputs.component';
 export * from './lib/form/name-namespace-inputs/name-input/name-input.component';
@@ -81,3 +86,29 @@ export * from './lib/form/step-info/step-info.component';
 export * from './lib/form/submit-bar/submit-bar.component';
 export * from './lib/form/step-info/step-info.component';
 export * from './lib/resource-table/table/table.component';
+
+export * from './lib/logs-viewer/logs-viewer.module';
+export * from './lib/logs-viewer/logs-viewer.component';
+export * from './lib/help-popover/help-popover.component';
+export * from './lib/help-popover/help-popover.module';
+
+export * from './lib/logs-viewer/logs-viewer.module';
+export * from './lib/logs-viewer/logs-viewer.component';
+
+export * from './lib/content-list-item/content-list-item.component';
+export * from './lib/content-list-item/content-list-item.module';
+
+export * from './lib/variables-groups-table/variables-groups-table.component';
+export * from './lib/variables-groups-table/variables-groups-table.module';
+export * from './lib/variables-groups-table/types';
+
+export * from './lib/status-icon/status-icon.component';
+export * from './lib/status-icon/status-icon.module';
+
+export * from './lib/urls/urls.component';
+export * from './lib/urls/urls.module';
+export * from './lib/urls/types';
+
+export * from './lib/icon/icon.component';
+export * from './lib/icon/icon.module';
+export * from './lib/resource-table/action/action.component';

@@ -10,9 +10,9 @@ patchesStrategicMerge:
 - patches/manager.yaml
 
 images:
-- name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-  newName: gcr.io/arrikto-playground/profile-controller
-  newTag: v1.4-rc.0-200-gb79289d1
+- name: docker.io/kubeflownotebookswg/profile-controller
+  newName: docker.io/kubeflownotebookswg/profile-controller
+  newTag: v1.7.0
 
 configMapGenerator:
 - name: namespace-labels-data

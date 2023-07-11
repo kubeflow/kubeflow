@@ -17,23 +17,23 @@
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
-    value: kubeflownotebookswg/jupyter-scipy:v1.5.0
+    value: kubeflownotebookswg/jupyter-scipy:v1.7.0
     # The list of available standard container Images
     options:
-    - kubeflownotebookswg/jupyter-scipy:v1.5.0
-    - kubeflownotebookswg/jupyter-pytorch-full:v1.5.0
-    - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.5.0
-    - kubeflownotebookswg/jupyter-tensorflow-full:v1.5.0
-    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.5.0
+    - kubeflownotebookswg/jupyter-scipy:v1.7.0
+    - kubeflownotebookswg/jupyter-pytorch-full:v1.7.0
+    - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.7.0
+    - kubeflownotebookswg/jupyter-tensorflow-full:v1.7.0
+    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.7.0
   imageGroupOne:
     # The container Image for the user's Group One Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
     # is applied to notebook in this group, configuring
     # the Istio rewrite for containers that host their web UI at `/`
-    value: kubeflownotebookswg/codeserver-python:v1.5.0
+    value: kubeflownotebookswg/codeserver-python:v1.7.0
     # The list of available standard container Images
     options:
-    - kubeflownotebookswg/codeserver-python:v1.5.0
+    - kubeflownotebookswg/codeserver-python:v1.7.0
   imageGroupTwo:
     # The container Image for the user's Group Two Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
@@ -42,10 +42,10 @@ spawnerFormDefaults:
     # The annotation `notebooks.kubeflow.org/http-headers-request-set`
     # is applied to notebook in this group, configuring Istio
     # to add the `X-RStudio-Root-Path` header to requests
-    value: kubeflownotebookswg/rstudio-tidyverse:v1.5.0
+    value: kubeflownotebookswg/rstudio-tidyverse:v1.7.0
     # The list of available standard container Images
     options:
-    - kubeflownotebookswg/rstudio-tidyverse:v1.5.0
+    - kubeflownotebookswg/rstudio-tidyverse:v1.7.0
   # If true, hide registry and/or tag name in the image selection dropdown
   hideRegistry: true
   hideTag: false

@@ -28,8 +28,8 @@ spec:
         envFrom:
           - configMapRef:
               name: config
-        image: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-        imagePullPolicy: Always
+        image: docker.io/kubeflownotebookswg/profile-controller
+        imagePullPolicy: IfNotPresent
         name: manager
         livenessProbe:
           httpGet:

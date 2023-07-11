@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
   NamespaceService,
@@ -11,6 +11,9 @@ import {
   SnackBarService,
   SnackType,
   ToolbarButton,
+  PollerService,
+  ToolbarButtonConfig,
+  DashboardState,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -20,7 +23,6 @@ import {
   TensorboardProcessedObject,
 } from 'src/app/types';
 import { Subscription } from 'rxjs';
-import { isEqual } from 'lodash';
 import { FormComponent } from '../form/form.component';
 
 @Component({
@@ -28,27 +30,26 @@ import { FormComponent } from '../form/form.component';
   templateUrl: './index.component.html',
   styleUrls: ['./index.component.scss'],
 })
-export class IndexComponent implements OnInit {
+export class IndexComponent implements OnInit, OnDestroy {
+  public currNamespace: string | string[];
+  public nsSub = new Subscription();
+  public pollSub = new Subscription();
+
   public env = environment;
-  public poller: ExponentialBackoff;
-
-  public currNamespace = '';
-  public subs = new Subscription();
-
   public config = defaultConfig;
-  public rawData: TensorboardResponseObject[] = [];
   public processedData: TensorboardProcessedObject[] = [];
+  public dashboardDisconnectedState = DashboardState.Disconnected;
 
-  buttons: ToolbarButton[] = [
-    new ToolbarButton({
-      text: `New TensorBoard`,
-      icon: 'add',
-      stroked: true,
-      fn: () => {
-        this.newResourceClicked();
-      },
-    }),
-  ];
+  private newTensorBoardButton = new ToolbarButton({
+    text: $localize`New TensorBoard`,
+    icon: 'add',
+    stroked: true,
+    fn: () => {
+      this.newResourceClicked();
+    },
+  });
+
+  buttons: ToolbarButton[] = [this.newTensorBoardButton];
 
   constructor(
     public ns: NamespaceService,
@@ -56,39 +57,31 @@ export class IndexComponent implements OnInit {
     public backend: TWABackendService,
     public dialog: MatDialog,
     public snackBar: SnackBarService,
+    public poller: PollerService,
   ) {}
 
   ngOnInit() {
-    this.poller = new ExponentialBackoff({ interval: 1000, retries: 3 });
+    this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
+      this.currNamespace = ns;
+      this.poll(ns);
+      this.newTensorBoardButton.namespaceChanged(ns, $localize`TensorBoard`);
+    });
+  }
 
-    // Poll for new data and reset the poller if different data is found
-    this.subs.add(
-      this.poller.start().subscribe(() => {
-        if (!this.currNamespace) {
-          return;
-        }
+  ngOnDestroy() {
+    this.nsSub.unsubscribe();
+    this.pollSub.unsubscribe();
+  }
 
-        this.backend
-          .getTensorboards(this.currNamespace)
-          .subscribe(tensorboards => {
-            if (!isEqual(this.rawData, tensorboards)) {
-              this.rawData = tensorboards;
+  public poll(ns: string | string[]) {
+    this.pollSub.unsubscribe();
+    this.processedData = [];
 
-              // Update the frontend's state
-              this.processedData = this.processIncomingData(tensorboards);
-              this.poller.reset();
-            }
-          });
-      }),
-    );
+    const request = this.backend.getTensorBoards(ns);
 
-    // Reset the poller whenever the selected namespace changes
-    this.subs.add(
-      this.ns.getSelectedNamespace().subscribe(ns => {
-        this.currNamespace = ns;
-        this.poller.reset();
-      }),
-    );
+    this.pollSub = this.poller.exponential(request).subscribe(tensorboards => {
+      this.processedData = this.processIncomingData(tensorboards);
+    });
   }
 
   public reactToAction(a: ActionEvent) {
@@ -115,7 +108,7 @@ export class IndexComponent implements OnInit {
           SnackType.Success,
           2000,
         );
-        this.poller.reset();
+        this.poll(this.currNamespace);
       }
     });
   }
@@ -140,10 +133,12 @@ export class IndexComponent implements OnInit {
 
       // Close the open dialog only if the DELETE request succeeded
       this.backend
-        .deleteTensorboard(this.currNamespace, tensorboard.name)
+        .deleteTensorboard(tensorboard.namespace, tensorboard.name)
         .subscribe({
           next: _ => {
-            this.poller.reset();
+            // We don't want to use the namespace of the deleted object since
+            // it might override the selected all-namespaces
+            this.poll(this.currNamespace);
             ref.close(DIALOG_RESP.ACCEPT);
           },
           error: err => {

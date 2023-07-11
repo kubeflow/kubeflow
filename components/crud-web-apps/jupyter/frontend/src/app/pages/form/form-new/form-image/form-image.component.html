@@ -1,0 +1,174 @@
+<lib-form-section>
+  <div class="flex-column">
+    <mat-button-toggle-group
+      [formControl]="parentForm.get('serverType')"
+      class="server-type-wrapper"
+      attr.aria-label="Server Type"
+      i18n-aria-label="Aria label for the Server Type"
+    >
+      <mat-button-toggle
+        value="jupyter"
+        attr.aria-label="Use JupyterLab based server"
+        i18n-aria-label="Aria label for JupyterLab type server"
+      >
+        <mat-icon class="server-type-icon" svgIcon="jupyter-icon"></mat-icon>
+        <p class="server-type-title">JupyterLab</p>
+        <p class="server-type-content">
+          An interactive development environment for notebooks, code, and data.
+          Ideal for prototyping and experimentation.
+        </p>
+      </mat-button-toggle>
+
+      <mat-button-toggle
+        value="group-one"
+        attr.aria-label="Use Group One based server"
+        i18n-aria-label="Aria label for Group One server"
+      >
+        <mat-icon class="server-type-icon" svgIcon="group-one"></mat-icon>
+        <p class="server-type-title">VisualStudio Code</p>
+        <p class="server-type-content">
+          A lightweight but powerful source code editor, redefined and optimized
+          for building and debugging modern web and cloud applications.
+        </p>
+      </mat-button-toggle>
+
+      <mat-button-toggle
+        value="group-two"
+        attr.aria-label="Use Group Two based server"
+        i18n-aria-label="Aria label for Group Two server"
+      >
+        <mat-icon class="server-type-icon" svgIcon="group-two"></mat-icon>
+        <p class="server-type-title">RStudio</p>
+        <p class="server-type-content">
+          An integrated development environment for R, a programming language
+          for statistical computing and graphics.
+        </p>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <mat-accordion class="custom-notebook-accordion">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title> Custom Notebook </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <mat-form-field
+          class="wide"
+          appearance="outline"
+          *ngIf="parentForm?.value.serverType === 'jupyter'"
+        >
+          <!-- If readonly, then make it an input element instead of select -->
+          <mat-label i18n>Image</mat-label>
+          <mat-select
+            placeholder="OCI Image"
+            i18n-placeholder
+            [formControl]="parentForm.get('image')"
+          >
+            <mat-option
+              *ngFor="let img of images"
+              [value]="img"
+              [matTooltip]="img"
+            >
+              {{ imageDisplayName(img) }}
+            </mat-option>
+          </mat-select>
+          <mat-error i18n>Please provide an Image to use</mat-error>
+        </mat-form-field>
+
+        <mat-form-field
+          class="wide"
+          appearance="outline"
+          *ngIf="parentForm?.value.serverType === 'group-one'"
+        >
+          <!-- If readonly, then make it an input element instead of select -->
+          <mat-label i18n>Image</mat-label>
+          <mat-select
+            placeholder="OCI Image"
+            i18n-placeholder
+            [formControl]="parentForm.get('imageGroupOne')"
+          >
+            <mat-option
+              *ngFor="let img of imagesGroupOne"
+              [value]="img"
+              [matTooltip]="img"
+            >
+              {{ imageDisplayName(img) }}
+            </mat-option>
+          </mat-select>
+          <mat-error i18n>Please provide an Image to use</mat-error>
+        </mat-form-field>
+
+        <mat-form-field
+          class="wide"
+          appearance="outline"
+          *ngIf="parentForm?.value.serverType === 'group-two'"
+        >
+          <!-- If readonly, then make it an input element instead of select -->
+          <mat-label i18n>Image</mat-label>
+          <mat-select
+            placeholder="OCI Image"
+            i18n-placeholder
+            [formControl]="parentForm.get('imageGroupTwo')"
+          >
+            <mat-option
+              *ngFor="let img of imagesGroupTwo"
+              [value]="img"
+              [matTooltip]="img"
+            >
+              {{ imageDisplayName(img) }}
+            </mat-option>
+          </mat-select>
+          <mat-error i18n>Please provide an Image to use</mat-error>
+        </mat-form-field>
+
+        <lib-advanced-options>
+          <div class="flex-column">
+            <mat-checkbox
+              *ngIf="allowCustomImage"
+              [formControl]="parentForm.get('customImageCheck')"
+              (change)="onSelect($event)"
+              i18n
+            >
+              Custom Image
+            </mat-checkbox>
+
+            <mat-form-field
+              class="wide"
+              appearance="outline"
+              *ngIf="parentForm?.value.customImageCheck"
+            >
+              <mat-label i18n>Custom Image</mat-label>
+              <input
+                matInput
+                placeholder="Provide a custom Image"
+                [formControl]="parentForm.get('customImage')"
+                #cstmimg
+              />
+              <mat-error i18n>Please provide an Image to use</mat-error>
+            </mat-form-field>
+
+            <div class="row">
+              <mat-form-field class="column" appearance="outline">
+                <mat-label i18n>Image pull policy</mat-label>
+                <mat-select [formControl]="parentForm.get('imagePullPolicy')">
+                  <mat-option value="Always" i18n="ImagePullPolicy: Always">
+                    Always
+                  </mat-option>
+                  <mat-option
+                    value="IfNotPresent"
+                    i18n="ImagePullPolicy: IfNotPresent"
+                  >
+                    IfNotPresent
+                  </mat-option>
+                  <mat-option value="Never" i18n="ImagePullPolicy: Never">
+                    Never
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </lib-advanced-options>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+</lib-form-section>

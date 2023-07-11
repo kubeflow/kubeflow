@@ -9,11 +9,13 @@ describe('PositiveNumberInputComponent', () => {
   let component: PositiveNumberInputComponent;
   let fixture: ComponentFixture<PositiveNumberInputComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [FormModule, BrowserAnimationsModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [FormModule, BrowserAnimationsModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PositiveNumberInputComponent);

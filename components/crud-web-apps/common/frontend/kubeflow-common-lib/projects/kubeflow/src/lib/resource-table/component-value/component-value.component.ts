@@ -1,5 +1,12 @@
-import { Component, Input, ComponentRef, OnInit } from '@angular/core';
-import { ComponentValue } from '../types';
+import {
+  Component,
+  Input,
+  ComponentRef,
+  OnInit,
+  Output,
+  EventEmitter,
+} from '@angular/core';
+import { ActionEvent, ComponentValue } from '../types';
 import { ComponentPortal, Portal } from '@angular/cdk/portal';
 
 export interface TableColumnComponent {
@@ -32,6 +39,9 @@ export class ComponentValueComponent implements OnInit {
 
   @Input() valueDescriptor: ComponentValue;
 
+  @Output()
+  emitter = new EventEmitter<ActionEvent>();
+
   ngOnInit() {
     this.portal = new ComponentPortal(this.valueDescriptor.component);
   }
@@ -39,5 +49,10 @@ export class ComponentValueComponent implements OnInit {
   onAttach(ref: ComponentRef<TableColumnComponent>) {
     this.componentRef = ref;
     this.componentRef.instance.element = this.element;
+    /* eslint-disable */
+    if (this.componentRef.instance?.['emitter']) {
+      this.componentRef.instance['emitter'] = this.emitter;
+    }
+    /* eslint-enable */
   }
 }
