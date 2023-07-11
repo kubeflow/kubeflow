@@ -114,8 +114,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
 		IncRequestErrorCounter("decode request error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check permission before create binding
@@ -127,8 +127,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		IncRequestErrorCounter("Profile fetch failed", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check value of label
@@ -136,8 +136,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		IncRequestErrorCounter("Label parse failed", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 
@@ -146,10 +146,11 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	// respond forbidden if label is set and attempted to add non-internal user email
 	if !internalUser(binding.User.Name) && internal_fdi_bucket {
 		err := errors.New("forbidden: an attempt to add an external user to a namespace with internal fdi Bucket was made")
+		log.Printf(err.Error())
 		IncRequestErrorCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 
