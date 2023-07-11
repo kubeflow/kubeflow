@@ -80,10 +80,16 @@ export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin
      */
     handleContribCreate(e) {
         if (e.detail.error) {
-            // const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError =
-                'manageUsersViewContributor.errorCreateGeneral';
-            return;
+            const error = this._isolateErrorFromIronRequest(e);
+            if (error.search('fdi') === -1) {
+                this.contribCreateError =
+                    'manageUsersViewContributor.errorCreateGeneral';
+                return;
+            } else {
+                this.contribCreateError =
+                    'manageUsersViewContributor.errorCreateFDI';
+                return;
+            }
         }
         this.contributorList = e.detail.response;
         this.newContribEmail = this.contribCreateError = '';

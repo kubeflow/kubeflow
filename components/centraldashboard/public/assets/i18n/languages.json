@@ -101,6 +101,7 @@
             "manageUsersViewContributor.phdAddByEmail":"Add by email address",
             "manageUsersViewContributor.errorContributor": "Failed to fetch contributor list for {ownedNamespace}, because:",
             "manageUsersViewContributor.errorCreateGeneral": "An error occured while trying to add the email. Please make check the email format and make sure there are no duplicates in this namespace.",
+            "manageUsersViewContributor.errorCreateFDI": "Cannot add an external user to a namespace containing internal only buckets. Please contact the AAW team.",
             "manageUsersViewContributor.errorDeleteGeneral": "An error occured while trying to remove the email. Please try again.",
             "s3Proxy.defaultMessage": "This namespace does not include S3 proxy. To start using S3 proxy, please opt in to the service."
         },
@@ -205,6 +206,7 @@
             "manageUsersViewContributor.phdAddByEmail":"Ajouter par adresse courriel",
             "manageUsersViewContributor.errorContributor": "Échec de la récupération de la liste de contributeurs pour {ownedNamespace}, car:",
             "manageUsersViewContributor.errorCreateGeneral": "Échec lors de l'ajout d'un courriel. Veuillez vous assurez que le format est valide et qu'il n'y a pas de duplicat dans cet espace de noms.",
+            "manageUsersViewContributor.errorCreateFDI": "Ne peut pas ajouter un utilisateur externe à un espace de noms qui contient des seaux seulement internes. Veuillez contacter l'équipe d'ETAA",
             "manageUsersViewContributor.errorDeleteGeneral": "Échec lors de la supression du courriel. Veuillez réessayer.",
             "s3Proxy.defaultMessage": "Cet espace de noms n'inclue pas S3 proxy. Pour commencer à utiliser S3 proxy, veuilliez choisir de participer au service."
         }

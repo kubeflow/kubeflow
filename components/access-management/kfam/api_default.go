@@ -12,6 +12,7 @@ package kfam
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"path"
@@ -113,8 +114,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
 		IncRequestErrorCounter("decode request error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check permission before create binding
@@ -126,8 +127,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		IncRequestErrorCounter("Profile fetch failed", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check value of label
@@ -135,8 +136,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		IncRequestErrorCounter("Label parse failed", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 
@@ -144,8 +145,11 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 		useremail, profileName.Name, internal_fdi_bucket, binding.User.Name)
 	// respond forbidden if label is set and attempted to add non-internal user email
 	if !internalUser(binding.User.Name) && internal_fdi_bucket {
-		IncRequestCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path)
+		err := errors.New("forbidden: an attempt to add an external user to a namespace with internal fdi Bucket was made")
+		IncRequestErrorCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path,
+			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 
@@ -174,8 +178,8 @@ func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	_, err := c.profileClient.Create(&profile)
@@ -197,8 +201,8 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check permission before delete
