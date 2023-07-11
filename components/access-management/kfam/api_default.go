@@ -146,7 +146,6 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	// respond forbidden if label is set and attempted to add non-internal user email
 	if !internalUser(binding.User.Name) && internal_fdi_bucket {
 		err := errors.New("forbidden: an attempt to add an external user to a namespace with internal fdi Bucket was made")
-		log.Printf(err.Error())
 		IncRequestErrorCounter("forbidden: Internal FDI Bucket exists", useremail, action, r.URL.Path,
 			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
