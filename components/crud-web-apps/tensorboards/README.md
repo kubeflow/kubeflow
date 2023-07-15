@@ -34,14 +34,14 @@ npm run build:watch
 
 ### Backend
 ```bash
-# create a virtual env and install deps
+# create a virtual env and install dependencies
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
 cd component/crud-web-apps/tensorboards/backend
 python3.8 -m pip install --user virtualenv
 python3.8 -m venv web-apps-dev
 source web-apps-dev/bin/activate
 
-# install the deps on the activated virtual env
+# install the dependencies on the activated virtual env
 make -C backend install-deps
 
 # run the backend
