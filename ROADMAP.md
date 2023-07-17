@@ -1,15 +1,15 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.8 Release, Planned: May 2023, Releasing: Oct 2023
-The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this timeline(pending link). The high level deliverables are tracked in the [v1.8 Release](https://github.com/orgs/kubeflow/projects/58/) Github project board. The v1.8 release process will be managed by the v1.8 [release team](https://github.com/kubeflow/community/blob/a956b3f6f15c49f928e37eaafec40d7f73ee1d5b/releases/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md)
+## Kubeflow 1.8 Release, Planned for release: Oct 2023
+The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this [timeline](https://github.com/kubeflow/community/tree/master/releases/release-1.8#timeline). The high level deliverables are tracked in the [v1.8 Release](https://github.com/orgs/kubeflow/projects/58/) Github project board. The v1.8 release process will be managed by the v1.8 [release team](https://github.com/kubeflow/community/blob/a956b3f6f15c49f928e37eaafec40d7f73ee1d5b/releases/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
 ### Themes
 * Kubernetes 1.25 and 1.26 support
 * Kubeflow Pipelines v2.0 GA release
-* Security plan for future releases, specifying what are the security requirements and actions required by each WG. On that same area, there are efforts for improving security scans and support for rootless container images.
+* Security plan for future releases, specifying what are the security requirements and actions required by each WG.
 * Training Operator support for the koordinator gang scheduler and CEL validation
-* Volumes viewer in the volumes UI to interact with PVCs
-* Adding oauth2-proxy as an alternative for oidc-authservice (to be deprecated soon)
+* Volumes viewer to interact with PVs and manage files and file structures using Volumes UI (rather than CLI commands)
+* OIDC Authservice moving to a Kubeflow owned and managed container registry
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
 * [Training Operators](https://github.com/kubeflow/training-operator/issues/1809)
