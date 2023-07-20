@@ -440,6 +440,13 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 						},
 					},
 				},
+				From: []*istioSecurity.Rule_From{{
+					Source: &istioSecurity.Source{
+						Principals: []string{
+							"cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account",
+						},
+					},
+				}},
 			},
 			{
 				When: []*istioSecurity.Condition{
