@@ -23,7 +23,7 @@ docker-push:
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} .
+	docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} .
 
 .PHONY: docker-build-push-multi-arch
 docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
