@@ -27,6 +27,18 @@
     overflow: auto;
 }
 
+.scrollable::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+    height: 7px;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(238, 238, 239, 0.5);
+    box-shadow: 0 0 1px rgba(255,255,255,.5);
+}
+
 #MainDrawer {
     color: white;
     --app-drawer-content-container: {
