@@ -45,6 +45,9 @@ jobs:
 
     - name: Install Istio
       run: ./components/testing/gh-actions/install_istio.sh
+      
+    - name: Install cert-manager
+      run: ./components/testing/gh-actions/install_cert_manager.sh
 
     - name: Build & Apply manifests
       run: |
