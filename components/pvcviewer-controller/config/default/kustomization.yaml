@@ -12,10 +12,8 @@ namespace: kubeflow
 namePrefix: pvcviewer-
 
 # Labels to add to all resources and selectors.
-labels:
-- includeSelectors: true
-  pairs:
-    app: pvcviewer
+commonLabels:
+  app: pvcviewer
 
 resources:
 - ../crd
