@@ -16,6 +16,7 @@ env:
   DEV_REGISTRY_NAME: k8scc01covidacrdev
   CLUSTER_NAME: k8s-cancentral-02-covid-aks
   CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
+  TRIVY_VERSION: "v0.43.1"
 
 jobs:
   build-push:
@@ -64,11 +65,10 @@ jobs:
           components/centraldashboard/
 
     # Scan image for vulnerabilities
-    - uses: Azure/container-scan@v0
-      with:
-       image-name: ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
-       severity-threshold: CRITICAL
-       run-quality-checks: false
+    - name: Aqua Security Trivy image scan
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${{ env.TRIVY_VERSION }}
+        trivy image ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
 
     # Pushes if this is a push to master or an update to a PR that has auto-deploy label
     - name: Test if we should push to ACR
