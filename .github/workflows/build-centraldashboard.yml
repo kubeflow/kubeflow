@@ -21,6 +21,11 @@ env:
 jobs:
   build-push:
     runs-on: ubuntu-latest
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
     - uses: actions/checkout@v2
 
@@ -59,16 +64,19 @@ jobs:
     - name: Docker build
       run: |
         docker build \
-          -t ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }} \
+          -t localhost:5000/kubeflow/centraldashboard:${{ github.sha }} \
           --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
           --build-arg commit=$(git rev-parse HEAD) \
           components/centraldashboard/
+        docker push localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
+        docker rmi localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
+        docker image prune
 
     # Scan image for vulnerabilities
     - name: Aqua Security Trivy image scan
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${{ env.TRIVY_VERSION }}
-        trivy image ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
+        trivy image localhost:5000/kubeflow/centraldashboard:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
 
     # Pushes if this is a push to master or an update to a PR that has auto-deploy label
     - name: Test if we should push to ACR
@@ -84,5 +92,6 @@ jobs:
     - name: Docker push
       if: steps.should-i-push.outputs.boolean == 'true'
       run: |
+        docker pull localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
+        docker tag localhost:5000/kubeflow/centraldashboard:${{ github.sha }} ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
         docker push ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
-    # Push once, https://github.com/StatCan/kubeflow/pull/87
