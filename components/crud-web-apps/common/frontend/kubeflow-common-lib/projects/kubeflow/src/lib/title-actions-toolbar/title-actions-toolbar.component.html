@@ -4,14 +4,13 @@
   <button
     *ngIf="backButton"
     mat-icon-button
-    color="primary"
     class="back-button"
     (click)="emitBack()"
   >
-    <mat-icon>keyboard_backspace</mat-icon>
+    <mat-icon>arrow_back</mat-icon>
   </button>
 
-  <div class="title-margin title" data-cy-toolbar-title>
+  <div class="mat-headline title-margin" data-cy-toolbar-title>
     {{ title }}
   </div>
 
