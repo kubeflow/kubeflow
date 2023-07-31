@@ -108,8 +108,8 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
 		IncRequestErrorCounter("decode request error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check permission before create binding
@@ -138,8 +138,8 @@ func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	_, err := c.profileClient.Create(&profile)
@@ -161,8 +161,8 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	// check permission before delete
