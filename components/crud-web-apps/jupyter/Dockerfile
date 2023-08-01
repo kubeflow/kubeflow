@@ -1,5 +1,5 @@
 # --- Build the backend kubeflow-wheel ---
-FROM python:3.8-slim AS backend-kubeflow-wheel
+FROM python:3.10-slim AS backend-kubeflow-wheel
 
 WORKDIR /src
 
@@ -41,7 +41,7 @@ COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
 RUN npm run build -- --output-path=./dist/default --configuration=production
 
 # Web App
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 WORKDIR /package
 COPY --from=backend-kubeflow-wheel /src .
