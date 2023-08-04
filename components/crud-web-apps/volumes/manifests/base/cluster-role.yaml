@@ -49,6 +49,15 @@ rules:
   - notebooks
   verbs:
   - list
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - pvcviewers
+  verbs:
+  - get
+  - list
+  - create
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -77,6 +86,15 @@ rules:
   - watch
   - update
   - patch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - pvcviewers
+  verbs:
+  - get
+  - list
+  - create
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -101,3 +119,10 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - pvcviewers
+  verbs:
+  - get
+  - list
