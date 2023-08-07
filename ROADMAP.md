@@ -18,7 +18,7 @@ The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this [t
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
 * [Notebooks](https://github.com/kubeflow/kubeflow/issues/7125)
 * [Manifests](https://github.com/kubeflow/manifests/issues/2456)
-* [Security] (https://github.com/kubeflow/kubeflow/blob/master/security/roadmap.md)
+* [Security](https://github.com/kubeflow/kubeflow/blob/master/security/roadmap.md)
 
 ## Kubeflow 1.7 Release, Delivered: March 2023 
 The Kubeflow Community plans to deliver its v1.7 release in March 2023, per this [timeline](https://github.com/kubeflow/community/pull/573).   The high level deliveries are being tracked in this [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1).   The v1.7 release process will be managed by the v1.7 [Release Team](https://github.com/kubeflow/internal-acls/pull/576) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md)
