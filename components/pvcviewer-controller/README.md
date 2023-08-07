@@ -55,10 +55,10 @@ You may change the defaults by having the manager mount a config file with defau
 This is especially useful, when you can't control the creation of the `PVCViewer` object, e.g. since it's automatically created by another component such as the volumes UI.
 
 ## How it works
-This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
+This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster 
+It uses [controllers](https://kubernetes.io/docs/concepts/architecture/controller/) to watch all changes to viewer objects and react accordingly. 
+Technically, this is implemented by the reconcile loop: it syncs resources until the desired state is reached on the cluster.
 
 ## Modifying the API definitions
 If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
