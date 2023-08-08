@@ -54,14 +54,6 @@ jobs:
         username: ${{ secrets.DEV_REGISTRY_USERNAME }}
         password: ${{ secrets.DEV_REGISTRY_PASSWORD }}
 
-    - name: Free disk space
-      run: |
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt clean
-        docker rmi $(docker image ls -aq)
-        df -h
-
     # Container build to a Azure Container registry (ACR)
     - name: Docker build
       run: |
