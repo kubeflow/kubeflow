@@ -1,3 +1,6 @@
+template(is='dom-if', if='[[securityMessages.length]]')
+    div.security-messages
+        security-messages-card(messages='[[securityMessages]]')
 div#grid
     .column
         paper-card#Quick-Links(heading="{{localize('dashboardView.headingQuickLinks')}}")

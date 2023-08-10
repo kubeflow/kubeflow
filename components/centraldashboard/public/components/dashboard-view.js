@@ -13,6 +13,7 @@ import template from './dashboard-view.pug';
 import './card-styles.js';
 import './iframe-link.js';
 import './notebooks-card.js';
+import './security-messages-card.js';
 import './pipelines-card.js';
 import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
@@ -36,6 +37,7 @@ export class DashboardView extends utilitiesMixin(localizationMixin(PolymerEleme
         return {
             documentationItems: Array,
             quickLinks: Array,
+            securityMessages: Array,
             namespace: {
                 type: Object,
                 observer: '_namespaceChanged',
