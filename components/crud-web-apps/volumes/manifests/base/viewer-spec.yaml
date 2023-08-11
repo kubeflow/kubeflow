@@ -27,8 +27,13 @@ podSpec:
       # viewer-volume is provided automatically by the volumes web app
       volumeMounts:
         - name: viewer-volume
-          mountPath: /data
-      workingDir: /data
+          mountPath: /srv
+      workingDir: /srv
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
   volumes:
     - name: viewer-volume
       persistentVolumeClaim:
