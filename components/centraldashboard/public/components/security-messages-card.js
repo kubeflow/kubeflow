@@ -34,6 +34,7 @@ export class SecurityMessagesCard extends localizationMixin(PolymerElement) {
 
             .card-icon {
                 margin-right: 10px;
+                align-self: center;
             }
         </style>
         <paper-card>
