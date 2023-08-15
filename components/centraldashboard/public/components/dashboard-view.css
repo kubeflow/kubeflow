@@ -23,6 +23,11 @@
     margin: 0 auto;
 }
 
+.security-messages {
+    width: 80%;
+    margin: 0 auto;
+}
+
 .column {
     grid-row: 1;
     min-width: 320px;

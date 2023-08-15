@@ -99,7 +99,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
                     dashboard-view(namespace='[[queryParams.ns]]',
-                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]')
+                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]', security-messages='[[securityMessages]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')

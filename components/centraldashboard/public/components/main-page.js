@@ -88,6 +88,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
                 type: Array,
                 value: [],
             },
+            securityMessages: {
+                type: Array,
+                value: [],
+            },
             errorText: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
@@ -183,11 +187,13 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             externalLinks,
             quickLinks,
             documentationItems,
+            securityMessages,
         } = ev.detail.response;
         this.menuLinks = menuLinks || [];
         this.externalLinks = externalLinks || [];
         this.quickLinks = quickLinks || [];
         this.documentationItems = documentationItems || [];
+        this.securityMessages = securityMessages || [];
     }
 
     /**
@@ -282,7 +288,6 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
                 this.page = 'namespace_needed';
             } else if (newPage === 's3') { // AAW Customization
                 // eslint-disable-next-line no-console
-                console.log(this.namespace);
                 this.page = 's3proxy';
             } else {
                 this.page = 'not_found';

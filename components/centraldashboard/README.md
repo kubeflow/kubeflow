@@ -36,11 +36,12 @@ Make sure you have the latest LTS version of `node` installed along with `npm`.
 1. Clone the repository and change directories to `components/centraldashboard`
 2. Run `make build-local`. This will install all of the project dependencies and
    prepare your system for development.
-3. To start a development environment, run `npm run dev`.
+3. To start a development environment, run `npm run dev`. It can then be accessed at `localhost:8080`.
     - This runs [webpack](https://webpack.js.org/) over the front-end code in
       the [public](./public) folder and starts the
       [webpack-dev-server](https://webpack.js.org/configuration/dev-server/) at
       http://localhost:8081.
+    - You will also need to run `kubectl port-forward services/profiles-kfam -n kubeflow 8081`. This is to access the KFAM component.
     - It also starts the Express API server at http://localhost:8082. Requests
       from the front-end starting with `/api` are proxied to the Express
       server. All other requests are handled by the front-end server which
