@@ -21,7 +21,7 @@ spec:
         - name: APP_SECURE_COOKIES
           value: $(VWA_APP_SECURE_COOKIES)
         - name: VOLUME_VIEWER_IMAGE
-          value: filebrowser/filebrowser:latest
+          value: filebrowser/filebrowser:v2.24.2
         volumeMounts: 
         - name: viewer-spec
           mountPath: /etc/config/viewer-spec.yaml
