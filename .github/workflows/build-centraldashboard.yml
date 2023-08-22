@@ -61,7 +61,6 @@ jobs:
           --build-arg commit=$(git rev-parse HEAD) \
           components/centraldashboard/
         docker push localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
-        docker rmi localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
         docker image prune
 
     # Scan image for vulnerabilities
@@ -69,6 +68,16 @@ jobs:
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${{ env.TRIVY_VERSION }}
         trivy image localhost:5000/kubeflow/centraldashboard:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
+
+    # Run Dockle
+    - name: Run dockle
+      uses: goodwithtech/dockle-action@main
+      with:
+        image: localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
+        format: 'list'
+        exit-code: '0'
+        exit-level: 'fatal'
+        ignore: 'DKL-DI-0006'
 
     # Pushes if this is a push to master or an update to a PR that has auto-deploy label
     - name: Test if we should push to ACR

@@ -61,13 +61,22 @@ jobs:
           -t localhost:5000/kubeflow/kfam:${{ github.sha }} \
           components/access-management/
         docker push localhost:5000/kubeflow/kfam:${{ github.sha }}
-        docker rmi localhost:5000/kubeflow/kfam:${{ github.sha }}
         docker image prune
     # Scan image for vulnerabilities
     - name: Aqua Security Trivy image scan
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${{ env.TRIVY_VERSION }}
-        trivy imagelocalhost:5000/kubeflow/kfam:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
+        trivy image localhost:5000/kubeflow/kfam:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
+    
+    # Run Dockle
+    - name: Run dockle
+      uses: goodwithtech/dockle-action@main
+      with:
+        image: localhost:5000/kubeflow/kfam:${{ github.sha }}
+        format: 'list'
+        exit-code: '0'
+        exit-level: 'fatal'
+        ignore: 'DKL-DI-0006'
 
     # Pushes if this is a push to master or an update to a PR that has auto-deploy label
     - name: Test if we should push to ACR
