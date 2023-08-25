@@ -158,7 +158,7 @@
         "socket.io-parser": "4.2.3",
         "sockjs": "0.3.20",
         "y18n": "4.0.1",
-        "protobufjs": "6.11.3",
+        "protobufjs": "6.11.4",
         "ssri": "6.0.2",
         "browserslist": "4.16.5",
         "engine.io": "6.4.2",
