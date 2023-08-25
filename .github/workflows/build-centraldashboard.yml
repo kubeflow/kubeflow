@@ -10,6 +10,8 @@ on:
       - 'opened'
       - 'synchronize'
       - 'reopened'
+  schedule: 
+    - cron: '0 22 * * *'
 # Environment variables available to all jobs and steps in this workflow
 env:
   REGISTRY_NAME: k8scc01covidacr
@@ -17,6 +19,7 @@ env:
   CLUSTER_NAME: k8s-cancentral-02-covid-aks
   CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
   TRIVY_VERSION: "v0.43.1"
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   build-push:
@@ -96,3 +99,10 @@ jobs:
         docker pull localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
         docker tag localhost:5000/kubeflow/centraldashboard:${{ github.sha }} ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
         docker push ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
+
+    - name: Slack Notification
+      if: failure() && github.event_name=='schedule'
+      uses: act10ns/slack@v1
+      with: 
+        status: failure
+        message: kubeflow build failed. https://github.com/StatCan/kubeflow/actions/runs/${{github.run_id}}
