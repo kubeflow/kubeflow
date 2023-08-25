@@ -17,12 +17,12 @@ export class LogoutButton extends PolymerElement {
                 </iron-icon>
             </paper-button>
             <iron-ajax
-                    id='logout'
-                    url$='{{logoutUrl}}'
-                    method='post'
-                    handle-as='json'
-                    headers='{{headers}}'
-                    on-response='_postLogout'>
+                id='logout'
+                url$='{{logoutUrl}}'
+                method='post'
+                handle-as='json'
+                headers='{{headers}}'
+                on-response='_postLogout'>
             </iron-ajax>
         `;
     }
