@@ -202,10 +202,11 @@ export class NamespaceSelector extends localizationMixin(PolymerElement) {
 
         const owned = this.getDefaultNamespace();
 
-        if (selected === ALL_NAMESPACES
-            && allNamespacesAllowedPaths.includes(this.route.path)) {
-            return;
-        }
+        // Disable all-namespaces selector for AAW
+        // if (selected === ALL_NAMESPACES
+        //     && allNamespacesAllowedPaths.includes(this.route.path)) {
+        //     return;
+        // }
 
         let newNamespace = '';
         if (owned && owned.namespace) {
