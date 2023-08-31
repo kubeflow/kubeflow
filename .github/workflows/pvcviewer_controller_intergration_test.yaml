@@ -7,6 +7,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMG: pvcviewer-controller
   TAG: intergration-test
@@ -17,15 +21,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      
+
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v2
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Build PVCViewer Controller Image 
+    - name: Build PVCViewer Controller Image
       run: |
+        TAG=${{env.TAG}}
         cd components/pvcviewer-controller
         ARCH=linux/ppc64le make docker-build-multi-arch
         ARCH=linux/amd64 make docker-build-multi-arch
@@ -36,7 +41,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster 
+    - name: Load Images into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
@@ -45,7 +50,7 @@ jobs:
 
     - name: Install Istio
       run: ./components/testing/gh-actions/install_istio.sh
-      
+
     - name: Install cert-manager
       run: ./components/testing/gh-actions/install_cert_manager.sh
 
@@ -54,8 +59,13 @@ jobs:
         cd components/pvcviewer-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_PVCVIEWER_IMG=docker.io/kubeflownotebookswg/pvcviewer-controller:latest
-        export PR_PVCVIEWER_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize build base  | kubectl apply -f -
 
-        kustomize build base | sed "s#$CURRENT_PVCVIEWER_IMG#$PR_PVCVIEWER_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=pvcviewer --for=condition=Ready --timeout=300s
+        DEPLOYMENT=pvcviewer-controller-manager
+        CONTAINER=manager
+
+        IMG=${{env.IMG}}:${{env.TAG}}
+        kubectl patch deployment $DEPLOYMENT -n kubeflow --patch \
+          '{"spec": {"template": {"spec": {"containers": [{"name": "'"$CONTAINER"'","image": "'"$IMG"'"}]}}}}'
+
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s

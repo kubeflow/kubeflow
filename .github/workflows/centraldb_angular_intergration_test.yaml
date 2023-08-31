@@ -7,6 +7,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMG: centraldashboard-angular
   TAG: intergration-test
@@ -20,10 +24,10 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Build CentralDashboard-Angular Image 
+    - name: Build CentralDashboard-Angular Image
       run: |
         cd components/centraldashboard-angular
-        make docker-build 
+        make docker-build
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -31,7 +35,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster 
+    - name: Load Images into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
@@ -49,5 +53,13 @@ jobs:
         export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard-angular:latest
         export PR_CENTRALDB_IMG=${{env.IMG}}:${{env.TAG}}
 
-        kustomize build overlays/kserve | sed "s#$CURRENT_CENTRALDB_IMG#$PR_CENTRALDB_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=centraldashboard-angular --for=condition=Ready --timeout=300s
+        kustomize build overlays/kserve | kubectl apply -f -
+
+        DEPLOYMENT=centraldashboard-angular
+        CONTAINER=centraldashboard-angular
+
+        IMG=${{env.IMG}}:${{env.TAG}}
+        kubectl patch deployment $DEPLOYMENT -n kubeflow --patch \
+          '{"spec": {"template": {"spec": {"containers": [{"name": "'"$CONTAINER"'","image": "'"$IMG"'"}]}}}}'
+
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s

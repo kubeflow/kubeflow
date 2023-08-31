@@ -8,6 +8,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMG: jupyter-web-app
   TAG: intergration-test
@@ -18,18 +22,19 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      
+
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v2
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Build JWA Image 
+    - name: Build JWA Image
       run: |
+        TAG=${{env.TAG}}
         cd components/crud-web-apps/jupyter
         ARCH=linux/ppc64le make docker-build-multi-arch
-        ARCH=linux/amd64 make docker-build-multi-arch 
+        ARCH=linux/amd64 make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -37,7 +42,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Image into KinD Cluster 
+    - name: Load Image into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
@@ -52,8 +57,13 @@ jobs:
         cd components/crud-web-apps/jupyter/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_JWA_IMG=docker.io/kubeflownotebookswg/jupyter-web-app:latest
-        export PR_JWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize build overlays/istio | kubectl apply -f -
 
-        kustomize build overlays/istio | sed "s#$CURRENT_JWA_IMG#$PR_JWA_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=jupyter-web-app --for=condition=Ready --timeout=300s
+        DEPLOYMENT=jupyter-web-app-deployment
+        CONTAINER=jupyter-web-app
+
+        IMG=${{env.IMG}}:${{env.TAG}}
+        kubectl patch deployment $DEPLOYMENT -n kubeflow --patch \
+          '{"spec": {"template": {"spec": {"containers": [{"name": "'"$CONTAINER"'","image": "'"$IMG"'"}]}}}}'
+
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s

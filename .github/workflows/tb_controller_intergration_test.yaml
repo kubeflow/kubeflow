@@ -7,6 +7,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMG: tensorboard-controller
   TAG: intergration-test
@@ -18,10 +22,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Build Tensorboard Controller Image 
+    - name: Build Tensorboard Controller Image
       run: |
+        TAG=${{env.TAG}}
         cd components/tensorboard-controller
-        make docker-build 
+        make docker-build
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -29,7 +34,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster 
+    - name: Load Images into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
@@ -44,8 +49,13 @@ jobs:
         cd components/tensorboard-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_TENSORBOARD_IMG=docker.io/kubeflownotebookswg/tensorboard-controller:latest
-        export export PR_TENSORBOARD_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize build overlays/kubeflow | kubectl apply -f -
 
-        kustomize build overlays/kubeflow | sed "s#$CURRENT_TENSORBOARD_IMG#$PR_TENSORBOARD_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=tensorboard-controller --for=condition=Ready --timeout=300s
+        DEPLOYMENT=tensorboard-controller-deployment
+        CONTAINER=manager
+
+        IMG=${{env.IMG}}:${{env.TAG}}
+        kubectl patch deployment $DEPLOYMENT -n kubeflow --patch \
+          '{"spec": {"template": {"spec": {"containers": [{"name": "'"$CONTAINER"'","image": "'"$IMG"'"}]}}}}'
+
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s

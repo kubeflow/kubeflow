@@ -7,9 +7,13 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMG: poddefaults-webhook
-  TAG: intergration-test
+  TAG: integration-testing
 
 jobs:
   build:
@@ -17,16 +21,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      
+
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v2
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-
-    - name: Build PodDefaults Image 
+    - name: Build PodDefaults Image
       run: |
+        TAG=${{env.TAG}}
         cd components/admission-webhook
         ARCH=linux/ppc64le make docker-build-multi-arch
         ARCH=linux/amd64 make docker-build-multi-arch
@@ -37,7 +41,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster 
+    - name: Load Images into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
@@ -55,9 +59,13 @@ jobs:
         cd components/admission-webhook/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook:latest
-        export PR_PODDEFAULTS_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize build overlays/cert-manager | kubectl apply -f -
 
+        DEPLOYMENT=admission-webhook-deployment
+        CONTAINER=admission-webhook
 
-        kustomize build overlays/cert-manager | sed "s#$CURRENT_PODDEFAULTS_IMG#$PR_PODDEFAULTS_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=poddefaults --for=condition=Ready --timeout=300s
+        IMG=${{env.IMG}}:${{env.TAG}}
+        kubectl patch deployment $DEPLOYMENT -n kubeflow --patch \
+          '{"spec": {"template": {"spec": {"containers": [{"name": "'"$CONTAINER"'","image": "'"$IMG"'"}]}}}}'
+
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s

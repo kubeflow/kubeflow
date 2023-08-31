@@ -8,6 +8,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMG: tensorboards-web-app
   TAG: intergration-test
@@ -19,10 +23,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Build TWA Image 
+    - name: Build TWA Image
       run: |
+        TAG=${{env.TAG}}
         cd components/crud-web-apps/tensorboards
-        make docker-build 
+        make docker-build
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -30,7 +35,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Image into KinD Cluster 
+    - name: Load Image into KinD Cluster
       run: |
         kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
@@ -45,8 +50,13 @@ jobs:
         cd components/crud-web-apps/tensorboards/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_TWA_IMG=docker.io/kubeflownotebookswg/tensorboards-web-app:latest
-        export PR_TWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize build overlays/istio |  kubectl apply -f -
 
-        kustomize build overlays/istio | sed "s#$CURRENT_TWA_IMG#$PR_TWA_IMG#g" |  kubectl apply -f -
-        kubectl wait pods -n kubeflow -l app=tensorboards-web-app --for=condition=Ready --timeout=300s
+        DEPLOYMENT=tensorboards-web-app-deployment
+        CONTAINER=tensorboards-web-app
+
+        IMG=${{env.IMG}}:${{env.TAG}}
+        kubectl patch deployment $DEPLOYMENT -n kubeflow --patch \
+          '{"spec": {"template": {"spec": {"containers": [{"name": "'"$CONTAINER"'","image": "'"$IMG"'"}]}}}}'
+
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s
