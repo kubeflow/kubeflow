@@ -64,10 +64,21 @@ jobs:
         cd components/profile-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_PROFILE_IMG=docker.io/kubeflownotebookswg/profile-controller:latest
-        export CURRENT_KFAM_IMG=docker.io/kubeflownotebookswg/kfam:latest
-        export PR_PROFILE_IMG="${PROFILE_IMG}:${TAG}"
-        export PR_KFAM_IMG="${KFAM_IMG}:${TAG}"
+        export CURRENT_PROFILE_IMAGE="docker.io/kubeflownotebookswg/${PROFILE_IMG}"
+        export PR_PROFILE_IMAGE="${PROFILE_IMG}:${TAG}"
 
-        kustomize build overlays/kubeflow | sed "s#$CURRENT_PROFILE_IMG#$PR_PROFILE_IMG#g" | sed "s#$CURRENT_KFAM_IMG#$PR_KFAM_IMG#g" | kubectl apply -f -
+        export CURRENT_KFAM_IMAGE="docker.io/kubeflownotebookswg/${KFAM_IMG}"
+        export PR_KFAM_IMAGE="${KFAM_IMG}:${TAG}"
+
+        # escape "." in the image names, as it is a special characters in sed
+        export CURRENT_PROFILE_IMAGE=$(echo "$CURRENT_PROFILE_IMAGE" | sed 's|\.|\\.|g')
+        export PR_PROFILE_IMAGE=$(echo "$PR_PROFILE_IMAGE" | sed 's|\.|\\.|g')
+        export CURRENT_KFAM_IMAGE=$(echo "$CURRENT_KFAM_IMAGE" | sed 's|\.|\\.|g')
+        export PR_KFAM_IMAGE=$(echo "$PR_KFAM_IMAGE" | sed 's|\.|\\.|g')
+
+        kustomize build overlays/kubeflow \
+          | sed "s|${CURRENT_PROFILE_IMAGE}:[a-zA-Z0-9_.-]*|${PR_PROFILE_IMAGE}|g" \
+          | sed "s|${CURRENT_KFAM_IMAGE}:[a-zA-Z0-9_.-]*|${PR_KFAM_IMAGE}|g" \
+          | kubectl apply -f -
+
         kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s

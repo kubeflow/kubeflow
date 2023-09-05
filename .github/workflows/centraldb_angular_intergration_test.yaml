@@ -50,8 +50,15 @@ jobs:
         cd components/centraldashboard-angular/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_CENTRALDB_IMG=docker.io/kubeflownotebookswg/centraldashboard-angular:latest
-        export PR_CENTRALDB_IMG="${IMG}:${TAG}"
+        export CURRENT_IMAGE="docker.io/kubeflownotebookswg/${IMG}"
+        export PR_IMAGE="${IMG}:${TAG}"
 
-        kustomize build overlays/kserve | sed "s#$CURRENT_CENTRALDB_IMG#$PR_CENTRALDB_IMG#g" | kubectl apply -f -
+        # escape "." in the image names, as it is a special characters in sed
+        export CURRENT_IMAGE=$(echo "$CURRENT_IMAGE" | sed 's|\.|\\.|g')
+        export PR_IMAGE=$(echo "$PR_IMAGE" | sed 's|\.|\\.|g')
+
+        kustomize build overlays/kserve \
+          | sed "s|${CURRENT_IMAGE}:[a-zA-Z0-9_.-]*|${PR_IMAGE}|g" \
+          | kubectl apply -f -
+
         kubectl wait pods -n kubeflow -l app=centraldashboard-angular --for=condition=Ready --timeout=300s
