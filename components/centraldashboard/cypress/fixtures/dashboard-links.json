@@ -1,0 +1,43 @@
+{
+  "menuLinks": [
+    {
+      "type": "item",
+      "link": "/en/",
+      "text": "Notebooks",
+      "icon": "book"
+    }
+  ],
+  "externalLinks": [],
+  "quickLinks": [
+    {
+      "text": "Create a new Notebook server",
+      "desc": "Notebook Servers",
+      "link": "/en/new?ns={ns}"
+    }
+  ],
+  "documentationItems": [
+    {
+      "text": "Advanced Analytics Workspace Docs",
+      "desc": "Helpful guides about our data and analysis tools",
+      "link": "https://statcan.github.io/aaw/"
+    },
+    {
+      "text": "Video Tutorial Series",
+      "desc": "YouTube playlist of videos for getting started with Advanced Analytics Workspace tools",
+      "link": "https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD"
+    },
+    {
+      "text": "Community Chat",
+      "desc": "Slack workspace for discussion/support - requires sign-up for emails outside @canada.ca",
+      "link": "https://statcan-aaw.slack.com/"
+    },
+    {
+      "text": "Official Kubeflow Docs",
+      "desc": "Advanced documentation for installing, running, and using Kubeflow",
+      "link": "https://www.kubeflow.org/docs/"
+    }
+  ],
+  "securityMessages": [
+    "Statistics Canada networks are routinely monitored to ensure user compliance with the DAS Terms and Conditions. Inappropriate or unauthorized use of DAS will result in removal of all privileges and access to the DAS environments."
+  ]
+}

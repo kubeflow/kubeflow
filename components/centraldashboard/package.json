@@ -92,6 +92,7 @@
         "core-js": "^2.6.9",
         "cross-env": "^5.2.1",
         "css-loader": "^2.1.1",
+        "cypress": "^10.10.0",
         "eslint": "^5.16.0",
         "eslint-config-google": "^0.12.0",
         "eslint-loader": "^2.2.1",
@@ -167,6 +168,7 @@
         "webpack-dev-server": {
             "yargs": "13.1.0"
         },
-        "ws@6.2.1": "6.2.2"
+        "ws@6.2.1": "6.2.2",
+        "google-gax": "2.30.5"
     }
 }

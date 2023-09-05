@@ -1,0 +1,6 @@
+{
+  "hasAuth":true,
+  "user":"user.name",
+  "hasWorkgroup":true,
+  "registrationFlowAllowed":true
+}

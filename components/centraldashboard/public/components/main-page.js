@@ -44,10 +44,6 @@ import './iframe-container.js';
 import './logout-button.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
-import {
-    ALL_NAMESPACES_ALLOWED_LIST, ALL_NAMESPACES,
-} from './namespace-selector';
-
 
 /**
  * Entry point for application UI.
@@ -309,7 +305,6 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         if (!isIframe) {
             this.iframeSrc = 'about:blank';
         }
-        this._enableAllNamespaceOption();
     }
 
     _namespaceChanged(namespace) {
@@ -527,35 +522,8 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         }
         // trigger template render
         this.menuLinks = JSON.parse(JSON.stringify(this.menuLinks));
-        this._enableAllNamespaceOption();
     }
 
-    _enableAllNamespaceOption(iframeSrc) {
-        if (!iframeSrc) {
-            iframeSrc = this.iframeSrc;
-        }
-        if (!this.namespaces) {
-            return;
-        }
-        const allNamespaces = {
-            namespace: ALL_NAMESPACES,
-            role: '',
-            user: '',
-            disabled: true,
-        };
-        const namespaces = this.namespaces.filter(
-            (ns) => ns.namespace !== ALL_NAMESPACES
-        );
-
-        const allowedUIs = ALL_NAMESPACES_ALLOWED_LIST
-            .map((ui) => new URL(ui, window.location.origin).toString());
-
-        if (allowedUIs.find((ui)=>iframeSrc.startsWith(ui))) {
-            allNamespaces.disabled = false;
-        }
-
-        this.namespaces = [allNamespaces, ...namespaces];
-    }
 
     _showManageUsers(isolationMode, ownedNamespace) {
         return isolationMode==='multi-user'

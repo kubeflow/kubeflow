@@ -1,0 +1,22 @@
+{
+  "user": "user.name@cloud.statcan.ca",
+  "platform": {
+    "kubeflowVersion": "v1beta1",
+    "provider": "test_provider",
+    "providerName": "azure",
+    "logoutUrl": "/logout"
+  },
+  "namespaces": [
+    {
+      "user": "user.name@cloud.statcan.ca",
+      "namespace": "test-namespace-2",
+      "role": "contributor"
+    },
+    {
+      "user": "user.name@cloud.statcan.ca",
+      "namespace": "test-namespace",
+      "role": "owner"
+    }
+  ],
+  "isClusterAdmin": false
+}
