@@ -7,6 +7,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
 env:
   IMG: poddefaults-webhook
   TAG: intergration-test
@@ -39,7 +43,7 @@ jobs:
 
     - name: Load Images into KinD Cluster 
       run: |
-        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+        kind load docker-image "${IMG}:${TAG}"
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -56,7 +60,7 @@ jobs:
         kubectl create ns kubeflow
 
         export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook:latest
-        export PR_PODDEFAULTS_IMG=${{env.IMG}}:${{env.TAG}}
+        export PR_PODDEFAULTS_IMG="${IMG}:${TAG}"
 
 
         kustomize build overlays/cert-manager | sed "s#$CURRENT_PODDEFAULTS_IMG#$PR_PODDEFAULTS_IMG#g" | kubectl apply -f -

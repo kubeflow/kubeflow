@@ -8,6 +8,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
 env:
   PROFILE_IMG: profile-controller
   KFAM_IMG: kfam
@@ -29,14 +33,14 @@ jobs:
     - name: Build Profile Controller Image 
       run: |
         cd components/profile-controller
-        ARCH=linux/ppc64le make docker-build-multi-arch IMG=${{env.PROFILE_IMG}}
-        ARCH=linux/amd64 make docker-build-multi-arch IMG=${{env.PROFILE_IMG}}
+        ARCH=linux/ppc64le make docker-build-multi-arch IMG="${PROFILE_IMG}"
+        ARCH=linux/amd64 make docker-build-multi-arch IMG="${PROFILE_IMG}"
 
     - name: Build Kfam Image
       run: |
         cd components/access-management
-        ARCH=linux/ppc64le make docker-build-multi-arch IMG=${{env.KFAM_IMG}}
-        ARCH=linux/amd64 make docker-build-multi-arch IMG=${{env.KFAM_IMG}}
+        ARCH=linux/ppc64le make docker-build-multi-arch IMG="${KFAM_IMG}"
+        ARCH=linux/amd64 make docker-build-multi-arch IMG="${KFAM_IMG}"
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -46,8 +50,8 @@ jobs:
 
     - name: Load Images into KinD Cluster 
       run: |
-        kind load docker-image ${{env.PROFILE_IMG}}:${{env.TAG}}
-        kind load docker-image ${{env.KFAM_IMG}}:${{env.TAG}}
+        kind load docker-image "${PROFILE_IMG}:${TAG}"
+        kind load docker-image "${KFAM_IMG}:${TAG}"
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -62,8 +66,8 @@ jobs:
 
         export CURRENT_PROFILE_IMG=docker.io/kubeflownotebookswg/profile-controller:latest
         export CURRENT_KFAM_IMG=docker.io/kubeflownotebookswg/kfam:latest
-        export PR_PROFILE_IMG=${{env.PROFILE_IMG}}:${{env.TAG}}
-        export PR_KFAM_IMG=${{env.KFAM_IMG}}:${{env.TAG}}
+        export PR_PROFILE_IMG="${PROFILE_IMG}:${TAG}"
+        export PR_KFAM_IMG="${KFAM_IMG}:${TAG}"
 
         kustomize build overlays/kubeflow | sed "s#$CURRENT_PROFILE_IMG#$PR_PROFILE_IMG#g" | sed "s#$CURRENT_KFAM_IMG#$PR_KFAM_IMG#g" | kubectl apply -f -
         kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s

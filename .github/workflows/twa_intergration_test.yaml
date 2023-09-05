@@ -8,6 +8,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
 env:
   IMG: tensorboards-web-app
   TAG: intergration-test
@@ -32,7 +36,7 @@ jobs:
 
     - name: Load Image into KinD Cluster 
       run: |
-        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+        kind load docker-image "${IMG}:${TAG}"
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -46,7 +50,7 @@ jobs:
         kubectl create ns kubeflow
 
         export CURRENT_TWA_IMG=docker.io/kubeflownotebookswg/tensorboards-web-app:latest
-        export PR_TWA_IMG=${{env.IMG}}:${{env.TAG}}
+        export PR_TWA_IMG="${IMG}:${TAG}"
 
         kustomize build overlays/istio | sed "s#$CURRENT_TWA_IMG#$PR_TWA_IMG#g" |  kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=tensorboards-web-app --for=condition=Ready --timeout=300s

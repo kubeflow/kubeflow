@@ -7,6 +7,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
 env:
   IMG: tensorboard-controller
   TAG: intergration-test
@@ -31,7 +35,7 @@ jobs:
 
     - name: Load Images into KinD Cluster 
       run: |
-        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+        kind load docker-image "${IMG}:${TAG}"
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -45,7 +49,7 @@ jobs:
         kubectl create ns kubeflow
 
         export CURRENT_TENSORBOARD_IMG=docker.io/kubeflownotebookswg/tensorboard-controller:latest
-        export export PR_TENSORBOARD_IMG=${{env.IMG}}:${{env.TAG}}
+        export export PR_TENSORBOARD_IMG="${IMG}:${TAG}"
 
         kustomize build overlays/kubeflow | sed "s#$CURRENT_TENSORBOARD_IMG#$PR_TENSORBOARD_IMG#g" | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=tensorboard-controller --for=condition=Ready --timeout=300s
