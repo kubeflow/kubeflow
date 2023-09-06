@@ -45,12 +45,12 @@ type KfamV1Alpha1Interface interface {
 type KfamV1Alpha1Client struct {
 	profileClient ProfileInterface
 	bindingClient BindingInterface
-	clusterAdmin  []string
+	clusterAdmins  []string
 	userIdHeader  string
 	userIdPrefix  string
 }
 
-func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string) (*KfamV1Alpha1Client, error) {
+func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmins []string) (*KfamV1Alpha1Client, error) {
 	profileRESTClient, err := getRESTClient(profileRegister.GroupName, profileRegister.GroupVersion)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 			kubeClient:        kubeClient,
 			roleBindingLister: roleBindingLister,
 		},
-		clusterAdmin: []string{clusterAdmin},
+		clusterAdmins: clusterAdmins,
 		userIdHeader: userIdHeader,
 		userIdPrefix: userIdPrefix,
 	}, nil
@@ -291,7 +291,7 @@ func (c *KfamV1Alpha1Client) getUserEmail(header http.Header) string {
 }
 
 func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
-	for _, val := range c.clusterAdmin {
+	for _, val := range c.clusterAdmins {
 		if val == queryUser {
 			return true
 		}
@@ -299,7 +299,7 @@ func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
 	return false
 }
 
-//isOwnerOrAdmin return true if queryUser is cluster admin or profile owner
+// isOwnerOrAdmin return true if queryUser is cluster admin or profile owner
 func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string) bool {
 	isAdmin := c.isClusterAdmin(queryUser)
 	prof, err := c.profileClient.Get(profileName, metav1.GetOptions{})

@@ -13,6 +13,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -37,16 +38,16 @@ func main() {
 	log.Printf("Server started")
 	var userIdHeader string
 	var userIdPrefix string
-	var clusterAdmin string
+	var clusterAdmins string
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
-	flag.StringVar(&clusterAdmin, CLUSTERADMIN, "", "cluster admin")
+	flag.StringVar(&clusterAdmins, CLUSTERADMIN, "", "cluster admin")
 	flag.Parse()
 
 	profile.AddToScheme(scheme.Scheme)
 	istioSecurityClient.AddToScheme(scheme.Scheme)
 
-	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin)
+	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, strings.Split(clusterAdmins, ","))
 	if err != nil {
 		log.Print(err)
 		panic(err)
