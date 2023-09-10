@@ -4,7 +4,6 @@ import { Config, NotebookFormObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
 import {
   NamespaceService,
-  SnackBarConfig,
   SnackBarService,
   SnackType,
 } from 'kubeflow';
