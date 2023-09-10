@@ -43,7 +43,7 @@ export class IframeContainer extends PolymerElement {
      */
     ready() {
         super.ready();
-        this._iframeOrigin = null;
+        this._iframeOrigin = '*';
         this._messageListener = this._onMessageReceived.bind(this);
         window.addEventListener(MESSAGE, this._messageListener);
 
@@ -93,7 +93,7 @@ export class IframeContainer extends PolymerElement {
         this.$.iframe.contentWindow.postMessage({
             type: NAMESPACE_SELECTED_EVENT,
             value: this.namespace,
-        }, this._iframeOrigin);
+        }, '*');
     }
 
     /**
@@ -108,7 +108,7 @@ export class IframeContainer extends PolymerElement {
             this.$.iframe.contentWindow.postMessage({
                 type: PARENT_CONNECTED_EVENT,
                 value: null,
-            }, origin);
+            }, '*');
             this._sendNamespaceMessage();
             break;
         }

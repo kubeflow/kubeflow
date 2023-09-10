@@ -1,11 +1,11 @@
 h1 Manage Contributors
-iron-ajax#RemoveContribAjax(method='DELETE', url='/api/workgroup/remove-contributor/[[ownedNamespace.namespace]]',
+iron-ajax#RemoveContribAjax(method='DELETE', url='/dashboard/api/workgroup/remove-contributor/[[ownedNamespace.namespace]]',
     on-response='handleContribDelete', on-error='handleContribDelete', handle-as='json', content-type='application/json')
-iron-ajax#AddContribAjax(method='POST', url='/api/workgroup/add-contributor/[[ownedNamespace.namespace]]',
+iron-ajax#AddContribAjax(method='POST', url='/dashboard/api/workgroup/add-contributor/[[ownedNamespace.namespace]]',
     on-response='handleContribCreate', on-error='handleContribCreate', handle-as='json', content-type='application/json')
-iron-ajax#GetContribsAjax(auto='[[!empty(ownedNamespace)]]', url='/api/workgroup/get-contributors/[[ownedNamespace.namespace]]',
+iron-ajax#GetContribsAjax(auto='[[!empty(ownedNamespace)]]', url='/dashboard/api/workgroup/get-contributors/[[ownedNamespace.namespace]]',
     last-response='{{contributorList}}', on-error='onContribFetchError', handle-as='json')
-iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin)]]', url='/api/workgroup/get-all-namespaces',
+iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin)]]', url='/dashboard/api/workgroup/get-all-namespaces',
     last-response='{{allNamespaces}}', on-error='onAllNamespaceFetchError', handle-as='json')
 section#Main-Content
     article.Acct-Info
