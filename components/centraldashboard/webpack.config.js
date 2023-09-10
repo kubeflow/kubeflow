@@ -60,9 +60,9 @@ module.exports = {
         dashboard_lib: resolve(SRC, 'library.js'),
     },
     output: {
-        filename: 'dashboard/[name].bundle.js',
+        filename: '[name].bundle.js',
         path: DESTINATION,
-        library: 'dashboard',
+        library: 'centraldashboard',
         libraryTarget: 'umd',
         publicPath: "dashboard",
     },
