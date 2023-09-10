@@ -1,5 +1,4 @@
 import { Subscription, ReplaySubject, interval, timer } from 'rxjs';
-import { first } from 'rxjs/operators';
 
 export interface BackoffConfig {
   retries?: number;
