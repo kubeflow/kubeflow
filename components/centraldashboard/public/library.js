@@ -41,7 +41,7 @@ class CentralDashboardEventHandler_ {
         } else if (this.isIframed) {
             this._attachListenerToDashboard();
         } else if (!disableForceIframe) {
-            fetch('/api/dashboard-settings')
+            fetch('/dashboard/api/dashboard-settings')
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.DASHBOARD_FORCE_IFRAME) {

@@ -1,10 +1,11 @@
-iron-ajax(auto, url='/api/workgroup/exists', handle-as='json',
+iron-ajax(auto, url='/dashboard/api/workgroup/exists', handle-as='json',
     on-response='_onHasWorkgroupResponse', on-error='_onHasWorkgroupError', loading='{{pageLoading}}')
-iron-ajax(auto, url='/api/metrics', handle-as='json',
+iron-ajax(auto, url='/dashboard/api/metrics', handle-as='json',
     last-response='{{metrics}}', loading='{{pageLoading}}')
-iron-ajax(auto, url='/api/dashboard-links', handle-as='json',
+iron-ajax(auto, url='/dashboard/api/dashboard-links', handle-as='json',
+iron-ajax(auto, url='/dashboard/api/dashboard-links', handle-as='json',
     on-response='_onHasDashboardLinksResponse', on-error='_onHasDashboardLinksError', loading='{{pageLoading}}')
-iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', handle-as='json',
+iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/dashboard/api/workgroup/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
@@ -13,13 +14,13 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
     app-location(route='{{routeHash}}', use-hash-as-path)
-    app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
+    app-route(route='{{route}}', pattern='/dashboard/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
         div.flex.scrollable
-            a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
+            a(href$='[[_buildHref("/dashboard/", queryParams.*)]]', tabindex='-1')
                 paper-item.menu-item#home
                     iron-icon(icon='home')
                     | Home
@@ -51,7 +52,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                             | [[item.text]]
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
-                a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
+                a(href$='[[_buildHref("/dashboard/manage-users", queryParams.*)]]', tabindex='-1')
                     paper-item.menu-item#contributors Manage Contributors
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
@@ -89,7 +90,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') Dashboard
+                        a.link(tabindex='-1', href$='[[_buildHref("/dashboard/", queryParams.*)]]') Dashboard
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') Activity
             neon-animated-pages(selected='[[page]]', attr-for-selected='page',

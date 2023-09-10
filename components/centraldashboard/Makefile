@@ -44,4 +44,3 @@ docker-build-push-multi-arch: ## Build multi-arch docker images with docker buil
 push: build
 	gcloud docker -- push $(IMG):$(TAG)
 	@echo Pushed $(IMG) with  :$(TAG) tags
-

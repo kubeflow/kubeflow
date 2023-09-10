@@ -22,7 +22,7 @@ const PKG_VERSION =
 const BUILD_VERSION = process.env.BUILD_VERSION || `dev_local`;
 const SRC = resolve(__dirname, 'public');
 const COMPONENTS = resolve(SRC, 'components');
-const DESTINATION = resolve(__dirname, 'dist', 'public');
+const DESTINATION = resolve(__dirname, 'dist', 'public', "dashboard");
 const WEBCOMPONENTS = './node_modules/@webcomponents/webcomponentsjs';
 const POLYFILLS = [
     {
@@ -60,10 +60,11 @@ module.exports = {
         dashboard_lib: resolve(SRC, 'library.js'),
     },
     output: {
-        filename: '[name].bundle.js',
+        filename: 'dashboard/[name].bundle.js',
         path: DESTINATION,
-        library: 'centraldashboard',
+        library: 'dashboard',
         libraryTarget: 'umd',
+        publicPath: "dashboard",
     },
     devtool: 'cheap-source-map',
     module: {
@@ -192,9 +193,9 @@ module.exports = {
         }),
     ],
     devServer: {
-        port: 8080,
+        port: 9090,
         proxy: {
-            '/api': 'http://localhost:8082',
+            '/dashboard/api': 'http://localhost:8082',
             '/jupyter': {
                 target: 'http://localhost:8085',
                 pathRewrite: {'^/jupyter': ''},
