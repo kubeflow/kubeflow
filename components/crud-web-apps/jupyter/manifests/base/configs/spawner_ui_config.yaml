@@ -42,10 +42,17 @@ spawnerFormDefaults:
     # The annotation `notebooks.kubeflow.org/http-headers-request-set`
     # is applied to notebook in this group, configuring Istio
     # to add the `X-RStudio-Root-Path` header to requests
+<<<<<<< HEAD
     value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:v1.5.0
     # The list of available standard container Images
     options:
     - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:v1.5.0
+=======
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:v1.5.0-rc.2
+    # The list of available standard container Images
+    options:
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:v1.5.0-rc.2
+>>>>>>> e6e5d985 (releasing: Create v1.5.0-rc.2 images (#6394))
   # If true, hide registry and/or tag name in the image selection dropdown
   hideRegistry: true
   hideTag: false

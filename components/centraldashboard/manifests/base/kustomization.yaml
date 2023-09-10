@@ -18,7 +18,11 @@ commonLabels:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/central-dashboard
   newName: public.ecr.aws/j1r0q0g6/notebooks/central-dashboard
+<<<<<<< HEAD
   newTag: v1.5.0
+=======
+  newTag: v1.5.0-rc.2
+>>>>>>> e6e5d985 (releasing: Create v1.5.0-rc.2 images (#6394))
 configMapGenerator:
 - envs:
   - params.env
