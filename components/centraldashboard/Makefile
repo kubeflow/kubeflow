@@ -1,5 +1,25 @@
-IMG ?= centraldashboard
-TAG ?= $(shell git describe --tags --always --dirty)
+# Project used with GCB
+PROJECT ?= kubeflow-dev
+# Registry where the image should be published
+REGISTRY_PROJECT ?= kubeflow-dev
+KUBEFLOWVERSION ?= 0.7.0
+
+IMG ?= gcr.io/$(REGISTRY_PROJECT)/centraldashboard
+
+# List any changed  files. We only include files in the notebooks directory.
+# because that is the code in the docker image.
+# In particular we exclude changes to the ksonnet configs.
+CHANGED_FILES := $(shell git diff-files --relative=components/centraldashboard)
+
+ifeq ($(strip $(CHANGED_FILES)),)
+# Changed files is empty; not dirty
+# Don't include --dirty because it could be dirty if files outside the ones we care
+# about changed.
+GIT_VERSION := $(shell git describe --tags --long)
+else
+GIT_VERSION := $(shell git describe --tags --long)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
+endif
+
 COMMIT = $(shell git rev-parse HEAD)
 DOCKERFILE ?= Dockerfile
 ARCH ?= linux/amd64
@@ -42,5 +62,9 @@ docker-build-push-multi-arch: ## Build multi-arch docker images with docker buil
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build
-	gcloud docker -- push $(IMG):$(TAG)
+	docker -- push $(IMG):$(TAG)
 	@echo Pushed $(IMG) with  :$(TAG) tags
+
+push-latest: push
+	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
+	echo created $(IMG):latest
