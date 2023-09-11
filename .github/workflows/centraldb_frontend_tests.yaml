@@ -3,9 +3,10 @@ on:
   pull_request:
     paths:
       - components/centraldashboard/**
-    branches:
-      - master
-      - v*-branch
+    types:
+      - 'opened'
+      - 'synchronize'
+      - 'reopened'
 
 jobs:
   frontend-tests:
@@ -15,10 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup node version to 12
+      - name: Setup node version to 16
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
@@ -28,5 +29,20 @@ jobs:
       - name: Run frontend tests
         run: |
           cd components/centraldashboard
-          npm install
+          npm i --legacy-peer-deps
           CHROMIUM_BIN=$(which chrome) npm run test
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node version to 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Run UI & run Cypress tests in Chrome and Firefox
+        run: |
+          cd components/centraldashboard
+          npm i --legacy-peer-deps
+          npm run dev & npx wait-on http://localhost:8080
+          npm run ui-test-ci-all

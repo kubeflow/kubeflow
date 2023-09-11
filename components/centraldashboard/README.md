@@ -76,6 +76,9 @@ be named with the suffix `_test.(js|ts)`. For a module named
 Both server and client-side unit tests are written using [Jasmine](https://jasmine.github.io/api/3.3/global).
 Client-side tests are run with Karma using headless Chrome by default.
 
+AAW added cypress for testing client-side tests. The cypress tests can be executed locally by running `npm run ui-test` 
+while the app is running.
+
 #### Code Coverage
 
 To run unit tests and collect coverage, run `npm run coverage`. This will output
