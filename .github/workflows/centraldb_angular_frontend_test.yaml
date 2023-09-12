@@ -4,6 +4,9 @@ on:
     paths:
       - components/centraldashboard-angular/frontend/**
 
+permissions:
+  contents: read
+
 jobs:
   frontend-format-lint-check:
     name: Check code format and lint

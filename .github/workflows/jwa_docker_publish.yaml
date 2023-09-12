@@ -9,6 +9,9 @@ on:
       - components/crud-web-apps/common/**
       - releasing/version/VERSION
 
+permissions:
+  contents: read
+
 env:
   DOCKER_USER: kubeflownotebookswg
   IMG: kubeflownotebookswg/jupyter-web-app

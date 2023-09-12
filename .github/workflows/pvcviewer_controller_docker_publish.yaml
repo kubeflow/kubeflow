@@ -9,6 +9,9 @@ on:
       - components/common/**
       - releasing/version/VERSION
 
+permissions:
+  contents: read
+
 env:
   DOCKER_USER: kubeflownotebookswg
   IMG: kubeflownotebookswg/pvcviewer-controller

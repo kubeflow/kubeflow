@@ -6,6 +6,9 @@ on:
     types: [opened, closed, reopened, transferred, labeled, unlabeled]
     # Issue is created, Issue is closed, Issue added or removed from projects, Labels added/removed
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
