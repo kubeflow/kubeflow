@@ -172,28 +172,33 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		}
 	} else {
 		// Check exising namespace ownership before move forward
-		owner, ok := foundNs.Annotations["owner"]
-		if ok && owner == instance.Spec.Owner.Name {
-			oldLabels := map[string]string{}
-			for k, v := range foundNs.Labels {
-				oldLabels[k] = v
+		ownerMatch := false
+		owners := foundNs.GetOwnerReferences()
+		for _, a := range owners {
+			if a.APIVersion == instance.APIVersion && a.Kind == instance.Kind && a.Name == instance.Name {
+				ownerMatch = true
+				break
 			}
-			setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
-			logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
-			if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
-				err = r.Update(ctx, foundNs)
-				if err != nil {
-					IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
-					logger.Error(err, "error updating namespace label")
-					return reconcile.Result{}, err
-				}
-			}
-		} else {
-			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-				instance.Spec.Owner.Name))
+		}
+		if !ownerMatch {
+			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile %v", instance.Name))
 			IncRequestCounter("reject profile taking over existing namespace")
 			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
-				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
+				"namespace already exist, but not owned by profile %v", instance.Name))
+		}
+		oldLabels := map[string]string{}
+		for k, v := range foundNs.Labels {
+			oldLabels[k] = v
+		}
+		setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
+		logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
+		if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
+			err = r.Update(ctx, foundNs)
+			if err != nil {
+				IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
+				logger.Error(err, "error updating namespace label")
+				return reconcile.Result{}, err
+			}
 		}
 	}
 
