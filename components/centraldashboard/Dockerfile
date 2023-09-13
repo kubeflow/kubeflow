@@ -1,5 +1,5 @@
 # Step 1: Builds and tests
-FROM node:16.20.0-bullseye AS build
+FROM node:16.20.2-bullseye AS build
 
 ARG kubeflowversion
 ARG commit
@@ -24,7 +24,7 @@ RUN BUILDARCH="$(dpkg --print-architecture)" &&  npm rebuild && \
     npm prune --production --legacy-peer-deps
 
 # Step 2: Packages assets for serving
-FROM node:16.20.0-alpine AS serve
+FROM node:16.20.2-alpine AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
