@@ -707,9 +707,15 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 			return err
 		}
 	} else {
+		update := updateAnnotations(&roleBinding.Annotations, &found.Annotations, []string{ROLE, USER})
+
 		if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
 			found.RoleRef = roleBinding.RoleRef
 			found.Subjects = roleBinding.Subjects
+			update = true
+		}
+
+		if update {
 			logger.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
 			err = r.Update(context.TODO(), found)
 			if err != nil {
