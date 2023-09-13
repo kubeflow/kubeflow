@@ -585,8 +585,15 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 			return err
 		}
 	} else {
+
+		update := updateAnnotations(&istioAuth.Annotations, &foundAuthorizationPolicy.Annotations, []string{ROLE, USER})
+
 		if !reflect.DeepEqual(*istioAuth.Spec.DeepCopy(), *foundAuthorizationPolicy.Spec.DeepCopy()) {
 			foundAuthorizationPolicy.Spec = *istioAuth.Spec.DeepCopy()
+			update = true
+		}
+
+		if update {
 			logger.Info("Updating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
 			err = r.Update(context.TODO(), foundAuthorizationPolicy)
