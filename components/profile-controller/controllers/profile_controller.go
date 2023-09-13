@@ -60,6 +60,7 @@ const PROFILEFINALIZER = "profile-finalizer"
 const USER = "user"
 const ROLE = "role"
 const ADMIN = "admin"
+const OWNER = "owner"
 
 // Kubeflow default role names
 // TODO: Make kubeflow roles configurable (krishnadurai)
@@ -126,7 +127,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 	// Update namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
+			Annotations: map[string]string{OWNER: instance.Spec.Owner.Name},
 			// inject istio sidecar to all pods in target namespace by default.
 			Labels: map[string]string{
 				istioInjectionLabel: "enabled",
@@ -186,6 +187,11 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
 				"namespace already exist, but not owned by profile %v", instance.Name))
 		}
+
+		// Update the Namespace owner
+		updateNs := updateAnnotations(&ns.Annotations, &foundNs.Annotations, []string{OWNER})
+
+		// Update the Namespace labels
 		oldLabels := map[string]string{}
 		for k, v := range foundNs.Labels {
 			oldLabels[k] = v
@@ -193,6 +199,10 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
 		logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
 		if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
+			updateNs = true
+		}
+		// Update the Namespace
+		if updateNs {
 			err = r.Update(ctx, foundNs)
 			if err != nil {
 				IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
@@ -336,6 +346,26 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 	}
 	IncRequestCounter("reconcile")
 	return ctrl.Result{}, nil
+}
+
+func updateAnnotations(src *map[string]string, dst *map[string]string, labels []string) bool {
+	updated := false
+	for _, l := range labels {
+		val_src, ok_src := (*src)[l]
+		val_dst, ok_dest := (*dst)[l]
+		if ok_src {
+			if !ok_dest || val_src != val_dst {
+				updated = true
+				(*dst)[l] = val_src
+			}
+		} else {
+			if ok_dest {
+				delete(*dst, l)
+				updated = true
+			}
+		}
+	}
+	return updated
 }
 
 // appendErrorConditionAndReturn append failure status to profile CR and mark Reconcile done. If update condition failed, request will be requeued.
