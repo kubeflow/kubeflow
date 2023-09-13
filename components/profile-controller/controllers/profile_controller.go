@@ -105,7 +105,6 @@ type ProfileReconciler struct {
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("profile", request.NamespacedName)
-	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
 
 	// Fetch the Profile instance
 	instance := &profilev1.Profile{}
@@ -124,92 +123,10 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		return reconcile.Result{}, err
 	}
 
-	// Update namespace
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{OWNER: instance.Spec.Owner.Name},
-			// inject istio sidecar to all pods in target namespace by default.
-			Labels: map[string]string{
-				istioInjectionLabel: "enabled",
-			},
-			Name: instance.Name,
-		},
-	}
-	setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
-	logger.Info("List of labels to be added to namespace", "labels", ns.Labels)
-	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
-		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
-		logger.Error(err, "error setting ControllerReference")
-		return reconcile.Result{}, err
-	}
-	foundNs := &corev1.Namespace{}
-	err = r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			logger.Info("Creating Namespace: " + ns.Name)
-			err = r.Create(ctx, ns)
-			if err != nil {
-				IncRequestErrorCounter("error creating namespace", SEVERITY_MAJOR)
-				logger.Error(err, "error creating namespace")
-				return reconcile.Result{}, err
-			}
-			// wait 15 seconds for new namespace creation.
-			err = backoff.Retry(
-				func() error {
-					return r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
-				},
-				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
-			if err != nil {
-				IncRequestErrorCounter("error namespace create completion", SEVERITY_MAJOR)
-				logger.Error(err, "error namespace create completion")
-				return r.appendErrorConditionAndReturn(ctx, instance,
-					"Owning namespace failed to create within 15 seconds")
-			}
-			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
-		} else {
-			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
-			logger.Error(err, "error reading namespace")
-			return reconcile.Result{}, err
-		}
-	} else {
-		// Check exising namespace ownership before move forward
-		ownerMatch := false
-		owners := foundNs.GetOwnerReferences()
-		for _, a := range owners {
-			if a.APIVersion == instance.APIVersion && a.Kind == instance.Kind && a.Name == instance.Name {
-				ownerMatch = true
-				break
-			}
-		}
-		if !ownerMatch {
-			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile %v", instance.Name))
-			IncRequestCounter("reject profile taking over existing namespace")
-			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
-				"namespace already exist, but not owned by profile %v", instance.Name))
-		}
-
-		// Update the Namespace owner
-		updateNs := updateAnnotations(&ns.Annotations, &foundNs.Annotations, []string{OWNER})
-
-		// Update the Namespace labels
-		oldLabels := map[string]string{}
-		for k, v := range foundNs.Labels {
-			oldLabels[k] = v
-		}
-		setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
-		logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
-		if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
-			updateNs = true
-		}
-		// Update the Namespace
-		if updateNs {
-			err = r.Update(ctx, foundNs)
-			if err != nil {
-				IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
-				logger.Error(err, "error updating namespace label")
-				return reconcile.Result{}, err
-			}
-		}
+	// Update the namespace, owned by profile
+	if err := r.updateNamespace(ctx, instance, logger); err != nil {
+		logger.Error(err, "updateNamespace")
+		return r.appendErrorConditionAndReturn(ctx, instance, err.Error())
 	}
 
 	// Update Istio AuthorizationPolicy
@@ -346,6 +263,97 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 	}
 	IncRequestCounter("reconcile")
 	return ctrl.Result{}, nil
+}
+
+func (r *ProfileReconciler) updateNamespace(ctx context.Context, instance *profilev1.Profile, logger logr.Logger) error {
+	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
+
+	// Update namespace
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{OWNER: instance.Spec.Owner.Name},
+			// inject istio sidecar to all pods in target namespace by default.
+			Labels: map[string]string{
+				istioInjectionLabel: "enabled",
+			},
+			Name: instance.Name,
+		},
+	}
+	setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
+	logger.Info("List of labels to be added to namespace", "labels", ns.Labels)
+	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
+		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
+		logger.Error(err, "error setting ControllerReference")
+		return err
+	}
+	foundNs := &corev1.Namespace{}
+	err := r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("Creating Namespace: " + ns.Name)
+			err = r.Create(ctx, ns)
+			if err != nil {
+				IncRequestErrorCounter("error creating namespace", SEVERITY_MAJOR)
+				logger.Error(err, "error creating namespace")
+				return err
+			}
+			// wait 15 seconds for new namespace creation.
+			err = backoff.Retry(
+				func() error {
+					return r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
+				},
+				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
+			if err != nil {
+				IncRequestErrorCounter("error namespace create completion", SEVERITY_MAJOR)
+				logger.Error(err, "error namespace create completion")
+				return fmt.Errorf("Owning namespace failed to create within 15 seconds")
+			}
+			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
+		} else {
+			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
+			logger.Error(err, "error reading namespace")
+			return err
+		}
+	} else {
+		// Check exising namespace ownership before move forward
+		ownerMatch := false
+		owners := foundNs.GetOwnerReferences()
+		for _, a := range owners {
+			if a.APIVersion == instance.APIVersion && a.Kind == instance.Kind && a.Name == instance.Name {
+				ownerMatch = true
+				break
+			}
+		}
+		if !ownerMatch {
+			IncRequestCounter("reject profile taking over existing namespace")
+			return fmt.Errorf("namespace already exist, but not owned by profile %v", instance.Name)
+
+		}
+
+		// Update the Namespace owner
+		updateNs := updateAnnotations(&ns.Annotations, &foundNs.Annotations, []string{OWNER})
+
+		// Update the Namespace labels
+		oldLabels := map[string]string{}
+		for k, v := range foundNs.Labels {
+			oldLabels[k] = v
+		}
+		setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
+		logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
+		if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
+			updateNs = true
+		}
+		// Update the Namespace
+		if updateNs {
+			err = r.Update(ctx, foundNs)
+			if err != nil {
+				IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
+				logger.Error(err, "error updating namespace label")
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func updateAnnotations(src *map[string]string, dst *map[string]string, labels []string) bool {
