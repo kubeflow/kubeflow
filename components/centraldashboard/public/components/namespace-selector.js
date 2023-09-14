@@ -188,7 +188,12 @@ export class NamespaceSelector extends localizationMixin(PolymerElement) {
         const nsSet = new Set(namespaces.map((i) => i.namespace));
         if (nsSet.has(this.selected)) return;
 
-        const owned = namespaces.find((n) => n.role == 'owner');
+        let owned = namespaces.find((n) => n.role == 'owner');
+        // If no owner, select the first namespace
+        if (owned === undefined && namespaces.length>0) {
+            owned = namespaces[0];
+        }
+
         this.selected = (owned && owned.namespace)
             || (nsSet.has('kubeflow')
                 ? 'kubeflow'
