@@ -40,7 +40,7 @@ def load_notebook_template(**kwargs):
     return helpers.load_param_yaml(NOTEBOOK_TEMPLATE_YAML, **kwargs)
 
 
-@ttl_cache(ttl=60 * 10)
+@ttl_cache(ttl=60)
 def load_spawner_ui_config():
     for config in CONFIGS:
         config_dict = helpers.load_yaml(config)
