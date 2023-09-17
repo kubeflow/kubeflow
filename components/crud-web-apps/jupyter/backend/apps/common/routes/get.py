@@ -114,7 +114,10 @@ def get_gpu_vendors():
     installed_resources = set()
     nodes = api.list_nodes().items
     for node in nodes:
-        installed_resources.update(node.status.capacity.keys())
+        if node.status.capacity:
+            installed_resources.update(status.capacity.keys())
+        else:
+            log.warn("Status was not available for node {node.metadata.name}")
 
     # Keep the vendors the key of which exists in at least one node
     available_vendors = installed_resources.intersection(config_vendor_keys)
