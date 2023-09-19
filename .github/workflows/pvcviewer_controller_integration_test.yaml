@@ -69,4 +69,5 @@ jobs:
           | sed "s|${CURRENT_IMAGE}:[a-zA-Z0-9_.-]*|${PR_IMAGE}|g" \
           | kubectl apply -f -
 
-        kubectl wait pods -n kubeflow -l app=pvcviewer --for=condition=Ready --timeout=300s
+        DEPLOYMENT=pvcviewer-controller-manager
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s

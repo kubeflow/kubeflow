@@ -81,4 +81,5 @@ jobs:
           | sed "s|${CURRENT_KFAM_IMAGE}:[a-zA-Z0-9_.-]*|${PR_KFAM_IMAGE}|g" \
           | kubectl apply -f -
 
-        kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s
+        DEPLOYMENT=profiles-deployment
+        kubectl wait deploy -n kubeflow $DEPLOYMENT --for=jsonpath='{.status.readyReplicas}'=1 --timeout=300s
