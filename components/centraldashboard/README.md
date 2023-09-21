@@ -60,8 +60,8 @@ Server side code resides in the [app](./app) directory. The server uses
 Client side code resides in the [public](./public) directory. Client components
 are written using the [Polymer 3](https://polymer-library.polymer-project.org/3.0/docs/about_30)
 web components library. All Polymer components should be written under the
-[public/components](./public/components) directory. You may use the [inline style](https://polymer-library.polymer-project.org/3.0/docs/first-element/step-2) for creating your Shadow DOM, or seperate your
-CSS and HTML in seperate files. We currently support [Pug](https://pugjs.org/api/getting-started.html)
+[public/components](./public/components) directory. You may use the [inline style](https://polymer-library.polymer-project.org/3.0/docs/first-element/step-2) for creating your Shadow DOM, or separate your
+CSS and HTML in separate files. We currently support [Pug](https://pugjs.org/api/getting-started.html)
 templating for external markup. See [main-page.js](public/components/main-page.js)
 for an example.
 
