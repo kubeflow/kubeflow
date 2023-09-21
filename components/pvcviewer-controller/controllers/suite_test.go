@@ -65,11 +65,8 @@ var _ = BeforeSuite(func() {
 
 	ctx, cancel = context.WithCancel(context.TODO())
 
-	crdPaths, err := DownloadExternalCRDs()
-	Expect(err).NotTo(HaveOccurred())
-
 	By("bootstrapping test environment")
-	dirs := append([]string{filepath.Join("..", "config", "crd", "bases")}, crdPaths...)
+	dirs := []string{filepath.Join("..", "config", "crd", "bases"), "crds"}
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     dirs,
 		ErrorIfCRDPathMissing: true,
@@ -79,7 +76,7 @@ var _ = BeforeSuite(func() {
 	}
 
 	// cfg is defined in this file globally.
-	cfg, err = testEnv.Start()
+	cfg, err := testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
