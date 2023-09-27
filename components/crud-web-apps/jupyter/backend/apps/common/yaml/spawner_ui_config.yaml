@@ -129,15 +129,22 @@ spawnerFormDefaults:
       # the list of available vendors in the dropdown
       #  `limitsKey` - what will be set as the actual limit
       #  `uiName` - what will be displayed in the dropdown UI
-      vendors: []
-      #vendors:
-      #  - limitsKey: "nvidia.com/gpu"
-      #    uiName: "NVIDIA"
-      #  - limitsKey: "amd.com/gpu"
-      #    uiName: "AMD"
-
-      # the default value of the limit
-      # (possible values: "none", "1", "2", "4", "8")
+      # Determines what the UI will show and send to the backend
+      vendors:
+        - limitsKey: "nvidia.com/gpu"
+          uiName: "NVIDIA"
+          # Options in gpusCount indicate the number of GPUs available for each type
+          gpusCount:
+          - "1"
+          - "2"
+          - "4"
+          - "8"
+        - limitsKey: "amd.com/gpu"
+          uiName: "AMD"
+          gpusCount:
+          - "1"
+          - "2"
+          - "4"
       num: "none"
 
   ################################################################
@@ -305,3 +312,4 @@ spawnerFormDefaults:
   environment:
     readOnly: false
     value: {}
+    

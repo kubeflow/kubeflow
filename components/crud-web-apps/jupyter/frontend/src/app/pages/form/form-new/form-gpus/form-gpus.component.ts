@@ -15,28 +15,29 @@ export class FormGpusComponent implements OnInit {
 
   private gpuCtrl: FormGroup;
   public installedVendors = new Set<string>();
+  public counts: string[] = [];
 
   subscriptions = new Subscription();
   maxGPUs = 16;
-  gpusCount = ['1', '2', '4', '8'];
 
   constructor(public backend: JWABackendService) {}
 
   ngOnInit() {
     this.gpuCtrl = this.parentForm.get('gpus') as FormGroup;
 
-    // Vendor should not be empty if the user selects GPUs num
+    // GPUCount should not be empty if the user selects GPU Vendor
     this.parentForm
       .get('gpus')
-      .get('vendor')
+      .get('num')
       .setValidators([this.vendorWithNum()]);
 
     this.subscriptions.add(
-      this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
-        if (n === 'none') {
-          this.gpuCtrl.get('vendor').disable();
+      this.gpuCtrl.get('vendor').valueChanges.subscribe((n: GPUVendor) => {
+        if (!n) {
+          this.gpuCtrl.get('num').disable();
         } else {
-          this.gpuCtrl.get('vendor').enable();
+          this.counts = n.gpusCount;
+          this.gpuCtrl.get('num').enable();
         }
       }),
     );
@@ -55,10 +56,10 @@ export class FormGpusComponent implements OnInit {
 
   // Custom Validation
   public getVendorError() {
-    const vendorCtrl = this.parentForm.get('gpus').get('vendor');
+    const vendorCtrl = this.parentForm.get('gpus').get('num');
 
     if (vendorCtrl.hasError('vendorNullName')) {
-      return $localize`You must also specify the GPU Vendor for the assigned GPUs`;
+      return $localize`You must specify the number of GPUs for the chosen Vendor`;
     }
   }
 
@@ -69,7 +70,7 @@ export class FormGpusComponent implements OnInit {
       const num = this.parentForm.get('gpus').get('num').value;
       const vendor = this.parentForm.get('gpus').get('vendor').value;
 
-      if (num !== 'none' && vendor === '') {
+      if (vendor.limitsKey  !== 'none' && num == 'none') {
         return { vendorNullName: true };
       } else {
         return null;

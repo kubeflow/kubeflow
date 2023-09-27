@@ -238,7 +238,7 @@ def set_notebook_gpus(notebook, body, defaults):
 
     # set the gpus annotation
     container = notebook["spec"]["template"]["spec"]["containers"][0]
-    vendor = gpus["vendor"]
+    vendor = gpus["vendor"]["limitsKey"]
     try:
         num = str(gpus["num"])
     except ValueError:
