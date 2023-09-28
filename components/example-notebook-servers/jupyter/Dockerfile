@@ -7,9 +7,9 @@ USER root
 # args - software versions
 ARG MINIFORGE_ARCH="x86_64"
  # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-ARG MINIFORGE_VERSION=4.10.1-4
-ARG PIP_VERSION=21.1.2
-ARG PYTHON_VERSION=3.8.10
+ARG MINIFORGE_VERSION=23.3.1-1
+ARG PIP_VERSION=23.2.1
+ARG PYTHON_VERSION=3.11.5
 
 # install -- node.js
 RUN export DEBIAN_FRONTEND=noninteractive \
