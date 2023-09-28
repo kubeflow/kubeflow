@@ -7,15 +7,15 @@ USER root
 # args - software versions
 ARG MINIFORGE_ARCH="x86_64"
  # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-ARG MINIFORGE_VERSION=4.10.1-4
-ARG PIP_VERSION=21.1.2
-ARG PYTHON_VERSION=3.8.10
+ARG MINIFORGE_VERSION=23.3.1-1
+ARG PIP_VERSION=23.2.1
+ARG PYTHON_VERSION=3.11.5
 ARG RSTUDIO_ARCH="amd64"
- # renovate: datasource=github-tags depName=rstudio/rstudio versioning=semver
-ARG RSTUDIO_VERSION=v1.4.1717
-ARG R_BASE_VERSION=4.1.0
-ARG R_RETICULATE_VERSION=1.20
-ARG R_PNG_VERSION=0.1_7
+ # renovate: datasource=github-tags depName=rstudio/rstudio versioning=calVer
+ARG RSTUDIO_VERSION=v2023.09.0+463
+ARG R_BASE_VERSION=4.2.1
+ARG R_RETICULATE_VERSION=1.32.0
+ARG R_PNG_VERSION=0.1_8
 
 # install - binary rstudio dependencies
 RUN apt-get -yq update \
