@@ -1,4 +1,4 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.8.1+cu111
-torchvision==0.9.1+cu111
-torchaudio==0.8.1
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+torchaudio==2.0.2
