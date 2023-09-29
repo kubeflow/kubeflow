@@ -5,12 +5,12 @@ FROM $BASE_IMG
 USER root
 
 # args - software versions
-ARG CODESERVER_PYTHON_VERSION=2021.5.842923320
+ARG CODESERVER_PYTHON_VERSION=2023.16.0
 ARG MINIFORGE_ARCH="x86_64"
  # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-ARG MINIFORGE_VERSION=4.10.1-4
-ARG PIP_VERSION=21.1.2
-ARG PYTHON_VERSION=3.8.10
+ARG MINIFORGE_VERSION=23.3.1-1
+ARG PIP_VERSION=23.2.1
+ARG PYTHON_VERSION=3.11.5
 
 # setup environment for conda
 ENV CONDA_DIR /opt/conda
@@ -19,7 +19,7 @@ RUN mkdir -p ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${CONDA_DIR}
 
 USER $NB_UID
-
+ 
 # install - conda, pip, python
 RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
  && curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
