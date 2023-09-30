@@ -142,7 +142,7 @@ make uninstall
 
 ### Running the controller locally
 
-In order for the custom Notebook Controller to be functional from your local machine, the admins must:
+In order for the custom Profile Controller to be functional from your local machine, the admins must:
 
 1. Set the number of replicas to zero:
 ```sh
