@@ -59,8 +59,8 @@ def process_status(notebook):
 
 def get_empty_status(notebook):
     creation_timestamp = notebook["metadata"]["creationTimestamp"]
-    container_state = notebook["status"]["containerState"]
-    conditions = notebook["status"]["conditions"]
+    container_state = notebook.get("status", {}).get("containerState", {})
+    conditions = notebook.get("status", {}).get("conditions", [])
 
     # Convert a date string of a format to datetime object
     nb_creation_time = dt.datetime.strptime(
