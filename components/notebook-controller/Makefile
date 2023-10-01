@@ -77,6 +77,16 @@ manager: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+# Run the controller locally with culling enabled
+.PHONY: run-culling
+run-culling: generate fmt vet manifests
+	ENABLE_CULLING=true \
+	CLUSTER_DOMAIN=cluster.local \
+	CULL_IDLE_TIME=10 \
+	IDLENESS_CHECK_PERIOD=1 \
+	DEV=true \
+	go run ./main.go
+
 ##@ Build
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
@@ -88,7 +98,7 @@ docker-push: ## Push docker image with the manager.
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	cd .. && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f ./notebook-controller/Dockerfile .
+	cd .. && docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} -f ./notebook-controller/Dockerfile .
 
 
 .PHONY: docker-build-push-multi-arch
@@ -114,7 +124,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+deploy: docker-build docker-push manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	sed -i'' -e 's@newName: .*@newName: '"${IMG}"'@' ./config/base/kustomization.yaml
 	sed -i'' -e 's@newTag: .*@newTag: '"${TAG}"'@' ./config/base/kustomization.yaml
 	$(KUSTOMIZE) build config/base | kubectl apply -f -
@@ -143,11 +153,7 @@ PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 define go-get-tool
 @[ -f $(1) ] || { \
 set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
 echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
 }
 endef

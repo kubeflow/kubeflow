@@ -6,12 +6,13 @@ import {
   ConfirmDialogService,
   STATUS_TYPE,
   DIALOG_RESP,
-  DialogConfig,
   SnackBarService,
   SnackType,
   ToolbarButton,
   PollerService,
   DashboardState,
+  SnackBarConfig,
+  DialogConfig,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -90,18 +91,25 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       case 'delete':
         this.deleteVolumeClicked(a.data);
         break;
+      case 'open-pvcviewer':
+        this.openPVCViewerClicked(a.data);
+        break;
+      case 'close-pvcviewer':
+        this.closePVCViewerClicked(a.data);
+        break;
       case 'name:link':
         if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
-          this.snackBar.open(
-            'PVC is unavailable now.',
-            SnackType.Warning,
-            3000,
-          );
+          a.event.stopPropagation();
+          a.event.preventDefault();
+          const config: SnackBarConfig = {
+            data: {
+              msg: 'PVC is unavailable now.',
+              snackType: SnackType.Warning,
+            },
+          };
+          this.snackBar.open(config);
           return;
         }
-        this.router.navigate([
-          `/volume/details/${a.data.namespace}/${a.data.name}`,
-        ]);
         break;
     }
   }
@@ -115,11 +123,14 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
-        this.snackBar.open(
-          $localize`Volume was submitted successfully.`,
-          SnackType.Success,
-          2000,
-        );
+        const config: SnackBarConfig = {
+          data: {
+            msg: $localize`Volume was submitted successfully.`,
+            snackType: SnackType.Success,
+          },
+          duration: 2000,
+        };
+        this.snackBar.open(config);
         this.poll(this.currNamespace);
       }
     });
@@ -138,25 +149,153 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     });
   }
 
+  public openPVCViewerClicked(pvc: PVCProcessedObject) {
+    if (pvc.viewer.status === STATUS_TYPE.READY) {
+      this.openViewerWindow(pvc);
+      return;
+    }
+
+    this.pvcsWaitingViewer.add(pvc.name);
+    pvc.openPVCViewerAction = this.parseOpenPVCViewerActionStatus(pvc);
+
+    this.backend.createViewer(pvc.namespace, pvc.name).subscribe({
+      next: res => {
+        this.poll(pvc.namespace);
+      },
+      error: err => {
+        this.pvcsWaitingViewer.delete(pvc.name);
+        pvc.openPVCViewerAction = this.parseOpenPVCViewerActionStatus(pvc);
+      },
+    });
+  }
+
+  public closePVCViewerClicked(pvc: PVCProcessedObject) {
+    const closeDialogConfig: DialogConfig = {
+      title: `Are you sure you want to close this viewer? ${pvc.name}`,
+      message: 'Warning: Any running processes will terminate.',
+      accept: 'CLOSE',
+      confirmColor: 'warn',
+      cancel: 'CANCEL',
+      error: '',
+      applying: 'CLOSING',
+      width: '600px',
+    };
+
+    const ref = this.confirmDialog.open(pvc.name, closeDialogConfig);
+    const delSub = ref.componentInstance.applying$.subscribe(applying => {
+      if (!applying) {
+        return;
+      }
+
+      // Close the open dialog only if the DELETE request succeeded
+      this.backend.deleteViewer(pvc.namespace, pvc.name).subscribe({
+        next: _ => {
+          this.poll(pvc.namespace);
+          ref.close(DIALOG_RESP.ACCEPT);
+        },
+        error: err => {
+          // Simplify the error message
+          const errorMsg = err;
+          closeDialogConfig.error = errorMsg;
+          ref.componentInstance.applying$.next(false);
+        },
+      });
+
+      // DELETE request has succeeded
+      ref.afterClosed().subscribe(res => {
+        delSub.unsubscribe();
+        if (res !== DIALOG_RESP.ACCEPT) {
+          return;
+        }
+
+        pvc.viewer.status = STATUS_TYPE.TERMINATING;
+        pvc.closePVCViewerAction = STATUS_TYPE.TERMINATING;
+
+        this.pvcsWaitingViewer.delete(pvc.name);
+      });
+    });
+  }
+
   // Utility funcs
   public parseIncomingData(pvcs: PVCResponseObject[]): PVCProcessedObject[] {
     const pvcsCopy = JSON.parse(JSON.stringify(pvcs)) as PVCProcessedObject[];
 
     for (const pvc of pvcsCopy) {
       pvc.deleteAction = this.parseDeletionActionStatus(pvc);
+      pvc.closePVCViewerAction = this.parseClosePVCViewerActionStatus(pvc);
+      pvc.openPVCViewerAction = this.parseOpenPVCViewerActionStatus(pvc);
       pvc.ageValue = pvc.age.uptime;
       pvc.ageTooltip = pvc.age.timestamp;
+      pvc.link = {
+        text: pvc.name,
+        url: `/volume/details/${pvc.namespace}/${pvc.name}`,
+      };
     }
 
     return pvcsCopy;
   }
 
   public parseDeletionActionStatus(pvc: PVCProcessedObject) {
+    if (pvc.notebooks.length) {
+      return STATUS_TYPE.UNAVAILABLE;
+    }
+
     if (pvc.status.phase !== STATUS_TYPE.TERMINATING) {
       return STATUS_TYPE.READY;
     }
 
     return STATUS_TYPE.TERMINATING;
+  }
+
+  // Defines the status of the "Open Viewer" button
+  public parseOpenPVCViewerActionStatus(pvc: PVCProcessedObject): STATUS_TYPE {
+    // PVC is UNAVAILABLE but only because its waiting for a consumer
+    // This shouldn't stop a viewer from being the first consumer
+    const pvcWaitingForConsumer =
+      pvc.status.phase === STATUS_TYPE.UNAVAILABLE &&
+      pvc.status.state === 'WaitForFirstConsumer';
+
+    if (pvc.status.phase !== STATUS_TYPE.READY && !pvcWaitingForConsumer) {
+      return STATUS_TYPE.UNAVAILABLE;
+    }
+
+    // Popup is waiting for the viewer to become ready
+    if (this.pvcsWaitingViewer.has(pvc.name)) {
+      // Open the viewer window if it's ready
+      if (pvc.viewer.status === STATUS_TYPE.READY) {
+        this.pvcsWaitingViewer.delete(pvc.name);
+        this.openViewerWindow(pvc);
+      }
+      // Show a spinner as we're waiting to the viewer to become ready
+      if (
+        [STATUS_TYPE.UNINITIALIZED, STATUS_TYPE.WAITING].includes(
+          pvc.viewer.status,
+        )
+      ) {
+        return STATUS_TYPE.WAITING;
+      }
+    }
+
+    return pvc.viewer.status;
+  }
+
+  // Defines the status of the "Close Viewer" button
+  public parseClosePVCViewerActionStatus(pvc: PVCProcessedObject) {
+    // Users may always close an existing, non-terminating viewer
+    switch (pvc.viewer.status) {
+      case STATUS_TYPE.UNINITIALIZED:
+        return STATUS_TYPE.UNAVAILABLE;
+      case STATUS_TYPE.TERMINATING:
+        return STATUS_TYPE.WAITING;
+      default:
+        return STATUS_TYPE.READY;
+    }
+  }
+
+  public openViewerWindow(pvc: PVCProcessedObject) {
+    const url = this.env.viewerUrl + pvc.viewer.url;
+
+    window.open(url, `${pvc.name}: Volumes Viewer`, 'height=600,width=800');
   }
 
   public pvcTrackByFn(index: number, pvc: PVCProcessedObject) {

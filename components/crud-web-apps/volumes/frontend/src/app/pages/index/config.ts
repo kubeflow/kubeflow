@@ -1,12 +1,14 @@
 import {
   PropertyValue,
   StatusValue,
-  ActionListValue,
-  ActionIconValue,
   TableConfig,
   DateTimeValue,
+  LinkValue,
+  LinkType,
+  ComponentValue,
+  quantityToScalar,
 } from 'kubeflow';
-import { quantityToScalar } from '@kubernetes/client-node/dist/util';
+import { UsedByComponent } from './columns/used-by/used-by.component';
 
 export const tableConfig: TableConfig = {
   columns: [
@@ -21,11 +23,11 @@ export const tableConfig: TableConfig = {
       matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
       style: { width: '25%' },
-      value: new PropertyValue({
-        field: 'name',
-        tooltipField: 'name',
-        isLink: true,
+      value: new LinkValue({
+        field: 'link',
+        popoverField: 'name',
         truncate: true,
+        linkType: LinkType.Internal,
       }),
       sort: true,
     },
@@ -61,6 +63,17 @@ export const tableConfig: TableConfig = {
       style: { width: '10%' },
       value: new PropertyValue({ field: 'class', truncate: true }),
       sort: true,
+    },
+    {
+      matHeaderCellDef: $localize`Used by`,
+      matColumnDef: 'usedBy',
+      style: { 'max-width': '60px' },
+      value: new ComponentValue({
+        component: UsedByComponent,
+      }),
+      sort: true,
+      sortingPreprocessorFn: element => element.notebooks,
+      filteringPreprocessorFn: element => element.notebooks,
     },
 
     // the apps should import the actions they want

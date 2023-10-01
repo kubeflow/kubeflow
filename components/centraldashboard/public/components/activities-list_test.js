@@ -63,18 +63,20 @@ describe('Activities List', () => {
         const eventDate = new Date();
         eventDate.setHours(20, 0, 0);
         const activities = [];
+        const expectedTimes = [];
 
         for (let i = 10; i > 0; i--) {
             // Add i hours to each activities
+            const date = new Date(eventDate - (i * 60 * 60 * 1000));
             activities.push({
-                lastTimestamp: new Date(eventDate - (i * 60 * 60 * 1000))
-                    .toLocaleString(),
+                lastTimestamp: date.toLocaleString(),
                 message: `Something happened ${i}`,
                 type: 'Normal',
                 involvedObject: {
                     name: 'some-pod',
                 },
             });
+            expectedTimes.push(date.toLocaleTimeString());
         }
 
         activitiesList.activities = activities;
@@ -87,16 +89,6 @@ describe('Activities List', () => {
         shadowRoot.querySelectorAll('.time').forEach((t) => {
             times.push(t.innerText);
         });
-        expect(times).toEqual([
-            '7:00:00 PM',
-            '6:00:00 PM',
-            '5:00:00 PM',
-            '4:00:00 PM',
-            '3:00:00 PM',
-            '2:00:00 PM',
-            '1:00:00 PM',
-            '12:00:00 PM',
-            '11:00:00 AM',
-            '10:00:00 AM']);
+        expect(times).toEqual(expectedTimes.reverse());
     });
 });

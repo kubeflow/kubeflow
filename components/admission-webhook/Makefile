@@ -16,6 +16,9 @@ manifests: controller-gen
 	$(CONTROLLER_GEN) crd:crdVersions=v1,maxDescLen=0 output:crd:artifacts:config=manifests/base paths="./..."
 	mv manifests/base/kubeflow.org_poddefaults.yaml manifests/base/crd.yaml
 
+test:
+	go test -coverprofile cover.out
+
 build:
 	go build -gcflags 'all=-N -l' -o bin/webhook .
 
@@ -27,7 +30,7 @@ docker-push:
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} .
+	docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} .
 
 .PHONY: docker-build-push-multi-arch
 docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
@@ -45,11 +48,7 @@ PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 define go-get-tool
 @[ -f $(1) ] || { \
 set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
 echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
 }
 endef

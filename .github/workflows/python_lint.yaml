@@ -1,0 +1,24 @@
+name: Python Linting
+
+on:
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - "**.py"
+jobs:
+  flake8-lint:
+    runs-on: ubuntu-latest
+    name: Check
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v3
+      - name: Set up Python environment 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: flake8 Lint
+        uses: py-actions/flake8@v1
+        with:
+          exclude: "docs"

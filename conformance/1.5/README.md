@@ -2,8 +2,6 @@
 
 Before running the conformance tests, you need to configure kubectl default context to point to the k8s cluster that is hosting Kubeflow.
 
-TODO: Make the kubeflow namespace configurable.
-
 To run version <x.y> of the conformance test.
 
 `cd kubeflow/conformance/<x.y>`

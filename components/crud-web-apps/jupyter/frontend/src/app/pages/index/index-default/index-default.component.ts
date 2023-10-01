@@ -11,6 +11,7 @@ import {
   ToolbarButton,
   PollerService,
   DashboardState,
+  SnackBarConfig,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Subscription } from 'rxjs';
@@ -94,21 +95,19 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         this.startStopClicked(a.data);
         break;
       case 'name:link':
-        if (a.data.metadata.deletionTimestamp) {
-          this.snackBar.open(
-            'Notebook is being deleted, cannot show details.',
-            SnackType.Info,
-            4000,
-          );
+        if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
+          a.event.stopPropagation();
+          a.event.preventDefault();
+          const config: SnackBarConfig = {
+            data: {
+              msg: 'Notebook is being deleted, cannot show details.',
+              snackType: SnackType.Info,
+            },
+            duration: 4000,
+          };
+          this.snackBar.open(config);
           return;
         }
-        this.router.navigate(
-          [`/notebook/details/${a.data.namespace}/${a.data.name}`],
-          {
-            queryParams: { tab: 'overview' },
-            queryParamsHandling: '',
-          },
-        );
         break;
     }
   }
@@ -122,7 +121,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         notebook.status.phase = STATUS_TYPE.TERMINATING;
-        notebook.status.message = 'Preparing to delete the Notebook...';
+        notebook.status.message = 'Preparing to delete the Notebook.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -144,7 +143,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       .startNotebook(notebook.namespace, notebook.name)
       .subscribe(_ => {
         notebook.status.phase = STATUS_TYPE.WAITING;
-        notebook.status.message = 'Starting the Notebook Server...';
+        notebook.status.message = 'Starting the Notebook Server.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -157,8 +156,8 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
 
-        notebook.status.phase = STATUS_TYPE.TERMINATING;
-        notebook.status.message = 'Preparing to stop the Notebook Server...';
+        notebook.status.phase = STATUS_TYPE.WAITING;
+        notebook.status.message = 'Preparing to stop the Notebook Server.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -168,6 +167,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     notebook.deleteAction = this.processDeletionActionStatus(notebook);
     notebook.connectAction = this.processConnectActionStatus(notebook);
     notebook.startStopAction = this.processStartStopActionStatus(notebook);
+    notebook.link = {
+      text: notebook.name,
+      url: `/notebook/details/${notebook.namespace}/${notebook.name}`,
+    };
   }
 
   processIncomingData(notebooks: NotebookResponseObject[]) {
@@ -220,9 +223,5 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public notebookTrackByFn(index: number, notebook: NotebookProcessedObject) {
     return `${notebook.name}/${notebook.image}`;
-  }
-
-  private updateButtons(): void {
-    this.buttons = [this.newNotebookButton];
   }
 }

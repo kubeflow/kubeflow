@@ -1,12 +1,16 @@
 <label id="access-mode-label" class="form-title" i18n> Access mode </label>
-<mat-radio-group [formControl]="mode" aria-labelledby="access-mode-label">
+<mat-radio-group
+  color="primary"
+  [formControl]="mode"
+  aria-labelledby="access-mode-label"
+>
   <mat-radio-button value="ReadWriteOnce" i18n>
     ReadWriteOnce
   </mat-radio-button>
 
   <mat-radio-button value="ReadOnlyMany" i18n>ReadOnlyMany</mat-radio-button>
 
-  <mat-radio-button value="ReadWriteMany" i18n>
+  <mat-radio-button value="ReadWriteMany" i18n data-cy="ReadWriteMany">
     ReadWriteMany
   </mat-radio-button>
 </mat-radio-group>

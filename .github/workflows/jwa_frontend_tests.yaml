@@ -56,3 +56,31 @@ jobs:
         run: |
           cd components/crud-web-apps/jupyter/frontend
           npm run test:prod
+
+  run-ui-tests:
+    name: UI tests with Cypress
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node version to 12
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+
+      - name: Install Kubeflow common library dependecies
+        run: |
+          cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+          npm i
+          npm run build
+          npm link ./dist/kubeflow
+      - name: Install JWA dependencies
+        run: |
+          cd components/crud-web-apps/jupyter/frontend
+          npm i
+          npm link kubeflow
+      - name: Serve UI & run Cypress tests in Chrome and Firefox
+        run: |
+          cd components/crud-web-apps/jupyter/frontend
+          npm run serve & npx wait-on http://localhost:4200
+          npm run ui-test-ci-all

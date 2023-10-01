@@ -151,6 +151,17 @@ export class OverviewComponent implements OnInit, OnDestroy {
     }
   }
 
+  get notebookCreator(): string {
+    return this.getNotebookCreator(this.notebook);
+  }
+
+  getNotebookCreator(notebook: NotebookRawObject): string {
+    if (!notebook?.metadata?.annotations) {
+      return null;
+    }
+    return notebook.metadata.annotations['notebooks.kubeflow.org/creator'];
+  }
+
   get cpuRequests(): string {
     return this.getCpuRequest(this.notebook);
   }
@@ -488,8 +499,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
     envGroup: EnvironmentVariablesGroup,
   ): boolean {
     if (
-      envGroup.configuration?.spec.env
-        .map(env => env.name)
+      envGroup.configuration?.spec?.env
+        ?.map(env => env.name)
         .includes(envVar.name)
     ) {
       return true;

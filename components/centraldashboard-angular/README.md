@@ -42,8 +42,10 @@ This installs all dependencies and serves the frontend at http://localhost:4200.
 
 ### Access Kubernetes services
 
+- To access the Profiles KFAM service: `kubectl port-forward -n kubeflow svc/profiles-kfam 8081:8081`
 - To access the Jupyter Web App run: `kubectl port-forward -n kubeflow svc/jupyter-web-app-service 8085:80`.
-- To access Pipeline Web App run: `kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8086:80`.`
+- To access the Pipeline Web App run: `kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8086:80`.`
+- To access the Volumes Web App run: `kubectl port-forward -n kubeflow svc/volumes-web-app-service 8087:80`.`
 
 This forwards requests to Kubernetes services from `http://localhost:service-proxy-port`. See the [proxy config file](frontend/proxy.conf.json) for more details.
 

@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  buildVersion: 'dev_local',
 };
 
 /*

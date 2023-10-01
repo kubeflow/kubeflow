@@ -80,7 +80,7 @@ export function createNewPvcFormGroup(
       accessModes: new FormControl(['ReadWriteOnce']),
       resources: new FormGroup({
         requests: new FormGroup({
-          storage: new FormControl('10Gi', []),
+          storage: new FormControl('5Gi', []),
         }),
       }),
       storageClassName: new FormControl({
@@ -125,6 +125,13 @@ export function createMetadataFormGroupFromPvc(
     group.addControl(
       'name',
       new FormControl(metadata.name, Validators.required),
+    );
+  }
+
+  if (metadata.generateName) {
+    group.addControl(
+      'generateName',
+      new FormControl(metadata.generateName, Validators.required),
     );
   }
 

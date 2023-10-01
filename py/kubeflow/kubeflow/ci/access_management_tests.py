@@ -20,8 +20,8 @@ class Builder(workflow_utils.ArgoTestBuilder):
         context = "dir://%s/components/access-management/" % self.src_dir
         destination = "access-management-test"
 
-        kaniko_task = self.create_kaniko_task(task_template, dockerfile,
-                                              context, destination, no_push=True)
+        kaniko_task = self.create_kaniko_task(
+            task_template, dockerfile, context, destination, no_push=True)
         argo_build_util.add_task_to_dag(workflow,
                                         workflow_utils.E2E_DAG_NAME,
                                         kaniko_task, [self.mkdir_task_name])

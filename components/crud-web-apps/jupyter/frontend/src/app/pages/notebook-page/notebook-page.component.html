@@ -14,10 +14,13 @@
       <div class="details-page-inner">
         <div class="details-page-inner-2">
           <lib-status-icon
-            [stateChanging]="notebookStateChanging"
-            [status]="status"
+            class="small-padding-right"
+            [phase]="status.phase"
           ></lib-status-icon>
-          <div class="title">{{ notebookName }}</div>
+          <div class="mat-title">{{ notebookName }}</div>
+        </div>
+        <div class="small-padding-up">
+          <lib-status-info [status]="status"></lib-status-info>
         </div>
       </div>
       <mat-tab-group

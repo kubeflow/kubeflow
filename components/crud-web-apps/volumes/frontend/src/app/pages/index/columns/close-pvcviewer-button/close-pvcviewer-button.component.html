@@ -1,0 +1,35 @@
+<div>
+  <!--Ready Phase-->
+  <button
+    *ngIf="isDeletable()"
+    mat-icon-button
+    matTooltip="{{ action.tooltip }}"
+    matTooltipClass="custom-tooltip"
+    [color]="action.color"
+    (click)="emitClickedEvent()"
+  >
+    <lib-icon [icon]="action.iconReady"></lib-icon>
+  </button>
+
+  <div
+    matTooltipClass="custom-tooltip"
+    [matTooltip]="'No PVCViewer exists for this volume.'"
+    matTooltipClass="custom-tooltip"
+  >
+    <button *ngIf="isPhaseUninitialized()" mat-icon-button disabled>
+      <lib-icon [icon]="action.iconReady"></lib-icon>
+    </button>
+  </div>
+
+  <div
+    matTooltipClass="custom-tooltip"
+    [matTooltip]="'PVCViewer is already terminating.'"
+    matTooltipClass="custom-tooltip"
+  >
+    <mat-spinner
+      *ngIf="isPhaseTerminating()"
+      [diameter]="24"
+      style="margin: 0 auto"
+    ></mat-spinner>
+  </div>
+</div>

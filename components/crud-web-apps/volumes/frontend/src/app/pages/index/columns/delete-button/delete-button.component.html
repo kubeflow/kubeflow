@@ -1,0 +1,33 @@
+<div>
+  <!--Ready Phase-->
+  <button
+    *ngIf="isPhaseReady()"
+    mat-icon-button
+    matTooltip="{{ action.tooltip }}"
+    matTooltipClass="custom-tooltip"
+    [color]="action.color"
+    (click)="emitClickedEvent()"
+  >
+    <lib-icon [icon]="action.iconReady"></lib-icon>
+  </button>
+
+  <div
+    matTooltipClass="custom-tooltip"
+    [matTooltip]="'PVC is terminating at the moment.'"
+    matTooltipClass="custom-tooltip"
+  >
+    <button *ngIf="isPhaseTerminating()" mat-icon-button disabled>
+      <lib-icon [icon]="action.iconInit"></lib-icon>
+    </button>
+  </div>
+
+  <div
+    matTooltipClass="custom-tooltip"
+    [matTooltip]="getDisabledTooltip(element)"
+    matTooltipClass="custom-tooltip"
+  >
+    <button *ngIf="isPhaseUnavailable()" mat-icon-button disabled>
+      <lib-icon [icon]="action.iconInit"></lib-icon>
+    </button>
+  </div>
+</div>

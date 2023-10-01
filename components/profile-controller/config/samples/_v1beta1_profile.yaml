@@ -1,6 +1,15 @@
 apiVersion: kubeflow.org/v1beta1
 kind: Profile
 metadata:
-  name: profile-sample
+  name: test-user-profile   #replace with the name of profile you want, this will be user's namespace name
 spec:
-  # TODO(user): Add fields here
+  owner:
+    kind: User
+    name: test-user@kubeflow.org
+  resourceQuotaSpec:    # resource quota can be set optionally
+    hard:
+      cpu: "2"
+      memory: 2Gi
+      requests.nvidia.com/gpu: "1"
+      persistentvolumeclaims: "1"
+      requests.storage: "5Gi"

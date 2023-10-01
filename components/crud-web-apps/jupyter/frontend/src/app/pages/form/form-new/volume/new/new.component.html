@@ -7,14 +7,6 @@
     <mat-option [value]="NEW_VOLUME_TYPE.EMPTY" i18n> Empty volume </mat-option>
 
     <mat-option
-      [value]="NEW_VOLUME_TYPE.ROK_SNAPSHOT"
-      *ngIf="env.ui === 'rok'"
-      i18n
-    >
-      Rok snapshot
-    </mat-option>
-
-    <mat-option
       [value]="NEW_VOLUME_TYPE.CUSTOM"
       matTooltip="Edit the K8s PVC full spec"
       i18n-matTooltip
@@ -24,11 +16,6 @@
     </mat-option>
   </mat-select>
 </mat-form-field>
-
-<app-rok-url
-  *ngIf="volGroup.get('newPvc.metadata.annotations.rok/origin')"
-  [volGroup]="volGroup"
-></app-rok-url>
 
 <ng-container [ngSwitch]="volumeType">
   <!-- Custom (YAML editor) -->

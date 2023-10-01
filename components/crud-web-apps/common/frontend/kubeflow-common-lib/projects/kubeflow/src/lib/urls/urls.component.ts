@@ -9,7 +9,8 @@ import { UrlItem } from './types';
 export class UrlsComponent {
   @Input() urlList: UrlItem[];
 
-  urlTrackByFn: TrackByFunction<UrlItem> = (id: number, url: UrlItem) => url.name;
+  urlTrackByFn: TrackByFunction<UrlItem> = (id: number, url: UrlItem) =>
+    url.name;
 
   constructor() {}
 }

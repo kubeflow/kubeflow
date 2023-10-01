@@ -38,16 +38,16 @@ So profile owner can access services in above namespace via Istio (browser).
 
 Cluster admin can manage access management for cluster users:
 
-**To create an isolated namespace `kubeflow-user1` for user `user1@abcd.com`**
-- Admin can create a [profile](config/samples/profile_v1beta1_profile.yaml) via kubectl:
+**To create an isolated namespace `test-user-profile` for user `test-user@kubeflow.org`**
+- Admin can create a [profile](config/samples/_v1_profile.yaml) via kubectl:
 ```
 kubectl create -f /path/to/profile/config
 ```
 
-**To revoke access to namespace `kubeflow-user1` from user `user1@abcd.com` and delete namespace `kubeflow-user1`**
-- Admin can delete profile kubeflow-user1:
+**To revoke access to namespace `test-user-profile` from user `test-user@kubeflow.org` and delete namespace `test-user-profile`**
+- Admin can delete profile test-user-profile:
 ```
-kubectl delete profile kubeflow-user1
+kubectl delete profile test-user-profile
 ```
 
 ### Self-serve kfam UI
@@ -63,7 +63,7 @@ Users with access to cluster API server should be able to register and use kubef
 Profile now support configuring `ResourceQuotaSpec` as part of profile CR.
 - `ResourceQuotaSpec` field will accept standard [k8s ResourceQuotaSpec](https://godoc.org/k8s.io/api/core/v1#ResourceQuotaSpec)
 - A resource quota will be created in target namespace.
-- [Example](config/samples/profile_v1beta1_profile.yaml)
+- [Example](config/samples/_v1beta1_profile.yaml)
 
 ### Plugins
 Plugins field is introduced to support customized actions based on k8s cluster's surrounding platform.
@@ -92,7 +92,23 @@ Plugin owners have full control over plugin spec struct and implementation.
   - Type: credential binding
   - IAM For Service Account plugin will grant k8s service account permission of IAM role,
   so pods in profile namespace can authenticate AWS services as IAM role.
-
+  - The CRD is detailed below
+  ```
+  apiVersion: kubeflow.org/v1
+  kind: Profile
+  metadata:
+    name: test-profile
+  spec:
+    owner:
+      kind: User
+      name: user@example.com
+    plugins:
+    - kind: AwsIamForServiceAccount
+      spec:
+        awsIamRole: arn:aws:iam::1234567890:role/test-profile
+        ### Boolean which defaults to false. If set to true IAM roles and policy will not be mutated
+        annotateOnly: true 
+  ```
 # Deployment
 
 Install the `profiles.kubeflow.org` CRD:
