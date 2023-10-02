@@ -210,7 +210,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	foundPod := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
-		log.Info(fmt.Sprintf("No Pods are currently running for Notebook Server: %s in namesace: %s.", instance.Name, instance.Namespace))
+		log.Info(fmt.Sprintf("No Pods are currently running for Notebook Server: %s in namespace: %s.", instance.Name, instance.Namespace))
 	} else if err != nil {
 		return ctrl.Result{}, err
 	}
