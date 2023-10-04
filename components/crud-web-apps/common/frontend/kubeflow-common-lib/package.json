@@ -45,7 +45,7 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~12.0.5",
+    "@angular-devkit/build-angular": "~16.2.5",
     "@angular-devkit/core": "^12.0.5",
     "@angular-eslint/builder": "12.7.0",
     "@angular-eslint/eslint-plugin": "12.7.0",
@@ -73,7 +73,7 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.6.0",
-    "ng-packagr": "^12.0.8",
+    "ng-packagr": "^16.2.3",
     "prettier": "2.3.2",
     "ts-node": "^10.4.0",
     "typescript": "~4.2.4"
