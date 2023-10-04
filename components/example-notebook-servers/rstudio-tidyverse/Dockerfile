@@ -3,7 +3,7 @@ ARG BASE_IMG=<rstudio>
 FROM $BASE_IMG
 
 # args - software versions
-ARG R_TIDYVERSE_VERSION="1.3.1"
+ARG R_TIDYVERSE_VERSION="2.0.0"
 
 # switch to root user for conda installation
 # (only necessary when installing r-tidyverse with Kaniko)
