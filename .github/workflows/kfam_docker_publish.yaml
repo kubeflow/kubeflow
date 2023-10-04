@@ -11,9 +11,7 @@ on:
 env:
   DOCKER_USER: kubeflownotebookswg
   IMG: kubeflownotebookswg/kfam
-  # If this is a PR, we ONLY build for AMD64. For PRs we only do a sanity check test to ensure Docker builds work.
-  # If this is NOT a PR (e.g. a tag or merge commit), also build for ppc64le.
-  ARCH: linux/amd64${{ github.event_name != 'pull_request' && ',linux/ppc64le' || '' }}
+  ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
 jobs:
   push_to_registry:
