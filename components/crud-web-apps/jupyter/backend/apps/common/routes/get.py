@@ -119,7 +119,7 @@ def get_gpu_vendors():
         else:
             log.debug(
                 "Capacity was not available for node {node.metadata.name}"
-                )
+            )
 
     # Keep the vendors the key of which exists in at least one node
     available_vendors = installed_resources.intersection(config_vendor_keys)
