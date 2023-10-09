@@ -13,3 +13,13 @@
 // limitations under the License.
 
 package kfam
+
+import "os"
+
+func GetEnvDefault(variable string, defaultVal string) string {
+	envVar := os.Getenv(variable)
+	if len(envVar) == 0 {
+		return defaultVal
+	}
+	return envVar
+}

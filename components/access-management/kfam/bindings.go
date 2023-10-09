@@ -77,6 +77,10 @@ func getBindingName(binding *Binding) (string, error) {
 }
 
 func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string) istioSecurity.AuthorizationPolicy {
+	istioIGWPrincipal := GetEnvDefault(
+		"ISTIO_INGRESS_GATEWAY_PRINCIPAL",
+		"cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account")
+
 	return istioSecurity.AuthorizationPolicy{
 		Rules: []*istioSecurity.Rule{
 			{
@@ -90,9 +94,7 @@ func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix 
 				},
 				From: []*istioSecurity.Rule_From{{
 					Source: &istioSecurity.Source{
-						Principals: []string{
-							"cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account",
-						},
+						Principals: []string{istioIGWPrincipal},
 					},
 				}},
 			},
