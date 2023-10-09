@@ -75,6 +75,8 @@ const (
 const DEFAULT_EDITOR = "default-editor"
 const DEFAULT_VIEWER = "default-viewer"
 
+const hijackAnnotation = "transferToKubeflow"
+
 type Plugin interface {
 	// Called when profile CR is created / updated
 	ApplyPlugin(*ProfileReconciler, *profilev1.Profile) error
@@ -317,15 +319,42 @@ func (r *ProfileReconciler) updateNamespace(ctx context.Context, instance *profi
 	} else {
 		// Check exising namespace ownership before move forward
 		ownerMatch := false
+		profileOwner := false
 		owners := foundNs.GetOwnerReferences()
 		for _, a := range owners {
-			if a.APIVersion == instance.APIVersion && a.Kind == instance.Kind && a.Name == instance.Name {
-				ownerMatch = true
+			if a.APIVersion == instance.APIVersion && a.Kind == instance.Kind {
+				profileOwner = true
+				if a.Name == instance.Name {
+					ownerMatch = true
+				}
 				break
 			}
 		}
+		if !ownerMatch && !profileOwner {
+			if v, ok := foundNs.Annotations[hijackAnnotation]; ok {
+				if v == "true" {
+					logger.Info(fmt.Sprintf("namespace already exist, going to be transferred to profile %v", instance.Name))
+					block := true
+					controller := true
+					owner := []metav1.OwnerReference{
+						{
+							APIVersion:         instance.APIVersion,
+							Kind:               instance.Kind,
+							Name:               instance.Name,
+							BlockOwnerDeletion: &block,
+							Controller:         &controller,
+							UID:                instance.GetUID(),
+						},
+					}
+					foundNs.SetOwnerReferences(owner)
+					ownerMatch = true
+					delete(foundNs.Annotations, hijackAnnotation)
+				}
+			}
+		}
+
 		if !ownerMatch {
-			IncRequestCounter("reject profile taking over existing namespace")
+			IncRequestErrorCounter("reject profile taking over existing namespace", SEVERITY_MAJOR)
 			return fmt.Errorf("namespace already exist, but not owned by profile %v", instance.Name)
 
 		}
