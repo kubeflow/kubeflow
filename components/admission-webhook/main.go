@@ -34,7 +34,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
@@ -758,6 +760,7 @@ func main() {
 	flag.IntVar(&port, "webhookPort", 4443, "Port number on which the webhook listens.")
 	flag.Parse()
 	klog.InitFlags(nil)
+	ctrl.SetLogger(zap.New())
 
 	http.HandleFunc("/apply-poddefault", serveMutatePods)
 
