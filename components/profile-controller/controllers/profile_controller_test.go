@@ -1,10 +1,14 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
 	"reflect"
 	"testing"
+	"time"
 
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"github.com/stretchr/testify/assert"
@@ -12,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 )
 
 type namespaceLabelSuite struct {
@@ -189,12 +194,205 @@ func TestGetPluginSpec(t *testing.T) {
 
 func createMockReconciler() *ProfileReconciler {
 	reconciler := &ProfileReconciler{
-		Scheme:                     runtime.NewScheme(),
-		Log:                        ctrl.Log,
-		UserIdHeader:               "dummy",
-		UserIdPrefix:               "dummy",
-		WorkloadIdentity:           "dummy",
-		DefaultNamespaceLabelsPath: "dummy",
+		Scheme:                      runtime.NewScheme(),
+		Log:                         ctrl.Log,
+		UserIdHeader:                "placeholder",
+		UserIdPrefix:                "placeholder",
+		WorkloadIdentity:            "placeholder",
+		DefaultNamespaceLabelsPaths: []string{"placeholder"},
 	}
 	return reconciler
+}
+
+type readDefaultLabelsFromFileSuite struct {
+	name           string
+	files          map[string]string
+	expectedLabels map[string]string
+	paths          []string
+	hasError       bool
+}
+
+func TestReadDefaultLabelsFromFiles(t *testing.T) {
+	tests := []readDefaultLabelsFromFileSuite{
+		{
+			name: "single",
+			files: map[string]string{
+				"single-file.yaml": "test-key: test-value",
+			},
+			expectedLabels: map[string]string{
+				"test-key": "test-value",
+			},
+			paths:    []string{"single-file.yaml"},
+			hasError: false,
+		},
+		{
+			name: "multiple",
+			files: map[string]string{
+				"multiple-files/file1.yaml": "test-key1: test-value1",
+				"file2.yaml":                "test-key2: test-value2",
+			},
+			expectedLabels: map[string]string{
+				"test-key1": "test-value1",
+				"test-key2": "test-value2",
+			},
+			paths:    []string{"multiple-files/file1.yaml", "file2.yaml"},
+			hasError: false,
+		},
+		{
+			name:     "file does not exist",
+			paths:    []string{"does-not-exist.yaml"},
+			hasError: true,
+		},
+		{
+			name: "file is not yaml",
+			files: map[string]string{
+				"test-not-yaml.yaml": "notyaml",
+			},
+			paths:    []string{"test-not-yaml.yaml"},
+			hasError: true,
+		},
+	}
+	for _, test := range tests {
+		for name, content := range test.files {
+			fullPath := path.Join(test.name, name)
+			dir, _ := path.Split(fullPath)
+			err := os.MkdirAll(dir, 0700)
+			defer os.RemoveAll(test.name)
+			assert.Nil(t, err)
+			err = os.WriteFile(fullPath, []byte(content), 0700)
+			defer os.Remove(fullPath)
+			assert.Nil(t, err)
+		}
+		var fullPaths []string
+		for _, file := range test.paths {
+			fullPaths = append(fullPaths, path.Join(test.name, file))
+		}
+		labels, err := createMockReconciler().readDefaultLabelsFromFiles(fullPaths)
+		if test.hasError {
+			assert.NotNil(t, err)
+		} else {
+			assert.Nil(t, err)
+		}
+		assert.Equal(t, test.expectedLabels, labels, "Expect:\n%v; Output:\n%v")
+	}
+}
+
+type SetupWatchersSuite struct {
+	name  string
+	files []string
+}
+
+type FakeManager struct {
+	ctrl.Manager
+	elected chan struct{}
+}
+
+func (f FakeManager) Elected() <-chan struct{} {
+	return f.elected
+}
+
+func TestSetupWatchers(t *testing.T) {
+	// Setup file
+	fileName := "file.yaml"
+	dirName := "setup-watchers"
+	err := os.MkdirAll(dirName, 0700)
+	defer os.RemoveAll(dirName)
+	assert.Nil(t, err)
+	fullPath := path.Join(dirName, fileName)
+	err = os.WriteFile(fullPath, []byte("testing"), 0700)
+	defer os.Remove(fullPath)
+	assert.Nil(t, err)
+	events := make(chan event.GenericEvent)
+	defer close(events)
+	r := createMockReconciler()
+	r.DefaultNamespaceLabelsPaths = []string{fullPath}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	r.cancelFileWatchers = cancel
+	elected := make(chan struct{})
+	fakeMgr := FakeManager{
+		elected: elected,
+	}
+	// The manager is not the leader so we shouldn't receive any events on file update
+	err = r.SetupFileWatchers(events, ctx, fakeMgr)
+	eventReceived := make(chan bool)
+	ctx, cancelWatchTestFunction := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelWatchTestFunction()
+	go watchTestFunction(events, eventReceived, ctx)
+	err = os.WriteFile(fullPath, []byte("change file"), 0700)
+	assert.Nil(t, err)
+	assert.False(t, <-eventReceived)
+	// Make the manager the leader and make sure updates to file provide event
+	close(fakeMgr.elected)
+	ctx, cancelWatchTestFunctionLeader := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancelWatchTestFunctionLeader()
+	go watchTestFunction(events, eventReceived, ctx)
+	err = os.WriteFile(fullPath, []byte("change file another time"), 0700)
+	assert.Nil(t, err)
+	assert.True(t, <-eventReceived)
+	r.ShutdownFileWatchers()
+	// Make sure after shutting down no more events are sent
+	ctx, cancelWatchTestFunctionShutdown := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelWatchTestFunctionShutdown()
+	go watchTestFunction(events, eventReceived, ctx)
+	err = os.WriteFile(fullPath, []byte("change file again"), 0700)
+	assert.Nil(t, err)
+	assert.False(t, <-eventReceived)
+}
+
+func TestSetupWatchersMissingFile(t *testing.T) {
+	events := make(chan event.GenericEvent)
+	defer close(events)
+	r := createMockReconciler()
+	r.DefaultNamespaceLabelsPaths = []string{"missing-file.yaml"}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	r.cancelFileWatchers = cancel
+	fakeMgr := FakeManager{}
+	err := r.SetupFileWatchers(events, ctx, fakeMgr)
+	assert.NotNil(t, err)
+}
+
+func TestSetupWatchersMissingSecondFile(t *testing.T) {
+	// Set up file
+	fileName := "file.yaml"
+	dirName := "setup-watchers-missing-second"
+	err := os.MkdirAll(dirName, 0700)
+	defer os.RemoveAll(dirName)
+	assert.Nil(t, err)
+	fullPath := path.Join(dirName, fileName)
+	err = os.WriteFile(fullPath, []byte("testing"), 0700)
+	defer os.Remove(fullPath)
+	assert.Nil(t, err)
+	events := make(chan event.GenericEvent)
+	defer close(events)
+	r := createMockReconciler()
+	r.DefaultNamespaceLabelsPaths = []string{fullPath, "missing-file.yaml"}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	r.cancelFileWatchers = cancel
+	fakeMgr := FakeManager{}
+	err = r.SetupFileWatchers(events, ctx, fakeMgr)
+	assert.NotNil(t, err)
+	// Make sure updates to first file does not provide event
+	eventReceived := make(chan bool)
+	ctx, cancelWatchTestFunction := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancelWatchTestFunction()
+	go watchTestFunction(events, eventReceived, ctx)
+	err = os.WriteFile(fullPath, []byte("change file"), 0700)
+	assert.Nil(t, err)
+	assert.False(t, <-eventReceived)
+}
+
+func watchTestFunction(events chan event.GenericEvent, triggered chan bool, ctx context.Context) {
+	// true is sent to triggered channel if watch was successful
+	for {
+		select {
+		case _ = <-events:
+			triggered <- true
+		case <-ctx.Done():
+			triggered <- false
+			return
+		}
+	}
 }
