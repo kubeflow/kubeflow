@@ -425,6 +425,10 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 		"ISTIO_INGRESS_GATEWAY_PRINCIPAL",
 		"cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account")
 
+	kfpUIPrincipal := GetEnvDefault(
+		"KFP_UI_PRINCIPAL",
+		"cluster.local/ns/kubeflow/sa/ml-pipeline-ui")
+
 	return istioSecurity.AuthorizationPolicy{
 		Action: istioSecurity.AuthorizationPolicy_ALLOW,
 		// Empty selector == match all workloads in namespace
@@ -448,6 +452,17 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 						},
 					},
 				}},
+			},
+			{
+				From: []*istioSecurity.Rule_From{
+					{
+						// KFP UI needs to talk to ml-pipeline-ui-artifact pods
+						// in each profile namespace
+						Source: &istioSecurity.Source{
+							Principals: []string{kfpUIPrincipal},
+						},
+					},
+				},
 			},
 			{
 				When: []*istioSecurity.Condition{
