@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -417,12 +418,29 @@ func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ct
 			return errors.Wrapf(err, "Failed to watch file %s", namespaceLabelsPath)
 		}
 
-		go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent, ctx context.Context, namespaceLabelsPath string, mgr ctrl.Manager) {
+		go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent, ctx context.Context, namespaceLabelsPath string) {
 			elected := false
+			var mu sync.Mutex
+			go func() {
+				// Convey if the process is the leader
+				for {
+					select {
+					case <-mgr.Elected():
+						mu.Lock()
+						elected = true
+						mu.Unlock()
+						return
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
 			for {
 				select {
 				case fsEvent := <-watcher.Events:
+					mu.Lock()
 					if fsEvent.Op != fsnotify.Remove && fsEvent.Op != fsnotify.Write {
+						mu.Unlock()
 						break
 					}
 					// ConfigMaps work with symlinks. See:
@@ -437,6 +455,7 @@ func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ct
 						// from updating symlinks
 						reconcileEvents <- event.GenericEvent{}
 					}
+					mu.Unlock()
 				case err := <-watcher.Errors:
 					r.Log.Error(err, "Error while watching config file", "path",
 						namespaceLabelsPath)
@@ -444,11 +463,9 @@ func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ct
 					watcher.Close()
 					r.fileWatcherStopped <- 1
 					return
-				case <-mgr.Elected():
-					elected = true
 				}
 			}
-		}(watcher, events, ctx, namespaceLabelsPath, mgr)
+		}(watcher, events, ctx, namespaceLabelsPath)
 		r.fileWatcherCount = r.fileWatcherCount + 1
 	}
 	return nil
