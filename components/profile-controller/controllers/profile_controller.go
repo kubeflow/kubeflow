@@ -380,6 +380,7 @@ func (r *ProfileReconciler) ShutdownFileWatchers() {
 		// Exit if there are no file watchers configured
 		return
 	}
+	defer close(r.fileWatcherStopped)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	for {
