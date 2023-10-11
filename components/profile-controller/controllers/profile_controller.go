@@ -449,20 +449,10 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 					Source: &istioSecurity.Source{
 						Principals: []string{
 							istioIGWPrincipal,
+							kfpUIPrincipal,
 						},
 					},
 				}},
-			},
-			{
-				From: []*istioSecurity.Rule_From{
-					{
-						// KFP UI needs to talk to ml-pipeline-ui-artifact pods
-						// in each profile namespace
-						Source: &istioSecurity.Source{
-							Principals: []string{kfpUIPrincipal},
-						},
-					},
-				},
 			},
 			{
 				When: []*istioSecurity.Condition{

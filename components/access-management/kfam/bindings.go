@@ -81,6 +81,10 @@ func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix 
 		"ISTIO_INGRESS_GATEWAY_PRINCIPAL",
 		"cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account")
 
+	kfpUIPrincipal := GetEnvDefault(
+		"KFP_UI_PRINCIPAL",
+		"cluster.local/ns/kubeflow/sa/ml-pipeline-ui")
+
 	return istioSecurity.AuthorizationPolicy{
 		Rules: []*istioSecurity.Rule{
 			{
@@ -94,7 +98,10 @@ func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix 
 				},
 				From: []*istioSecurity.Rule_From{{
 					Source: &istioSecurity.Source{
-						Principals: []string{istioIGWPrincipal},
+						Principals: []string{
+							istioIGWPrincipal,
+							kfpUIPrincipal,
+						},
 					},
 				}},
 			},
