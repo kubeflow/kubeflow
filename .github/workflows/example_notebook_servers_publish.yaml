@@ -1,0 +1,107 @@
+name: Build & Publish Notebook Servers
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/**
+      - releasing/version/VERSION
+
+jobs:
+  base_images:
+    name: Build & Push - Base
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        base
+
+  codeserver_images:
+    name: Build & Push - Code Server
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ base_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        codeserver
+        codeserver-python
+
+  rstudio_images:
+    name: Build & Push - RStudio
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ base_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        rstudio
+        rstudio-tidyverse
+
+  jupyter_images:
+    name: Build & Push - Jupyter
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ base_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        jupyter
+
+  jupyter_scipy_images:
+    name: Build & Push - Jupyter (SciPy)
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ jupyter_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        jupyter-scipy
+
+  jupyter_pytorch_images:
+    name: Build & Push - Jupyter (PyTorch)
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ jupyter_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        jupyter-pytorch
+        jupyter-pytorch-full
+
+  jupyter_pytorch_cuda_images:
+    name: Build & Push - Jupyter (PyTorch + CUDA)
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ jupyter_images ]
+    secrets: inherit
+    with:
+      # TODO: support 'linux/arm64' for PyTorch CUDA images
+      build_arch: linux/amd64
+      image_folders: |
+        jupyter-pytorch-cuda
+        jupyter-pytorch-cuda-full
+
+  jupyter_tensorflow_images:
+    name: Build & Push - Jupyter (TensorFlow)
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ jupyter_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64,linux/arm64
+      image_folders: |
+        jupyter-tensorflow
+        jupyter-tensorflow-full
+
+  jupyter_tensorflow_cuda_images:
+    name: Build & Push - Jupyter (TensorFlow + CUDA)
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ jupyter_images ]
+    secrets: inherit
+    with:
+      # TODO: support 'linux/arm64' for TensorFlow CUDA images
+      build_arch: linux/amd64
+      image_folders: |
+        jupyter-tensorflow-cuda
+        jupyter-tensorflow-cuda-full
