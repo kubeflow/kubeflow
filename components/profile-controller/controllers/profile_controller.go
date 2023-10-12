@@ -374,13 +374,13 @@ func (r *ProfileReconciler) mapEventToRequest(o client.Object) []reconcile.Reque
 
 // Shutdown all file watcher instances
 func (r *ProfileReconciler) ShutdownFileWatchers() {
+	defer close(r.fileWatcherStopped)
 	r.cancelFileWatchers()
 	stoppedCount := 0
 	if r.fileWatcherCount == 0 {
 		// Exit if there are no file watchers configured
 		return
 	}
-	defer close(r.fileWatcherStopped)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	for {
@@ -419,7 +419,7 @@ func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ct
 			return errors.Wrapf(err, "Failed to watch file %s", namespaceLabelsPath)
 		}
 
-		go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent, ctx context.Context, namespaceLabelsPath string) {
+		go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent, ctx context.Context, namespaceLabelsPath string, mgr ctrl.Manager) {
 			elected := false
 			var mu sync.Mutex
 			go func() {
@@ -466,7 +466,7 @@ func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ct
 					return
 				}
 			}
-		}(watcher, events, ctx, namespaceLabelsPath)
+		}(watcher, events, ctx, namespaceLabelsPath, mgr)
 		r.fileWatcherCount = r.fileWatcherCount + 1
 	}
 	return nil

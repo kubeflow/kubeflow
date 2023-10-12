@@ -277,11 +277,6 @@ func TestReadDefaultLabelsFromFiles(t *testing.T) {
 	}
 }
 
-type SetupWatchersSuite struct {
-	name  string
-	files []string
-}
-
 type FakeManager struct {
 	ctrl.Manager
 	elected chan struct{}
@@ -291,7 +286,7 @@ func (f FakeManager) Elected() <-chan struct{} {
 	return f.elected
 }
 
-func TestSetupWatchers(t *testing.T) {
+func TestSetupFileWatchers(t *testing.T) {
 	// Setup file
 	fileName := "file.yaml"
 	dirName := "setup-watchers"
@@ -340,7 +335,7 @@ func TestSetupWatchers(t *testing.T) {
 	assert.False(t, <-eventReceived)
 }
 
-func TestSetupWatchersMissingFile(t *testing.T) {
+func TestSetupFileWatchersMissingFile(t *testing.T) {
 	events := make(chan event.GenericEvent)
 	defer close(events)
 	r := createMockReconciler()
@@ -353,7 +348,7 @@ func TestSetupWatchersMissingFile(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestSetupWatchersMissingSecondFile(t *testing.T) {
+func TestSetupFileWatchersMissingSecondFile(t *testing.T) {
 	// Set up file
 	fileName := "file.yaml"
 	dirName := "setup-watchers-missing-second"
