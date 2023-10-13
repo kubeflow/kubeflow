@@ -14,7 +14,9 @@ log = logging.getLogger(__name__)
 
 FILE_ABS_PATH = os.path.abspath(os.path.dirname(__file__))
 
-NOTEBOOK_TEMPLATE_YAML = os.path.join(FILE_ABS_PATH, "yaml/notebook_template.yaml")
+NOTEBOOK_TEMPLATE_YAML = os.path.join(
+    FILE_ABS_PATH, "yaml/notebook_template.yaml"
+)
 LAST_ACTIVITY_ANNOTATION = "notebooks.kubeflow.org/last-activity"
 
 # The production configuration is mounted on the app's pod via a configmap
@@ -97,7 +99,9 @@ def pvc_from_dict(vol, namespace):
         spec=client.V1PersistentVolumeClaimSpec(
             access_modes=[vol["mode"]],
             storage_class_name=get_storage_class(vol),
-            resources=client.V1ResourceRequirements(requests={"storage": vol["size"]}),
+            resources=client.V1ResourceRequirements(
+                requests={"storage": vol["size"]}
+            ),
         ),
     )
 
