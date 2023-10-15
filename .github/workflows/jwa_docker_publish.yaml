@@ -47,6 +47,7 @@ jobs:
         ARCH=linux/amd64 make docker-build-multi-arch
         ARCH=linux/ppc64le make docker-build-multi-arch
         ARCH=linux/arm64/v8 make docker-build-multi-arch
+        make docker-build-push-multi-arch
 
     - name: Build and push latest multi-arch docker image
       if: github.ref == 'refs/heads/master'
