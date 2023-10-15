@@ -12,6 +12,7 @@ on:
 env:
   DOCKER_USER: kubeflownotebookswg
   IMG: kubeflownotebookswg/notebook-controller
+  ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
 jobs:
   push_to_registry:
