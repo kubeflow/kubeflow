@@ -853,13 +853,13 @@ func (r *ProfileReconciler) readDefaultLabelsFromFiles(labelPaths []string) (map
 		logger := r.Log.WithName("read-config-file").WithValues("path", path)
 		dat, err := ioutil.ReadFile(path)
 		if err != nil {
-			logger.Error(err, fmt.Sprintf("unable to read default namespace labels file %s", path))
+			logger.Error(err, "unable to read default namespace labels file")
 			return nil, err
 		}
 		labels := map[string]string{}
 		err = yaml.Unmarshal(dat, &labels)
 		if err != nil {
-			logger.Error(err, fmt.Sprintf("unable to parse default namespace labels file %s.", path))
+			logger.Error(err, "unable to parse default namespace labels file")
 			return nil, err
 		}
 		for labelKey, labelVal := range labels {
