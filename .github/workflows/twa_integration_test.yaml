@@ -23,10 +23,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Build TWA Image 
+    - name: Build TWA Image
       run: |
         cd components/crud-web-apps/tensorboards
-        make docker-build 
+        make docker-build
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -34,7 +34,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Image into KinD Cluster 
+    - name: Load Image into KinD Cluster
       run: |
         kind load docker-image "${IMG}:${TAG}"
 

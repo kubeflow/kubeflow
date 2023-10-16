@@ -130,7 +130,7 @@ apps = [
         ],
     },
     {
-        "name": "PVC Viewer",
+        "name": "PVCViewer Controller",
         "kustomization": "components/pvcviewer-controller/config/base/kustomization.yaml",
         "images": [
             {
@@ -139,7 +139,6 @@ apps = [
             },
         ],
     },
-
     {
         "name": "Access Management",
         "kustomization": "components/profile-controller/config/overlays/kubeflow/kustomization.yaml",
