@@ -16,12 +16,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
-        div.flex.scrollable
+        div.flex.scrollable(data-cy-menu-links)
             a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
                 paper-item.menu-item#home
                     iron-icon(icon='home')
                     | {{localize('mainPage.menuHome')}}
-
             template(is='dom-repeat', items='[[menuLinks]]')
                 template(is='dom-if', if='[[equals(item.type, "section")]]')
                     paper-item.menu-item.section-item(on-click='_toggleMenuSection')

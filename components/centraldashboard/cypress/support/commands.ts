@@ -53,3 +53,27 @@ Cypress.Commands.add('mockEnvInfoRequest', () => {
     fixture: 'env-info',
   }).as('mockEnvInfoRequest');
 });
+
+Cypress.Commands.add('mockActivitiesRequest', (namespace: string) => {
+  cy.intercept('GET', `/api/activities/${namespace}`, {
+    fixture: 'activities',
+  }).as('mockActivitiesRequest');
+});
+
+Cypress.Commands.add('mockGetNotebooksRequest', (namespace: string) => {
+  cy.intercept('GET', `/jupyter/api/namespaces/${namespace}/notebooks`, {
+    fixture: 'notebooks',
+  }).as('mockGetNotebooksRequest');
+});
+
+Cypress.Commands.add('mockGetContributorsRequest', (namespace: string) => {
+  cy.intercept('GET', `/api/workgroup/get-contributors/${namespace}`, {
+    fixture: 'contributors',
+  }).as('mockGetContributorsRequest');
+});
+
+Cypress.Commands.add('mockNotebookContentsRequest', (namespace: string, notebook: string)=>{
+  cy.intercept('GET', `/notebook/${namespace}/${notebook}/api/contents`, {
+    fixture: 'contents',
+  }).as('mockNotebookContentsRequest');
+});
