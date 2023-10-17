@@ -9,9 +9,9 @@ log = logging.getLogger(__name__)
     "/api/namespaces/<namespace>/notebooks/<notebook>", methods=["DELETE"]
 )
 def delete_notebook(notebook, namespace):
-    log.info("Deleting Notebook '%s/%s'" % (namespace, notebook))
+    log.info("Deleting Workbench '%s/%s'" % (namespace, notebook))
     api.delete_notebook(notebook, namespace)
 
     return api.success_response(
-        "message", "Notebook %s successfully deleted." % notebook
+        "message", "Workbench %s successfully deleted." % notebook
     )

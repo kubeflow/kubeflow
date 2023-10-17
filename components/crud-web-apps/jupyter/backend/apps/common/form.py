@@ -189,7 +189,7 @@ def set_notebook_tolerations(notebook, body, defaults):
         if group["groupKey"] != tolerations_group_key:
             continue
 
-        log.info("Appending Notebook tolerations: %s", group["tolerations"])
+        log.info("Appending Workbench tolerations: %s", group["tolerations"])
         notebook_tolerations.extend(group["tolerations"])
         return
 
@@ -213,7 +213,7 @@ def set_notebook_affinity(notebook, body, defaults):
         if affinity_config["configKey"] != affinity_config_key:
             continue
 
-        log.info("Setting Notebook affinity: %s", affinity_config["affinity"])
+        log.info("Setting Workbench affinity: %s", affinity_config["affinity"])
         notebook_spec["affinity"] = affinity_config["affinity"]
         return
 

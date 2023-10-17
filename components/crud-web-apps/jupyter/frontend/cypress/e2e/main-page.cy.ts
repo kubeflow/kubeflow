@@ -9,12 +9,12 @@ describe('Main table', () => {
     cy.fixture('notebooks').as('notebooksRequest');
   });
 
-  it('should have a "Notebooks" title', () => {
+  it('should have a "Workbenches" title', () => {
     cy.visit('/');
-    cy.get('[data-cy-toolbar-title]').contains('Notebooks').should('exist');
+    cy.get('[data-cy-toolbar-title]').contains('Workbenches').should('exist');
   });
 
-  it('should list Notebooks without errors', () => {
+  it('should list Workbenches without errors', () => {
     cy.visit('/');
     // wait for the request to fetch notebooks and namespaces
     cy.wait(['@mockNamespacesRequest', '@mockNotebooksRequest']);
@@ -36,7 +36,7 @@ describe('Main table', () => {
   });
 
   // We use function () in order to be able to access aliases via this
-  it('renders every Notebook name into the table', function () {
+  it('renders every Workbench name into the table', function () {
     cy.visit('/');
     cy.wait(['@mockNamespacesRequest', '@mockNotebooksRequest']);
 

@@ -72,7 +72,7 @@ export class ActionsService {
       this.backend.startNotebook(namespace, name).subscribe(response => {
         const config: SnackBarConfig = {
           data: {
-            msg: $localize`Starting Notebook server '${name}'...`,
+            msg: $localize`Starting Workbench server '${name}'...`,
             snackType: SnackType.Info,
           },
         };
@@ -99,7 +99,7 @@ export class ActionsService {
             ref.close(DIALOG_RESP.ACCEPT);
             const config: SnackBarConfig = {
               data: {
-                msg: $localize`Stopping Notebook server '${name}'...`,
+                msg: $localize`Stopping Workbench server '${name}'...`,
                 snackType: SnackType.Info,
               },
             };

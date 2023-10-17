@@ -25,28 +25,28 @@ func NewMetrics(cli client.Client) *Metrics {
 		runningNotebooks: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: "notebook_running",
-				Help: "Current running notebooks in the cluster",
+				Help: "Current running workbenches in the cluster",
 			},
 			[]string{"namespace"},
 		),
 		NotebookCreation: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "notebook_create_total",
-				Help: "Total times of creating notebooks",
+				Help: "Total times of creating workbenches",
 			},
 			[]string{"namespace"},
 		),
 		NotebookFailCreation: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "notebook_create_failed_total",
-				Help: "Total failure times of creating notebooks",
+				Help: "Total failure times of creating workbenches",
 			},
 			[]string{"namespace"},
 		),
 		NotebookCullingCount: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "notebook_culling_total",
-				Help: "Total times of culling notebooks",
+				Help: "Total times of culling workbenches",
 			},
 			[]string{"namespace", "name"},
 		),

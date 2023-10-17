@@ -26,7 +26,7 @@ parser.add_argument(
     nargs='?',
     default=3,
     type=int,
-    help='Number of notebooks to start the load test. (Default: %(default)s)',
+    help='Number of workbenches to start the load test. (Default: %(default)s)',
 )
 
 parser.add_argument(

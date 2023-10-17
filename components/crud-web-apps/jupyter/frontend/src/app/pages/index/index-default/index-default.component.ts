@@ -37,7 +37,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   dashboardDisconnectedState = DashboardState.Disconnected;
 
   private newNotebookButton = new ToolbarButton({
-    text: $localize`New Notebook`,
+    text: $localize`New Workbench`,
     icon: 'add',
     stroked: true,
     fn: () => {
@@ -62,7 +62,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
       this.currNamespace = ns;
       this.poll(ns);
-      this.newNotebookButton.namespaceChanged(ns, $localize`Notebook`);
+      this.newNotebookButton.namespaceChanged(ns, $localize`Workbench`);
     });
   }
 
@@ -100,7 +100,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           a.event.preventDefault();
           const config: SnackBarConfig = {
             data: {
-              msg: 'Notebook is being deleted, cannot show details.',
+              msg: 'Workbench is being deleted, cannot show details.',
               snackType: SnackType.Info,
             },
             duration: 4000,
@@ -121,7 +121,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         notebook.status.phase = STATUS_TYPE.TERMINATING;
-        notebook.status.message = 'Preparing to delete the Notebook.';
+        notebook.status.message = 'Preparing to delete the Workbench.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -143,7 +143,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       .startNotebook(notebook.namespace, notebook.name)
       .subscribe(_ => {
         notebook.status.phase = STATUS_TYPE.WAITING;
-        notebook.status.message = 'Starting the Notebook Server.';
+        notebook.status.message = 'Starting the Workbench Server.';
         this.updateNotebookFields(notebook);
       });
   }
@@ -157,7 +157,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         notebook.status.phase = STATUS_TYPE.WAITING;
-        notebook.status.message = 'Preparing to stop the Notebook Server.';
+        notebook.status.message = 'Preparing to stop the Workbench Server.';
         this.updateNotebookFields(notebook);
       });
   }

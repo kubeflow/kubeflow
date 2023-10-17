@@ -54,7 +54,7 @@
       "namespace": "kubeflow-user",
       "notebooks": [],
       "status": {
-        "message": "Pending: This volume will be bound when its first consumer is created. E.g., when you first browse its contents, or attach it to a notebook server",
+        "message": "Pending: This volume will be bound when its first consumer is created. E.g., when you first browse its contents, or attach it to a workbench server",
         "phase": "unavailable",
         "state": "WaitForFirstConsumer"
       },

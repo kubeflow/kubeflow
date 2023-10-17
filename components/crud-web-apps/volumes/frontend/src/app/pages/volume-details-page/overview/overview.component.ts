@@ -100,7 +100,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
       return { podName, groupName, namespace };
     } else if ('notebook-name' in labels) {
       const podName = labels['notebook-name'];
-      const groupName = 'Notebooks';
+      const groupName = 'Workbenches';
       return { podName, groupName, namespace };
     } else {
       return null;
@@ -123,7 +123,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   ): UrlItem {
     let url = '';
 
-    if (groupName === 'Notebooks') {
+    if (groupName === 'Workbenches') {
       url = `${viewerUrl}/jupyter/notebook/details/${namespace}/${podName}/`;
     } else if (groupName === 'InferenceService') {
       // Remove (component) from podName

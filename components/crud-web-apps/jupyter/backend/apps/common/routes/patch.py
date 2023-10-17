@@ -48,10 +48,10 @@ def start_stop_notebook(namespace, notebook, request_body):
     if stop:
         if notebook_is_stopped(namespace, notebook):
             raise exceptions.Conflict(
-                "Notebook %s/%s is already stopped." % (namespace, notebook)
+                "Workbench %s/%s is already stopped." % (namespace, notebook)
             )
 
-        log.info("Stopping Notebook Server '%s/%s'", namespace, notebook)
+        log.info("Stopping Workbench Server '%s/%s'", namespace, notebook)
         now = dt.datetime.now(dt.timezone.utc)
         timestamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -59,20 +59,20 @@ def start_stop_notebook(namespace, notebook, request_body):
             "metadata": {"annotations": {status.STOP_ANNOTATION: timestamp}}
         }
     else:
-        log.info("Starting Notebook Server '%s/%s'", namespace, notebook)
+        log.info("Starting Workbench Server '%s/%s'", namespace, notebook)
         patch_body = {
             "metadata": {"annotations": {status.STOP_ANNOTATION: None}}
         }
 
     log.info(
-        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+        "Sending PATCH to Workbench %s/%s: %s", namespace, notebook, patch_body
     )
     api.patch_notebook(notebook, namespace, patch_body)
 
 
 def notebook_is_stopped(namespace, notebook):
     log.info(
-        "Checking if Notebook %s/%s is already stopped", namespace, notebook,
+        "Checking if Workbench %s/%s is already stopped", namespace, notebook,
     )
     notebook = api.get_notebook(notebook, namespace)
     annotations = notebook.get("metadata", {}).get("annotations", {})

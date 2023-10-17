@@ -78,7 +78,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     configurations: Configuration[],
   ) {
     if (podRequestCompleted === true && configurations.length === 0) {
-      return 'No configurations available for this notebook.';
+      return 'No configurations available for this workbench.';
     }
   }
 

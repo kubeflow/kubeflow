@@ -91,7 +91,7 @@ const tableData = [
   {
     status: {
       phase: 'stopped',
-      message: 'No Pods are currently running for this Notebook Server.',
+      message: 'No Pods are currently running for this Workbench Server.',
     },
     name: 'b-notebook',
     serverType: 'group-one',

@@ -66,7 +66,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
         this.defaultStorageclass = false;
         const configWarning: SnackBarConfig = {
           data: {
-            msg: $localize`No default Storage Class is set. Can't create new Disks for the new Notebook. Please use an Existing Disk.`,
+            msg: $localize`No default Storage Class is set. Can't create new Disks for the new Workbench. Please use an Existing Disk.`,
             snackType: SnackType.Warning,
           },
           duration: 0,
@@ -156,7 +156,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
   setTooltipText(form: FormGroup): string {
     let text: string;
     if (!form.get('name').valid) {
-      text = 'No value of the Notebook name was provided';
+      text = 'No value of the Workbench name was provided';
     } else if (!form.controls.valid) {
       text = 'The form contains invalid fields';
     }
@@ -166,7 +166,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
   onSubmit() {
     const configInfo: SnackBarConfig = {
       data: {
-        msg: 'Submitting new Notebook...',
+        msg: 'Submitting new Workbench...',
         snackType: SnackType.Info,
       },
     };
@@ -177,7 +177,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
       this.popup.close();
       const configSuccess: SnackBarConfig = {
         data: {
-          msg: 'Notebook created successfully.',
+          msg: 'Workbench created successfully.',
           snackType: SnackType.Success,
         },
       };

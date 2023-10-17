@@ -29,7 +29,7 @@ import (
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 )
 
-var _ = Describe("Notebook controller", func() {
+var _ = Describe("Workbench controller", func() {
 
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
@@ -41,7 +41,7 @@ var _ = Describe("Notebook controller", func() {
 
 	Context("When validating the notebook controller", func() {
 		It("Should create replicas", func() {
-			By("By creating a new Notebook")
+			By("By creating a new Workbench")
 			ctx := context.Background()
 			notebook := &nbv1beta1.Notebook{
 				ObjectMeta: metav1.ObjectMeta{
@@ -72,7 +72,7 @@ var _ = Describe("Notebook controller", func() {
 				The satefulset controllers aren't running within envtest, when env test's aren't pointing to the live cluster.
 				Only the API server is running within envtest. So cannot check actual pods / replicas.
 			*/
-			By("By checking that the Notebook has statefulset")
+			By("By checking that the Workbench has statefulset")
 			Eventually(func() (bool, error) {
 				sts := &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,

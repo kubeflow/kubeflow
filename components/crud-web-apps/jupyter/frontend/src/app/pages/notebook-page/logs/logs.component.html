@@ -2,7 +2,7 @@
 
 <!--if no logs are present at all then show a warning message-->
 <ng-container *ngIf="!logsLoading && logsEmpty">
-  <lib-panel *ngIf="!pod"> No logs were found for this Notebook. </lib-panel>
+  <lib-panel *ngIf="!pod"> No logs were found for this Workbench. </lib-panel>
   <lib-panel *ngIf="pod" icon="error" color="warn">
     Error: {{ loadErrorMsg }}
   </lib-panel>
@@ -11,7 +11,7 @@
 <ng-container *ngIf="!logsLoading && !logsEmpty">
   <lib-logs-viewer
     class="logs-viewer"
-    heading="Notebook Pod Logs"
+    heading="Workbench Pod Logs"
     [subHeading]="''"
     [logs]="logs"
   ></lib-logs-viewer>

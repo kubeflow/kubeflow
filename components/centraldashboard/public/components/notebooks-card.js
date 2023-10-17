@@ -33,7 +33,7 @@ export class NotebooksCard extends PolymerElement {
             loading="{{loading}}" on-response="_onNotebookServersResponse"
             on-error="_onError">
         </iron-ajax>
-        <paper-card heading="Recent Notebooks">
+        <paper-card heading="Recent Workbenches">
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
             <header id="message" hidden$="[[!message]]">[[message]]</header>
@@ -64,7 +64,7 @@ export class NotebooksCard extends PolymerElement {
             },
             message: {
                 type: String,
-                value: 'Choose a namespace to see Notebooks',
+                value: 'Choose a namespace to see Workbenches',
             },
             namespace: String,
             listNotebookServersUrl: {
@@ -89,7 +89,7 @@ export class NotebooksCard extends PolymerElement {
     }
 
     /**
-     * Handles the list Notebooks Servers response to set date format and icon.
+     * Handles the list Workbench Servers response to set date format and icon.
      * @param {Event} responseEvent
      */
     async _onNotebookServersResponse(responseEvent) {
@@ -108,7 +108,7 @@ export class NotebooksCard extends PolymerElement {
             this._onError();
         }
         this.message = this.notebooks.length ?
-            '' : `No Notebooks in namespace ${this.namespace}`;
+            '' : `No Workbenches in namespace ${this.namespace}`;
         this.loading = false;
     }
 
@@ -141,11 +141,11 @@ export class NotebooksCard extends PolymerElement {
     }
 
     /**
-     * Handles an Notebooks error response.
+     * Handles an Workbenches error response.
      */
     _onError() {
         this.splice('notebooks', 0);
-        this.message = 'Error retrieving Notebooks';
+        this.message = 'Error retrieving Workbenches';
     }
 }
 
