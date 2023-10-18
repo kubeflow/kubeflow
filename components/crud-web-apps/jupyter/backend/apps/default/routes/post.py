@@ -1,6 +1,7 @@
 from flask import request
 
-from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging
+from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging, \
+    authn
 
 from ...common import form, utils, volumes
 from . import bp
@@ -14,12 +15,14 @@ log = logging.getLogger(__name__)
 def post_pvc(namespace):
     body = request.get_json()
     log.info("Got body: %s" % body)
+    user = authn.get_username()
 
     notebook = helpers.load_param_yaml(
         utils.NOTEBOOK_TEMPLATE_YAML,
         name=body["name"],
         namespace=namespace,
         serviceAccount="default-editor",
+        creator=user if user is not None else "anonymous@kubeflow.org"
     )
 
     defaults = utils.load_spawner_ui_config()

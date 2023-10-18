@@ -151,6 +151,17 @@ export class OverviewComponent implements OnInit, OnDestroy {
     }
   }
 
+  get notebookCreator(): string {
+    return this.getNotebookCreator(this.notebook);
+  }
+
+  getNotebookCreator(notebook: NotebookRawObject): string {
+    if (!notebook?.metadata?.annotations) {
+      return null;
+    }
+    return notebook.metadata.annotations['notebooks.kubeflow.org/creator'];
+  }
+
   get cpuRequests(): string {
     return this.getCpuRequest(this.notebook);
   }

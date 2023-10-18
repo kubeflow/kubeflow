@@ -1,33 +1,82 @@
 @use '~@angular/material' as mat;
 @import './kubeflow.css';
-@import './lib/variables.scss';
+@import './variables.scss';
 
-// always include only once per project
-@include mat.core();
-
-// Primary color is not used
-$kubeflow-theme-primary: mat.define-palette(mat.$blue-palette, 600, 700, 900);
-
-// Loaded from the kubeflow.css
-$kubeflow-accent: (
-  500: var(--accent-color),
-  100: var(--accent-color-light),
-  700: var(--accent-color-dark),
+// Define the primary palette for the color that appears most
+// frequently throughout your application.
+$kubeflow-primary-palette: (
+  400: $kubeflow-blue-hue-1,
+  500: $kubeflow-blue-hue-2,
+  600: $kubeflow-blue-hue-3,
+  700: $kubeflow-blue-primary-hue,
+  800: $kubeflow-blue-hue-4,
+  900: $kubeflow-blue-hue-5,
   contrast: (
-    100: rgba(black, 0.87),
-    500: white,
-    700: white,
+    400: $kubeflow-white,
+    500: $kubeflow-white,
+    600: $kubeflow-white,
+    700: $kubeflow-white,
+    800: $kubeflow-white,
+    900: $kubeflow-white,
   ),
 );
-$kubeflow-theme-accent: mat.define-palette($kubeflow-accent);
 
-// create theme (use mat-dark-theme for themes with dark backgrounds)
-$kubeflow-theme: mat.define-light-theme(
-  $kubeflow-theme-primary,
-  $kubeflow-theme-accent
+// Create the typography config that contains the styles of each level
+$kubeflow-typography-config: mat.define-typography-config(
+  $body-1:
+    mat.define-typography-level(
+      $font-family: Roboto,
+      $font-weight: $kubeflow-font-weight-regular,
+      $font-size: $kubeflow-font-size-regular,
+      $line-height: 20px,
+      $letter-spacing: 0.25px,
+    ),
+  $headline:
+    mat.define-typography-level(
+      $font-family: Roboto,
+      $font-weight: $kubeflow-font-weight-regular,
+      $font-size: $kubeflow-font-size-xlarge,
+      $line-height: 24px,
+      $letter-spacing: 0.18px,
+    ),
+  $title:
+    mat.define-typography-level(
+      $font-family: Roboto,
+      $font-weight: $kubeflow-font-weight-medium,
+      $font-size: $kubeflow-font-size-large,
+      $line-height: 24px,
+      $letter-spacing: 0.15px,
+    ),
 );
 
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$kubeflow-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: mat.define-palette($kubeflow-primary-palette, 700),
+      accent: mat.define-palette(mat.$pink-palette, A200, A100, A400),
+    ),
+  )
+);
+
+// Always include only once per project.
+// Passing the typography config to core mixin will apply the specified values
+// to the corresponding Angular Material components.
+@include mat.core($kubeflow-typography-config);
+
+// Include theme styles for core and each component used in the app.
+// Alternatively, you can import and @include the theme mixins for each
+// component that you are using.
 @include mat.all-component-themes($kubeflow-theme);
+
+.mat-headline {
+  color: $kubeflow-black-1;
+}
+
+.mat-title {
+  color: $kubeflow-black-1;
+}
 
 // Use the material icons offline
 $material-icons-font-path: '~material-icons/iconfont/';
@@ -46,9 +95,8 @@ mat-form-field .mat-form-field {
 // Custom css
 html,
 body {
-  font-family: Roboto, Sans-Serif;
   margin: 0;
-  background-color: white;
+  background: white;
 }
 
 .flex {
@@ -266,11 +314,6 @@ body {
   .details-page-inner-2 {
     display: flex;
     align-items: center;
-  }
-
-  .title {
-    font-weight: 500;
-    font-size: 20px;
   }
 }
 

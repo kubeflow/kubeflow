@@ -1,0 +1,170 @@
+# Adds namespace to all resources.
+# Note: the namespace name needs to be changed here and cannot be changed in an overlay
+# This is because certmanager and webhook use kustomize names to configure resources.
+# Setting another namespace here as in the overlay will lead to e.g. wrong DNSNames being generated.
+namespace: kubeflow
+
+# Value of this field is prepended to the
+# names of all resources, e.g. a deployment named
+# "wordpress" becomes "alices-wordpress".
+# Note that it should also match with the prefix (text before '-') of the namespace
+# field above.
+namePrefix: pvcviewer-
+
+# Labels to add to all resources and selectors.
+commonLabels:
+  app: pvcviewer
+
+resources:
+- ../crd
+- ../rbac
+- ../manager
+- ../webhook
+- ../certmanager
+# [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
+#- ../prometheus
+
+patchesStrategicMerge:
+# Do not create a namespace
+- remove_namespace.yaml
+# Protect the /metrics endpoint by putting it behind auth.
+# If you want your controller-manager to expose the /metrics
+# endpoint w/o any authn/z, please comment the following line.
+- manager_auth_proxy_patch.yaml
+- manager_webhook_patch.yaml
+- cainjection_patch.yaml
+- dnsnames_patch.yaml
+
+vars:
+- name: CERTIFICATE_NAMESPACE 
+  objref:
+    kind: Certificate
+    group: cert-manager.io
+    version: v1
+    name: serving-cert 
+  fieldref:
+    fieldpath: metadata.namespace
+- name: CERTIFICATE_NAME
+  objref:
+    kind: Certificate
+    group: cert-manager.io
+    version: v1
+    name: serving-cert
+- name: SERVICE_NAMESPACE
+  objref:
+    kind: Service
+    version: v1
+    name: webhook-service
+  fieldref:
+    fieldpath: metadata.namespace
+- name: SERVICE_NAME
+  objref:
+    kind: Service
+    version: v1
+    name: webhook-service
+
+# the following config is for teaching kustomize how to replace vars in Certificates.
+configurations:
+- kustomizeconfig.yaml
+
+# Note: the kustomize version that's being used to execute integration tests currently doesn't support replacemens.
+# Thus, we're using the deprecated vars feature above.
+# Once the kustomize version is updated, we can use the following config instead of the vars feature.
+# Can be removed then: cainjection_patch.yaml, dnsnames_patch.yaml, kustomizeconfig.yaml, their references here and the vars section above.
+# replacements:
+#  - source: # Add cert-manager annotation to ValidatingWebhookConfiguration, MutatingWebhookConfiguration and CRDs
+#      kind: Certificate
+#      group: cert-manager.io
+#      version: v1
+#      name: serving-cert # this name should match the one in certificate.yaml
+#      fieldPath: .metadata.namespace # namespace of the certificate CR
+#    targets:
+#      - select:
+#          kind: ValidatingWebhookConfiguration
+#        fieldPaths:
+#          - .metadata.annotations.[cert-manager.io/inject-ca-from]
+#        options:
+#          delimiter: '/'
+#          index: 0
+#          create: true
+#      - select:
+#          kind: MutatingWebhookConfiguration
+#        fieldPaths:
+#          - .metadata.annotations.[cert-manager.io/inject-ca-from]
+#        options:
+#          delimiter: '/'
+#          index: 0
+#          create: true
+#      - select:
+#          kind: CustomResourceDefinition
+#        fieldPaths:
+#          - .metadata.annotations.[cert-manager.io/inject-ca-from]
+#        options:
+#          delimiter: '/'
+#          index: 0
+#          create: true
+#  - source:
+#      kind: Certificate
+#      group: cert-manager.io
+#      version: v1
+#      name: serving-cert # this name should match the one in certificate.yaml
+#      fieldPath: .metadata.name
+#    targets:
+#      - select:
+#          kind: ValidatingWebhookConfiguration
+#        fieldPaths:
+#          - .metadata.annotations.[cert-manager.io/inject-ca-from]
+#        options:
+#          delimiter: '/'
+#          index: 1
+#          create: true
+#      - select:
+#          kind: MutatingWebhookConfiguration
+#        fieldPaths:
+#          - .metadata.annotations.[cert-manager.io/inject-ca-from]
+#        options:
+#          delimiter: '/'
+#          index: 1
+#          create: true
+#      - select:
+#          kind: CustomResourceDefinition
+#        fieldPaths:
+#          - .metadata.annotations.[cert-manager.io/inject-ca-from]
+#        options:
+#          delimiter: '/'
+#          index: 1
+#          create: true
+#  - source: # Add cert-manager annotation to the webhook Service
+#      kind: Service
+#      version: v1
+#      name: webhook-service
+#      fieldPath: .metadata.name # namespace of the service
+#    targets:
+#      - select:
+#          kind: Certificate
+#          group: cert-manager.io
+#          version: v1
+#        fieldPaths:
+#          - .spec.dnsNames.0
+#          - .spec.dnsNames.1
+#        options:
+#          delimiter: '.'
+#          index: 0
+#          create: true
+#  - source:
+#      kind: Service
+#      version: v1
+#      name: webhook-service
+#      fieldPath: .metadata.namespace # namespace of the service
+#    targets:
+#      - select:
+#          kind: Certificate
+#          group: cert-manager.io
+#          version: v1
+#        fieldPaths:
+#          - .spec.dnsNames.0
+#          - .spec.dnsNames.1
+#        options:
+#          delimiter: '.'
+#          index: 1
+#          create: true

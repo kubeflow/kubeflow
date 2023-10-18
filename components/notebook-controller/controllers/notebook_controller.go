@@ -377,18 +377,30 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 				},
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{
-					"statefulset":   instance.Name,
-					"notebook-name": instance.Name,
-				}},
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"statefulset":   instance.Name,
+						"notebook-name": instance.Name,
+					},
+					Annotations: map[string]string{},
+				},
 				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
 	}
+
 	// copy all of the Notebook labels to the pod including poddefault related labels
 	l := &ss.Spec.Template.ObjectMeta.Labels
 	for k, v := range instance.ObjectMeta.Labels {
 		(*l)[k] = v
+	}
+
+	// copy all of the Notebook annotations to the pod.
+	a := &ss.Spec.Template.ObjectMeta.Annotations
+	for k, v := range instance.ObjectMeta.Annotations {
+		if !strings.Contains(k, "kubectl") && !strings.Contains(k, "notebook") {
+			(*a)[k] = v
+		}
 	}
 
 	podSpec := &ss.Spec.Template.Spec

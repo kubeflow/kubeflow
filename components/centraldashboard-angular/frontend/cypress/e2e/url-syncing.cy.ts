@@ -26,7 +26,7 @@ describe('Browser and Iframe URL syncing', () => {
     cy.wait('@storageClassRequest');
     cy.equalUrls();
 
-    cy.getIframeBody().find('button').contains('keyboard_backspace').click();
+    cy.getIframeBody().find('button').contains('arrow_back').click();
     cy.wait('@notebooksRequest', { timeout: 10000 });
     cy.equalUrls();
 

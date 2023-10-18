@@ -12,7 +12,7 @@
     "lint-check": "ng lint",
     "lint": "ng lint --fix",
     "e2e": "ng e2e",
-    "copyCSS": "cp ./projects/kubeflow/src/kubeflow.css ./dist/kubeflow && cp ./projects/kubeflow/src/styles.scss ./dist/kubeflow && cp ./projects/kubeflow/src/lib/variables.scss ./dist/kubeflow/lib && cp ./projects/kubeflow/src/lib/fonts.scss ./dist/kubeflow/lib",
+    "copyCSS": "cp -r ./projects/kubeflow/src/styles ./dist/kubeflow/styles",
     "copyAssets": "cp -r ./projects/kubeflow/src/assets ./dist/kubeflow/assets",
     "postinstall": "ngcc",
     "format:check": "prettier --check 'projects/kubeflow/src/**/*.{js,ts,html,scss,css}' || node scripts/check-format-error.js",

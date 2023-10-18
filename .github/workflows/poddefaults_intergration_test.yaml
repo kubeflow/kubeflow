@@ -7,6 +7,10 @@ on:
       - master
       - v*-branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
 env:
   IMG: poddefaults-webhook
   TAG: intergration-test
@@ -17,19 +21,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@v2
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-
-    - name: Build PodDefaults Image 
+    - name: Build PodDefaults Image
       run: |
         cd components/admission-webhook
-        ARCH=linux/ppc64le make docker-build-multi-arch
-        ARCH=linux/amd64 make docker-build-multi-arch
+        make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -37,9 +36,9 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Images into KinD Cluster 
+    - name: Load Images into KinD Cluster
       run: |
-        kind load docker-image ${{env.IMG}}:${{env.TAG}}
+        kind load docker-image "${IMG}:${TAG}"
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -55,9 +54,15 @@ jobs:
         cd components/admission-webhook/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook:latest
-        export PR_PODDEFAULTS_IMG=${{env.IMG}}:${{env.TAG}}
+        export CURRENT_IMAGE="docker.io/kubeflownotebookswg/${IMG}"
+        export PR_IMAGE="${IMG}:${TAG}"
 
+        # escape "." in the image names, as it is a special characters in sed
+        export CURRENT_IMAGE=$(echo "$CURRENT_IMAGE" | sed 's|\.|\\.|g')
+        export PR_IMAGE=$(echo "$PR_IMAGE" | sed 's|\.|\\.|g')
 
-        kustomize build overlays/cert-manager | sed "s#$CURRENT_PODDEFAULTS_IMG#$PR_PODDEFAULTS_IMG#g" | kubectl apply -f -
+        kustomize build overlays/cert-manager \
+          | sed "s|${CURRENT_IMAGE}:[a-zA-Z0-9_.-]*|${PR_IMAGE}|g" \
+          | kubectl apply -f -
+
         kubectl wait pods -n kubeflow -l app=poddefaults --for=condition=Ready --timeout=300s

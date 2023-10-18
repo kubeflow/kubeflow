@@ -9,15 +9,15 @@ div#grid
                             .header [[item.text]]
                             aside(secondary) [[item.desc]]
                         paper-ripple
-        template(is='dom-if', if='[[platformDetails.resourceChartsLink]]')
+        template(is='dom-if', if='[[metrics.resourceChartsLinkText]]')
             resource-chart(header-text='Cluster CPU Utilization', metric='cpu',
                 interval='Last60m',
-                external-link='[[platformDetails.resourceChartsLink]]',
-                external-link-text='[[platformDetails.resourceChartsLinkText]]')
+                external-link='[[metrics.resourceChartsLink]]',
+                external-link-text='[[metrics.resourceChartsLinkText]]')
             resource-chart(header-text='Pod CPU Utilization', metric='podcpu',
                 interval='Last60m',
-                external-link='[[platformDetails.resourceChartsLink]]'
-                external-link-text='[[platformDetails.resourceChartsLinkText]]')
+                external-link='[[metrics.resourceChartsLink]]'
+                external-link-text='[[metrics.resourceChartsLinkText]]')
     .column
         notebooks-card(namespace='[[namespace]]')
         pipelines-card(heading='Recent Pipelines', artifact-type='pipelines', namespace='[[namespace]]')

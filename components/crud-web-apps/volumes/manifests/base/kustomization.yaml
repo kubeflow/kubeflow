@@ -21,6 +21,9 @@ configMapGenerator:
 - envs:
   - params.env
   name: parameters
+- files:
+  - viewer-spec.yaml
+  name: viewer-spec
 vars:
 - fieldref:
     fieldPath: data.VWA_CLUSTER_DOMAIN

@@ -1,0 +1,8 @@
+securityContext: 
+  runAsUser: 1234
+containers:
+  - name: test
+    image: busybox
+    volumeMounts:
+      - name: viewer-volume
+        mountPath: /data

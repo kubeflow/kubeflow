@@ -90,6 +90,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             dashVersion: {type: String, value: VERSION},
             logoutUrl: {type: String, value: '/logout'},
             platformInfo: Object,
+            metrics: Object,
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideSidebar: {type: Boolean, value: false, readOnly: true},

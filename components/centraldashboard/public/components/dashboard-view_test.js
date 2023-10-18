@@ -78,6 +78,11 @@ describe('Dashboard View', () => {
             'https://console.cloud.google.com/dm/deployments?project=test-project',
             'https://console.cloud.google.com/kubernetes/list?project=test-project',
         ]);
+    });
+
+    it('Show charts when metrics not empty', () => {
+        dashboardView.metrics = {resourceChartsLinkText: 'dummy'};
+        flush();
         expect(dashboardView.shadowRoot.querySelectorAll('resource-chart')
             .length).toBe(2);
     });

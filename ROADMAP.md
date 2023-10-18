@@ -1,6 +1,26 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.7 Release, Planned: March 2023 
+## Kubeflow 1.8 Release, Planned for release: Oct 2023
+The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this [timeline](https://github.com/kubeflow/community/tree/master/releases/release-1.8#timeline). The high level deliverables are tracked in the [v1.8 Release](https://github.com/orgs/kubeflow/projects/58/) Github project board. The v1.8 release process will be managed by the v1.8 [release team](https://github.com/kubeflow/community/blob/a956b3f6f15c49f928e37eaafec40d7f73ee1d5b/releases/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
+
+### Themes
+* Kubernetes 1.25 and 1.26 support
+* Kubeflow Pipelines v2.0 GA release
+* Security plan for future releases, specifying what are the security requirements and actions required by each WG.
+* Training Operator support for the koordinator gang scheduler and CEL validation
+* Volumes viewer to interact with PVs and manage files and file structures using Volumes UI (rather than CLI commands)
+* OIDC Authservice moving to a Kubeflow owned and managed container registry
+
+### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
+* [Training Operators](https://github.com/kubeflow/training-operator/issues/1809)
+* [KServe](https://github.com/kserve/kserve/issues/2676)
+* [Katib](https://github.com/kubeflow/katib/issues/2156)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/7125)
+* [Manifests](https://github.com/kubeflow/manifests/issues/2456)
+* [Security](https://github.com/kubeflow/kubeflow/blob/master/security/roadmap.md)
+
+## Kubeflow 1.7 Release, Delivered: March 2023 
 The Kubeflow Community plans to deliver its v1.7 release in March 2023, per this [timeline](https://github.com/kubeflow/community/pull/573).   The high level deliveries are being tracked in this [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1).   The v1.7 release process will be managed by the v1.7 [Release Team](https://github.com/kubeflow/internal-acls/pull/576) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md)
 
 Notable feature candidates in the [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1) are:
