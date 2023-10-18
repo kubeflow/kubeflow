@@ -32,12 +32,14 @@ const DEFAULT_IDLENESS_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
 const DEFAULT_CLUSTER_DOMAIN = "cluster.local"
 const DEFAULT_DEV = "false"
+const DEFAULT_ENABLE_OVERRIDE_CULLING_ANNOTATION = "false"
 
 var CULL_IDLE_TIME = 0
 var ENABLE_CULLING = false
 var IDLENESS_CHECK_PERIOD = 0
 var CLUSTER_DOMAIN = ""
 var DEV = false
+var ENABLE_OVERRIDE_CULLING_ANNOTATION = false
 
 // When a Resource should be stopped/culled, then the controller should add this
 // annotation in the Resource's Metadata. Then, inside the reconcile loop,
@@ -50,6 +52,7 @@ var DEV = false
 const STOP_ANNOTATION = "kubeflow-resource-stopped"
 const LAST_ACTIVITY_ANNOTATION = "notebooks.kubeflow.org/last-activity"
 const LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION = "notebooks.kubeflow.org/last_activity_check_timestamp"
+const OVERRIDE_CULLING_ANNOTATION = "notebooks.kubeflow.org/disable-culling"
 
 const (
 	KERNEL_EXECUTION_STATE_IDLE     = "idle"
@@ -181,6 +184,10 @@ func notebookIsIdle(meta metav1.ObjectMeta, log logr.Logger) bool {
 	if meta.GetAnnotations() != nil {
 		if StopAnnotationIsSet(meta) {
 			log.Info("Notebook is already stopping")
+			return false
+		}
+		if DisableCullingAnnotationIsSet(meta) {
+			log.Info("Notebook is exempt from culling")
 			return false
 		}
 		// Read the current LAST_ACTIVITY_ANNOTATION
@@ -381,6 +388,16 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	return false
 }
 
+func DisableCullingAnnotationIsSet(meta metav1.ObjectMeta) bool {
+	if meta.GetAnnotations() == nil {
+		return false
+	}
+	if metav1.HasAnnotation(meta, OVERRIDE_CULLING_ANNOTATION) && ENABLE_OVERRIDE_CULLING_ANNOTATION {
+		return true
+	}
+	return false
+}
+
 // Some Utility Functions
 func GetEnvDefault(variable string, defaultVal string) string {
 	envVar := os.Getenv(variable)
@@ -423,6 +440,11 @@ func initGlobalVars() error {
 	enableCulling := GetEnvDefault("ENABLE_CULLING", DEFAULT_ENABLE_CULLING)
 	if enableCulling == "true" {
 		ENABLE_CULLING = true
+	}
+
+	enableOverrideCulling := GetEnvDefault("ENABLE_OVERRIDE_CULLING_ANNOTATION", DEFAULT_ENABLE_OVERRIDE_CULLING_ANNOTATION)
+	if enableOverrideCulling == "true" {
+		ENABLE_OVERRIDE_CULLING_ANNOTATION = true
 	}
 
 	CLUSTER_DOMAIN = GetEnvDefault("CLUSTER_DOMAIN", DEFAULT_CLUSTER_DOMAIN)
