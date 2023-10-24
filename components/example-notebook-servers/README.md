@@ -10,25 +10,25 @@ This chart shows how the images are related to each other (the nodes are clickab
 
 ```mermaid
 graph TD
-  Base[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/base'>Base</a>] --> Jupyter[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter'>Jupyter</a>]
-  Base --> Code-Server[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/codeserver'>code-server</a>]
-  Base --> RStudio[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/rstudio'>RStudio</a>]
+  Base[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/base'>Base</a>] --> Jupyter[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter'>Jupyter</a>]
+  Base --> Code-Server[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/codeserver'>code-server</a>]
+  Base --> RStudio[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/rstudio'>RStudio</a>]
   
-  Jupyter --> PyTorch[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch'>PyTorch</a>]
-  Jupyter --> SciPy[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-scipy'>SciPy</a>]
-  Jupyter --> TensorFlow[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow'>TensorFlow</a>]
+  Jupyter --> PyTorch[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch'>PyTorch</a>]
+  Jupyter --> SciPy[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-scipy'>SciPy</a>]
+  Jupyter --> TensorFlow[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow'>TensorFlow</a>]
   
-  Code-Server --> Code-Server-Conda-Python[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/codeserver-python'>Conda Python</a>]
-  RStudio --> Tidyverse[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/rstudio-tidyverse'>Tidyverse</a>]
+  Code-Server --> Code-Server-Conda-Python[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/codeserver-python'>Conda Python</a>]
+  RStudio --> Tidyverse[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/rstudio-tidyverse'>Tidyverse</a>]
 
-  PyTorch --> PyTorchFull[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-full'>PyTorch Full</a>]
-  TensorFlow --> TensorFlowFull[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow-full'>TensorFlow Full</a>]
+  PyTorch --> PyTorchFull[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-full'>PyTorch Full</a>]
+  TensorFlow --> TensorFlowFull[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow-full'>TensorFlow Full</a>]
 
-  Jupyter --> PyTorchCuda[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-cuda'>PyTorch CUDA</a>]
-  Jupyter --> TensorFlowCuda[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow-cuda'>TensorFlow CUDA</a>]
+  Jupyter --> PyTorchCuda[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-cuda'>PyTorch CUDA</a>]
+  Jupyter --> TensorFlowCuda[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow-cuda'>TensorFlow CUDA</a>]
 
-  PyTorchCuda --> PyTorchCudaFull[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-cuda-full'>PyTorch CUDA Full</a>]
-  TensorFlowCuda --> TensorFlowCudaFull[<a href='https://github.com/thesuperzapper/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow-cuda-full'>TensorFlow CUDA Full</a>]
+  PyTorchCuda --> PyTorchCudaFull[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-cuda-full'>PyTorch CUDA Full</a>]
+  TensorFlowCuda --> TensorFlowCudaFull[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-tensorflow-cuda-full'>TensorFlow CUDA Full</a>]
 ```
 
 ### Base Images
