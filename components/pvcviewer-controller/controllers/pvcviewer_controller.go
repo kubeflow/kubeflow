@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -51,8 +52,9 @@ const (
 	partOfLabelKey   = "app.kubernetes.io/part-of"
 	partOfLabelValue = "pvc-viewer"
 
-	servicePort  = int32(80)
-	istioGateway = "kubeflow/kubeflow-gateway"
+	servicePort         = int32(80)
+	istioGatewayEnvKey  = "ISTIO_GATEWAY"
+	defaultIstioGateway = "kubeflow/kubeflow-gateway"
 )
 
 var (
@@ -280,6 +282,12 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 	var timeout *string = nil
 	if viewer.Spec.Networking.Timeout != "" {
 		timeout = &viewer.Spec.Networking.Timeout
+	}
+
+	// Get the istio gateway from the environment variable or use the default
+	istioGateway := os.Getenv(istioGatewayEnvKey)
+	if istioGateway == "" {
+		istioGateway = defaultIstioGateway
 	}
 
 	virtualService.Object["spec"] = map[string]interface{}{
