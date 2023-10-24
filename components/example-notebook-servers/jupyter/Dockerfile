@@ -1,20 +1,26 @@
-# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
+#
+# NOTE: Use the Makefiles to build this image correctly.
+#
+
 ARG BASE_IMG=<base>
 FROM $BASE_IMG
+
+ARG TARGETARCH
 
 USER root
 
 # args - software versions
-ARG MINIFORGE_ARCH="x86_64"
- # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-ARG MINIFORGE_VERSION=4.10.1-4
-ARG PIP_VERSION=21.1.2
-ARG PYTHON_VERSION=3.8.10
+ARG JUPYTERLAB_VERSION=4.0.7
+ARG JUPYTER_VERSION=7.0.5
+ARG MINIFORGE_VERSION=23.3.1-1
+ARG NODE_MAJOR_VERSION=18
+ARG PIP_VERSION=23.2.1
+ARG PYTHON_VERSION=3.11.6
 
 # install -- node.js
 RUN export DEBIAN_FRONTEND=noninteractive \
- && curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
- && echo "deb https://deb.nodesource.com/node_14.x focal main" > /etc/apt/sources.list.d/nodesource.list \
+ && curl -sL "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" | apt-key add - \
+ && echo "deb https://deb.nodesource.com/node_${NODE_MAJOR_VERSION}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
  && apt-get -yq update \
  && apt-get -yq install --no-install-recommends \
     nodejs \
@@ -33,12 +39,18 @@ RUN mkdir -p ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${HOME}
 
 # switch to NB_UID for installs
-USER ${NB_UID}
+USER $NB_UID
 
-# install - conda, pip, python
-RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
- && curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
- && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }') /tmp/Miniforge3.sh" | sha256sum --check \
+# install - conda, pip, python, jupyter
+RUN case "${TARGETARCH}" in \
+      amd64) MINIFORGE_ARCH="x86_64" ;; \
+      arm64) MINIFORGE_ARCH="aarch64" ;; \
+      ppc64le) MINIFORGE_ARCH="ppc64le" ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac \
+ && curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
+ && curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
+ && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }')  /tmp/Miniforge3.sh" | sha256sum -c - \
  && rm /tmp/Miniforge3.sh.sha256 \
  && /bin/bash /tmp/Miniforge3.sh -b -f -p ${CONDA_DIR} \
  && rm /tmp/Miniforge3.sh \
@@ -51,29 +63,34 @@ RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIF
     conda=${MINIFORGE_VERSION:0:-2} \
     pip=${PIP_VERSION} \
  && conda update -y -q --all \
- && conda clean -a -f -y \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && conda clean -a -f -y
+
+# install - jupyter
+RUN echo "jupyterlab >=${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "notebook >=${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && conda install -y -q \
+    jupyterlab==${JUPYTERLAB_VERSION} \
+    notebook==${JUPYTER_VERSION} \
+ && conda clean -a -f -y
 
 # install - requirements.txt
-COPY --chown=jovyan:users requirements.txt /tmp
+COPY --chown=${NB_USER}:users requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
- && rm -f /tmp/requirements.txt \
- && jupyter lab --generate-config \
- && rm -rf ${HOME}/.cache/yarn \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && rm -f /tmp/requirements.txt
 
 # s6 - copy scripts
-COPY --chown=jovyan:users s6/ /etc
+COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
 # s6 - 01-copy-tmp-home
 USER root
 RUN mkdir -p /tmp_home \
  && cp -r ${HOME} /tmp_home \
  && chown -R ${NB_USER}:users /tmp_home
-USER ${NB_UID}
+USER $NB_UID
+
+# generate jupyter config
+RUN jupyter notebook --generate-config \
+ && jupyter lab --generate-config \
+ && jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
 
 EXPOSE 8888
-
-ENTRYPOINT ["/init"]

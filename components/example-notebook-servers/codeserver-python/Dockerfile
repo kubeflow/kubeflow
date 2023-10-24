@@ -1,29 +1,43 @@
-# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
+#
+# NOTE: Use the Makefiles to build this image correctly.
+#
+
 ARG BASE_IMG=<codeserver>
 FROM $BASE_IMG
+
+ARG TARGETARCH
 
 USER root
 
 # args - software versions
-ARG CODESERVER_PYTHON_VERSION=2021.5.842923320
-ARG MINIFORGE_ARCH="x86_64"
- # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-ARG MINIFORGE_VERSION=4.10.1-4
-ARG PIP_VERSION=21.1.2
-ARG PYTHON_VERSION=3.8.10
+ARG CODESERVER_PYTHON_VERSION=2023.18.0
+ARG MINIFORGE_VERSION=23.3.1-1
+ARG PIP_VERSION=23.2.1
+ARG PYTHON_VERSION=3.11.6
 
 # setup environment for conda
 ENV CONDA_DIR /opt/conda
 ENV PATH "${CONDA_DIR}/bin:${PATH}"
 RUN mkdir -p ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${CONDA_DIR}
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
+ && echo "conda activate base" >> ${HOME}/.bashrc \
+ && echo "conda activate base" >> /etc/profile \
+ && chown -R ${NB_USER}:users ${CONDA_DIR} \
+ && chown -R ${NB_USER}:users ${HOME}
 
 USER $NB_UID
 
 # install - conda, pip, python
-RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
- && curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
- && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }') /tmp/Miniforge3.sh" | sha256sum --check \
+RUN case "${TARGETARCH}" in \
+      amd64) MINIFORGE_ARCH="x86_64" ;; \
+      arm64) MINIFORGE_ARCH="aarch64" ;; \
+      ppc64le) MINIFORGE_ARCH="ppc64le" ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac \
+ && curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
+ && curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
+ && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }')  /tmp/Miniforge3.sh" | sha256sum -c - \
  && rm /tmp/Miniforge3.sh.sha256 \
  && /bin/bash /tmp/Miniforge3.sh -b -f -p ${CONDA_DIR} \
  && rm /tmp/Miniforge3.sh \
@@ -36,28 +50,20 @@ RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIF
     conda=${MINIFORGE_VERSION:0:-2} \
     pip=${PIP_VERSION} \
  && conda update -y -q --all \
- && conda clean -a -f -y \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && conda clean -a -f -y
 
 # install - requirements.txt
-COPY --chown=jovyan:users requirements.txt /tmp
+COPY --chown=${NB_USER}:users requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
- && rm -f /tmp/requirements.txt \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && rm -f /tmp/requirements.txt
 
 # install - codeserver extensions
-RUN curl -# -L -o /tmp/ms-python-release.vsix "https://github.com/microsoft/vscode-python/releases/download/${CODESERVER_PYTHON_VERSION}/ms-python-release.vsix" \
- && code-server --install-extension /tmp/ms-python-release.vsix \
+RUN code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSION}" --force \
  && code-server --list-extensions --show-versions
-
-# s6 - copy scripts
-COPY --chown=jovyan:users s6/ /etc
 
 # s6 - 01-copy-tmp-home
 USER root
 RUN mkdir -p /tmp_home \
  && cp -r ${HOME} /tmp_home \
  && chown -R ${NB_USER}:users /tmp_home
-USER ${NB_UID}
+USER $NB_UID

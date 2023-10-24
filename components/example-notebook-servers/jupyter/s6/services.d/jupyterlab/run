@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 cd "${HOME}"
 exec /opt/conda/bin/jupyter lab \
   --notebook-dir="${HOME}" \
