@@ -29,4 +29,4 @@ vars:
 images:
 - name: docker.io/kubeflownotebookswg/kfam
   newName: docker.io/kubeflownotebookswg/kfam
-  newTag: v1.8.0-rc.4
+  newTag: v1.8.0-rc.5

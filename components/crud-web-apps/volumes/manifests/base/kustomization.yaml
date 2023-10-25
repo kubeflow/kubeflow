@@ -14,7 +14,7 @@ commonLabels:
 images:
 - name: docker.io/kubeflownotebookswg/volumes-web-app
   newName: docker.io/kubeflownotebookswg/volumes-web-app
-  newTag: v1.8.0-rc.4
+  newTag: v1.8.0-rc.5
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:
