@@ -56,12 +56,11 @@ jobs:
           SHOULD_TAG_LATEST: ${{ github.ref == 'refs/heads/master' }}
           SHOULD_TAG_VERSION: ${{ steps.filter.outputs.version == 'true' }}
         run: |
-          cd components/example-notebook-servers/
-          
           if [[ "$SHOULD_TAG_LATEST" = "true" ]]; then
             export ALSO_TAG_LATEST=1
           fi
           if [[ "$SHOULD_TAG_VERSION" = "true" ]]; then
               export ALSO_TAG_VERSION=$(cat releasing/version/VERSION)
           fi
+          cd components/example-notebook-servers/
           make docker-build-push-multi-arch
