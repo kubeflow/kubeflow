@@ -3,4 +3,4 @@ Flask-API==2.0
 kubernetes==10.0.1
 requests==2.22.0
 urllib3==1.25.7
-Werkzeug==0.16.0
+Werkzeug==3.0.1
