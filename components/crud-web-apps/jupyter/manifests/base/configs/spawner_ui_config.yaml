@@ -37,15 +37,15 @@ spawnerFormDefaults:
   ################################################################
   image:
     # the default container image
-    value: kubeflownotebookswg/jupyter-scipy:v1.8.0-rc.3
+    value: kubeflownotebookswg/jupyter-scipy:v1.8.0-rc.4
 
     # the list of available container images in the dropdown
     options:
-    - kubeflownotebookswg/jupyter-scipy:v1.8.0-rc.3
-    - kubeflownotebookswg/jupyter-pytorch-full:v1.8.0-rc.3
-    - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.8.0-rc.3
-    - kubeflownotebookswg/jupyter-tensorflow-full:v1.8.0-rc.3
-    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.8.0-rc.3
+    - kubeflownotebookswg/jupyter-scipy:v1.8.0-rc.4
+    - kubeflownotebookswg/jupyter-pytorch-full:v1.8.0-rc.4
+    - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.8.0-rc.4
+    - kubeflownotebookswg/jupyter-tensorflow-full:v1.8.0-rc.4
+    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.8.0-rc.4
 
   ################################################################
   # VSCode-like Container Images (Group 1)
@@ -60,11 +60,11 @@ spawnerFormDefaults:
   ################################################################
   imageGroupOne:
     # the default container image
-    value: kubeflownotebookswg/codeserver-python:v1.8.0-rc.3
+    value: kubeflownotebookswg/codeserver-python:v1.8.0-rc.4
 
     # the list of available container images in the dropdown
     options:
-    - kubeflownotebookswg/codeserver-python:v1.8.0-rc.3
+    - kubeflownotebookswg/codeserver-python:v1.8.0-rc.4
 
   ################################################################
   # RStudio-like Container Images (Group 2)
@@ -81,11 +81,11 @@ spawnerFormDefaults:
   ################################################################
   imageGroupTwo:
     # the default container image
-    value: kubeflownotebookswg/rstudio-tidyverse:v1.8.0-rc.3
+    value: kubeflownotebookswg/rstudio-tidyverse:v1.8.0-rc.4
 
     # the list of available container images in the dropdown
     options:
-    - kubeflownotebookswg/rstudio-tidyverse:v1.8.0-rc.3
+    - kubeflownotebookswg/rstudio-tidyverse:v1.8.0-rc.4
 
   ################################################################
   # CPU Resources
