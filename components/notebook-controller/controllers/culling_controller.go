@@ -186,7 +186,7 @@ func notebookIsIdle(meta metav1.ObjectMeta, log logr.Logger) bool {
 			log.Info("Notebook is already stopping")
 			return false
 		}
-		if DisableCullingAnnotationIsSet(meta) {
+		if disableCullingAnnotationIsSet(meta) {
 			log.Info("Notebook is exempt from culling")
 			return false
 		}
@@ -388,7 +388,7 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	return false
 }
 
-func DisableCullingAnnotationIsSet(meta metav1.ObjectMeta) bool {
+func disableCullingAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	if meta.GetAnnotations() == nil {
 		return false
 	}
