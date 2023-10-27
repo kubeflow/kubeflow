@@ -90,41 +90,45 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 	log.Info("Reconciliation loop started")
 
-	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
+	nbNamespacedName := req.NamespacedName
+	reconcileByEvent := false
 	event := &corev1.Event{}
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
 		log.Info("Found event for Notebook. Re-emitting...")
-
-		// Find the Notebook that corresponds to the triggered event
-		involvedNotebook := &v1beta1.Notebook{}
+		// find the Notebook that corresponds to the triggered event
 		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-
-		involvedNotebookKey := types.NamespacedName{Name: nbName, Namespace: req.Namespace}
-		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
-			log.Error(err, "unable to fetch Notebook by looking at event")
-			return ctrl.Result{}, ignoreNotFound(err)
+		nbNamespacedName = types.NamespacedName{
+			Name:      nbName,
+			Namespace: req.Namespace,
 		}
-
-		// re-emit the event in the Notebook CR
-		log.Info("Emitting Notebook Event.", "Event", event)
-		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
-			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
-		return ctrl.Result{}, nil
-	}
-
-	if getEventErr != nil && !apierrs.IsNotFound(getEventErr) {
+		reconcileByEvent = true
+	} else if !apierrs.IsNotFound(getEventErr) {
+		log.Error(getEventErr, "unable to fetch event")
 		return ctrl.Result{}, getEventErr
 	}
-	// If not found, continue. Is not an event.
+
+	// fetch the Notebook instance
 	instance := &v1beta1.Notebook{}
-	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
+	if err := r.Get(ctx, nbNamespacedName, instance); err != nil {
+		if apierrs.IsNotFound(err) {
+			log.Info("Notebook resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
+	}
+
+	if reconcileByEvent {
+		// re-emit the event in the Notebook CR
+		log.Info("Emitting Notebook Event.", "Event", event)
+		r.EventRecorder.Eventf(instance, event.Type, event.Reason,
+			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
+		return ctrl.Result{}, nil
 	}
 
 	// jupyter-web-app deletes objects using foreground deletion policy, Notebook CR will stay until all owned objects are deleted
