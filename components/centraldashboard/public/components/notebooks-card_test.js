@@ -4,6 +4,7 @@ import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './notebooks-card';
 import {mockRequest} from '../ajax_test_helper';
+import {languages} from '../assets/i18n/languages.json';
 
 const FIXTURE_ID = 'notebooks-card-fixture';
 const NOTEBOOKS_CARD_ID = 'test-notebooks-card';
@@ -55,6 +56,8 @@ describe('Notebooks Card', () => {
         window.fetch = mockFetch;
         document.getElementById(FIXTURE_ID).create();
         notebooksCard = document.getElementById(NOTEBOOKS_CARD_ID);
+        notebooksCard.language = 'en';
+        notebooksCard.resources = languages;
     });
 
     afterEach(() => {

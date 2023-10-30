@@ -4,6 +4,7 @@ import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './activity-view';
 import {mockRequest} from '../ajax_test_helper';
+import {languages} from '../assets/i18n/languages.json';
 
 const FIXTURE_ID = 'activity-view-fixture';
 const ACTIVITY_VIEW_SELECTOR_ID = 'test-activity-view';
@@ -28,6 +29,8 @@ describe('Activity View', () => {
         jasmine.Ajax.install();
         document.getElementById(FIXTURE_ID).create();
         activityView = document.getElementById(ACTIVITY_VIEW_SELECTOR_ID);
+        activityView.language = 'en';
+        activityView.resources = languages;
 
         // Prevents the activitiesList component from trying to render
         spyOn(activityView.shadowRoot.querySelector('activities-list'),
