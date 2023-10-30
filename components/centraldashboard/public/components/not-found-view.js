@@ -1,7 +1,10 @@
 import {html, PolymerElement} from '@polymer/polymer';
-import localizationMixin from './localization-mixin.js';
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 
-export class NotFoundView extends localizationMixin(PolymerElement) {
+// eslint-disable-next-line max-len
+export class NotFoundView extends mixinBehaviors([AppLocalizeBehavior], PolymerElement) {
     static get template() {
         return html`
             <style>

@@ -1,6 +1,6 @@
 iron-ajax(auto, url='/api/workgroup/exists', handle-as='json',
     on-response='_onHasWorkgroupResponse', on-error='_onHasWorkgroupError', loading='{{pageLoading}}')
-iron-ajax(auto, url='/api/dashboard-links', handle-as='json',
+iron-ajax(auto, id='ajax-dashboard-links', url='/api/dashboard-links', handle-as='json', params='[[_getLanguageParams()]]',
     on-response='_onHasDashboardLinksResponse', on-error='_onHasDashboardLinksError', loading='{{pageLoading}}')
 iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
@@ -84,8 +84,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     namespaces='[[namespaces]]', selected='{{namespace}}',
                     hides, hidden$='[[hideNamespaces]]'
                     all-namespaces='[[allNamespaces]]', 
-                    user='[[user]]')
+                    user='[[user]]', language='[[language]]', resources='[[resources]]')
                 footer#User-Badge
+                    paper-button.language-button(on-click='_changeLanguage') {{localize('mainPage.languageButton')}}
                     a(target="_top", href="/logout")
                         iron-icon.icon(icon='kubeflow:logout' title="Logout")
         main#Content
@@ -100,25 +101,27 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
                     dashboard-view(namespace='[[queryParams.ns]]',
-                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]', security-messages='[[securityMessages]]')
+                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]', 
+                        security-messages='[[securityMessages]]', language='[[language]]', resources='[[resources]]')
                 neon-animatable(page='activity')
-                    activity-view(namespace='[[queryParams.ns]]')
+                    activity-view(namespace='[[queryParams.ns]]', language='[[language]]', resources='[[resources]]')
                 neon-animatable(page='manage-users')
-                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', multi-owned-namespaces='[[multiOwnedNamespaces]]', is-cluster-admin='[[isClusterAdmin]]')
+                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', multi-owned-namespaces='[[multiOwnedNamespaces]]', 
+                        is-cluster-admin='[[isClusterAdmin]]', language='[[language]]', resources='[[resources]]')
                 neon-animatable(page='s3proxy')
-                    s3proxy-view()
+                    s3proxy-view(language='[[language]]', resources='[[resources]]')
                 neon-animatable(page='iframe')
                     iframe-container(namespace='[[namespace]]',
                         src='[[iframeSrc]]', page="{{iframePage}}"
                         namespaces='[[namespaces]]')
                 neon-animatable(page='not_found')
-                    not-found-view(path="[[route.path]]")
+                    not-found-view(path="[[route.path]]", language='[[language]]', resources='[[resources]]')
                 neon-animatable(page='namespace_needed')
-                    namespace-needed-view()
+                    namespace-needed-view(language='[[language]]', resources='[[resources]]')
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
     iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')
 paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
 paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') {{localize(errorText)}}
     paper-icon-button(icon='close')
 template(is='dom-if', if='[[registrationFlow]]')
-    landing-page(user-details='[[_extractLdap(user)]]' on-flowcomplete='resyncApp')
+    landing-page(user-details='[[_extractLdap(user)]]' on-flowcomplete='resyncApp', language='[[language]]', resources='[[resources]]')

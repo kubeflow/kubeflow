@@ -23,8 +23,9 @@ import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
-import localizationMixin from './localization-mixin.js';
-
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
@@ -44,12 +45,13 @@ import './iframe-container.js';
 import './logout-button.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
+import {languages} from '../assets/i18n/languages.json';
 
 /**
  * Entry point for application UI.
  */
 // eslint-disable-next-line max-len
-export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class MainPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMixin(PolymerElement)) {
     static get template() {
         const vars = {logo};
         return html([
@@ -118,6 +120,14 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             },
             matchingIndex: Number,
             namespacedItemTemplete: String,
+            // for translations
+            language: {type: String, notify: 'true', value: function() {
+                const currentLanguage = this.getBrowserLang();
+                // eslint-disable-next-line max-len
+                const lang = (currentLanguage != undefined && currentLanguage.match(/en|fr/)) ? currentLanguage : 'en';
+                return lang;
+            }},
+            resources: {value: languages},
         };
     }
 
@@ -131,6 +141,39 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             '_routePageChanged(routeData.page,subRouteData.path,routeHash.path)',
             '_namespaceChanged(queryParams.ns)',
         ];
+    }
+
+    // Get the language based on the browser
+    getBrowserLang() {
+        // localStorage stores the last language used by user
+        if (localStorage.getItem('lang')) {
+            return localStorage.getItem('lang');
+        }
+
+        if (typeof window === 'undefined' ||
+            typeof window.navigator === 'undefined') {
+            return undefined;
+        }
+
+        let browserLang = window.navigator.languages ?
+            window.navigator.languages[0] : null;
+        browserLang = browserLang || window.navigator.language ||
+            window.navigator.browserLanguage || window.navigator.userLanguage;
+
+        if (typeof browserLang === 'undefined') {
+            return undefined;
+        }
+
+        if (browserLang.indexOf('-') !== -1) {
+            browserLang = browserLang.split('-')[0];
+        }
+
+        if (browserLang.indexOf('_') !== -1) {
+            browserLang = browserLang.split('_')[0];
+        }
+
+        localStorage.setItem('lang', browserLang);
+        return browserLang;
     }
 
     /**
@@ -283,7 +326,6 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             if (path && path.includes('{ns}')) {
                 this.page = 'namespace_needed';
             } else if (newPage === 's3') { // AAW Customization
-                // eslint-disable-next-line no-console
                 this.page = 's3proxy';
             } else {
                 this.page = 'not_found';
@@ -528,6 +570,29 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
     _showManageUsers(isolationMode, ownedNamespace) {
         return isolationMode==='multi-user'
             && ownedNamespace!==undefined;
+    }
+
+    _changeLanguage() {
+        if (this.language === 'en') {
+            this.language = 'fr';
+        } else {
+            this.language = 'en';
+        }
+        localStorage.setItem('lang', this.language);
+        this.$['ajax-dashboard-links'].params = this._getLanguageParams();
+        // update language in url
+        // eslint-disable-next-line max-len
+        if (location.href.match(/\/(en|fr)\//) || location.pathname.startsWith(`/${IFRAME_LINK_PREFIX}/`)) {
+            // eslint-disable-next-line max-len
+            const newUrl = location.href.replace(/\/(en|fr)\//, `/${this.language}/`);
+            window.location = newUrl;
+        }
+    }
+
+    _getLanguageParams() {
+        return {
+            'lang': this.language,
+        };
     }
 }
 

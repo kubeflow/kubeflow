@@ -9,7 +9,9 @@ import '@polymer/paper-progress/paper-progress.js';
 import './iframe-link.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
-import localizationMixin from './localization-mixin.js';
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 import utilitiesMixin from './utilities-mixin.js';
 
 import './card-styles.js';
@@ -23,7 +25,7 @@ const VALID_ARTIFACT_TYPES = new Set([PIPELINES, RUNS]);
  * Component to retrieve and display Pipelines or Pipeline Runs
  */
 // eslint-disable-next-line max-len
-export class PipelinesCard extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class PipelinesCard extends mixinBehaviors([AppLocalizeBehavior], utilitiesMixin(PolymerElement)) {
     static get template() {
         return html`
         <style include="card-styles">

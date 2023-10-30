@@ -22,7 +22,7 @@ div#grid
                 external-link='[[platformDetails.resourceChartsLink]]'
                 external-link-text='[[platformDetails.resourceChartsLinkText]]')
     .column
-        notebooks-card(namespace='[[namespace]]')
+        notebooks-card(namespace='[[namespace]]', language='[[language]]', resources='[[resources]]')
     .column
         template(is='dom-if', if='[[platformDetails.links]]')
             paper-card#Platform-Links(class$='[[platformDetails.name]]',

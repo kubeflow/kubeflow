@@ -4,7 +4,9 @@ import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
-import localizationMixin from './localization-mixin.js';
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
@@ -20,7 +22,7 @@ import {getGCPData} from './resources/cloud-platform-data.js';
 import utilitiesMixin from './utilities-mixin.js';
 
 // eslint-disable-next-line max-len
-export class DashboardView extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class DashboardView extends mixinBehaviors([AppLocalizeBehavior], utilitiesMixin(PolymerElement)) {
     static get template() {
         return html([`
             <style include="card-styles">
