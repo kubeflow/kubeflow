@@ -43,7 +43,7 @@ Cypress.Commands.add('mockWorkgroupRequest', () => {
 });
 
 Cypress.Commands.add('mockDashboardLinksRequest', () => {
-  cy.intercept('GET', `/api/dashboard-links`, {
+  cy.intercept('GET', `/api/dashboard-links?lang=*`, {
     fixture: 'dashboard-links',
   }).as('mockDashboardLinksRequest');
 });
