@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "status": 200,
+  "notebooks": [
+    {
+      "age": "2022-09-01T15:15:35Z",
+      "cpu": "1m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "lastActivity": "2022-09-21T12:15:06Z",
+      "memory": "1073741824m",
+      "name": "a-dog-breed-katib",
+      "namespace": "test-namespace",
+      "serverType": "jupyter",
+      "shortImage": "jupyter-scipy:latest",
+      "status": {
+        "message": "Warning",
+        "phase": "warning",
+        "state": ""
+      },
+      "volumes": [
+        "dshm",
+        "dog-breed-nwmrc-tutorial-dog-breed-datavol-1-xrrmt-lf276",
+        "dog-breed-nwmrc-tutorial-dog-breed-workspace-24ntl-jcjlv"
+      ]
+    }
+  ]
+}

@@ -36,6 +36,30 @@ declare global {
        * and returns object with mock env-info
        */
       mockEnvInfoRequest(): Chainable<void>;
+
+      /**
+       * Custom command to mock request at '/api/activities/<namespace>'
+       * and returns object with mock activities for the given namespace
+       */
+      mockActivitiesRequest(namespace: string): Chainable<void>;
+
+      /**
+       * Custom command to mock request at '/jupyter/api/namespaces/<namespace>/notebooks'
+       * and returns an object with a mock array of notebooks for the given namespace
+       */
+      mockGetNotebooksRequest(namespace: string): Chainable<void>;
+      
+      /**
+       * Custom command to mock request at '/api/workgroup/get-contributors/<namespace>'
+       * and returns an object with a mock list of contributor objects for the given namespace
+       */
+      mockGetContributorsRequest(namespace: string): Chainable<void>;
+
+      /**
+       * Custom command to mock request at '/notebook/<namespace>/a-dog-breed-katib/api/contents'
+       * and returns an object with a mock object of contents for the given notebook in the given namespace
+       */
+      mockNotebookContentsRequest(namespace: string, notebook: string): Chainable<void>;
     }
   }
 }

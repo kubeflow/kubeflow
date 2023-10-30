@@ -1,0 +1,97 @@
+{
+  "name": "",
+  "path": "",
+  "last_modified": "2023-10-12T17:10:07.174859Z",
+  "created": "2023-10-13T15:02:37.029097Z",
+  "content": [
+    {
+      "name": "R",
+      "path": "R",
+      "last_modified": "2023-09-27T15:03:22.422124Z",
+      "created": "2023-10-13T15:02:36.173088Z",
+      "content": null,
+      "format": null,
+      "mimetype": null,
+      "size": null,
+      "writable": true,
+      "type": "directory"
+    },
+    {
+      "name": "buckets",
+      "path": "buckets",
+      "last_modified": "2023-09-27T12:08:00.812341Z",
+      "created": "2023-10-13T15:02:36.761094Z",
+      "content": null,
+      "format": null,
+      "mimetype": null,
+      "size": null,
+      "writable": true,
+      "type": "directory"
+    },
+    {
+      "name": "untitled.txt",
+      "path": "untitled.txt",
+      "last_modified": "2023-09-25T20:09:52.093729Z",
+      "created": "2023-10-13T15:02:36.761094Z",
+      "content": null,
+      "format": null,
+      "mimetype": "text/plain",
+      "size": 0,
+      "writable": true,
+      "type": "file"
+    },
+    {
+      "name": "models",
+      "path": "models",
+      "last_modified": "2023-09-25T20:03:14.096884Z",
+      "created": "2023-10-13T15:02:36.837095Z",
+      "content": null,
+      "format": null,
+      "mimetype": null,
+      "size": null,
+      "writable": true,
+      "type": "directory"
+    },
+    {
+      "name": "aaw-contrib-jupyter-notebooks",
+      "path": "aaw-contrib-jupyter-notebooks",
+      "last_modified": "2023-09-20T19:39:05.482102Z",
+      "created": "2023-10-13T15:02:36.861095Z",
+      "content": null,
+      "format": null,
+      "mimetype": null,
+      "size": null,
+      "writable": true,
+      "type": "directory"
+    },
+    {
+      "name": "lost+found",
+      "path": "lost+found",
+      "last_modified": "2023-09-20T19:37:23Z",
+      "created": "2023-10-13T15:02:36.861095Z",
+      "content": null,
+      "format": null,
+      "mimetype": null,
+      "size": null,
+      "writable": true,
+      "type": "directory"
+    },
+    {
+      "name": "Untitled.ipynb",
+      "path": "Untitled.ipynb",
+      "last_modified": "2023-10-12T17:10:07.170859Z",
+      "created": "2023-10-13T15:02:36.861095Z",
+      "content": null,
+      "format": null,
+      "mimetype": null,
+      "size": 658,
+      "writable": true,
+      "type": "notebook"
+    }
+  ],
+  "format": "json",
+  "mimetype": null,
+  "size": null,
+  "writable": true,
+  "type": "directory"
+}

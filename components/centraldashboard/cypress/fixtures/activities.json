@@ -1,0 +1,151 @@
+[
+  {
+    "metadata": {
+      "name": "name1.178d0c36144f1551",
+      "namespace": "test-namespace",
+      "uid": "9f350adc-1773-4cbb-8e16-edecdd925c4a",
+      "resourceVersion": "27387997",
+      "creationTimestamp": "2023-10-11T12:07:40Z",
+      "managedFields": [
+        {
+          "manager": "kube-scheduler",
+          "operation": "Update",
+          "apiVersion": "events.k8s.io/v1",
+          "time": "2023-10-11T12:07:40Z",
+          "fieldsType": "FieldsV1",
+          "fieldsV1": {
+            "f:action": {},
+            "f:eventTime": {},
+            "f:note": {},
+            "f:reason": {},
+            "f:regarding": {},
+            "f:reportingController": {},
+            "f:reportingInstance": {},
+            "f:type": {}
+          }
+        }
+      ]
+    },
+    "involvedObject": {
+      "kind": "Pod",
+      "namespace": "test-namespace",
+      "name": "name1-0",
+      "uid": "bb6cb08d-b803-4879-b481-ccd9ea8202d3",
+      "apiVersion": "v1",
+      "resourceVersion": "3472207118"
+    },
+    "reason": "Scheduled",
+    "message": "Successfully assigned test-name/name1-0 to the pod",
+    "source": {},
+    "firstTimestamp": null,
+    "lastTimestamp": null,
+    "type": "Normal",
+    "eventTime": "2023-10-11T12:07:40.997032Z",
+    "action": "Binding",
+    "reportingComponent": "default-scheduler",
+    "reportingInstance": "default-scheduler-kube-scheduler-v2-866f894c45-pxjxj"
+  },
+  {
+    "metadata": {
+      "name": "name1.178d0c383ff72b92",
+      "namespace": "test-namespace",
+      "uid": "04f5ee99-f576-43a4-bbf5-b6458f9eab9e",
+      "resourceVersion": "27388005",
+      "creationTimestamp": "2023-10-11T12:07:50Z",
+      "managedFields": [
+        {
+          "manager": "kube-controller-manager",
+          "operation": "Update",
+          "apiVersion": "v1",
+          "time": "2023-10-11T12:07:50Z",
+          "fieldsType": "FieldsV1",
+          "fieldsV1": {
+            "f:count": {},
+            "f:firstTimestamp": {},
+            "f:involvedObject": {},
+            "f:lastTimestamp": {},
+            "f:message": {},
+            "f:reason": {},
+            "f:source": {
+              "f:component": {}
+            },
+            "f:type": {}
+          }
+        }
+      ]
+    },
+    "involvedObject": {
+      "kind": "Pod",
+      "namespace": "test-namespace",
+      "name": "name1-0",
+      "uid": "bb6cb08d-b803-4879-b481-ccd9ea8202d3",
+      "apiVersion": "v1",
+      "resourceVersion": "3472207121"
+    },
+    "reason": "SuccessfulAttachVolume",
+    "message": "AttachVolume.Attach succeeded for volume \"pvc-7cd88e46-b09f-4f81-8b27-f21b5cdf0d45\" ",
+    "source": {
+      "component": "attachdetach-controller"
+    },
+    "firstTimestamp": "2023-10-11T12:07:50Z",
+    "lastTimestamp": "2023-10-11T12:07:50Z",
+    "count": 1,
+    "type": "Normal",
+    "eventTime": null,
+    "reportingComponent": "",
+    "reportingInstance": ""
+  },
+  {
+    "metadata": {
+      "name": "name1.178d0c38ca9bfff0",
+      "namespace": "test-namespace",
+      "uid": "5b36c3e8-3a31-4f95-b5f6-7695ea4f2ecf",
+      "resourceVersion": "27388007",
+      "creationTimestamp": "2023-10-11T12:07:52Z",
+      "managedFields": [
+        {
+          "manager": "kubelet",
+          "operation": "Update",
+          "apiVersion": "v1",
+          "time": "2023-10-11T12:07:52Z",
+          "fieldsType": "FieldsV1",
+          "fieldsV1": {
+            "f:count": {},
+            "f:firstTimestamp": {},
+            "f:involvedObject": {},
+            "f:lastTimestamp": {},
+            "f:message": {},
+            "f:reason": {},
+            "f:source": {
+              "f:component": {},
+              "f:host": {}
+            },
+            "f:type": {}
+          }
+        }
+      ]
+    },
+    "involvedObject": {
+      "kind": "Pod",
+      "namespace": "test-namespace",
+      "name": "name1-0",
+      "uid": "bb6cb08d-b803-4879-b481-ccd9ea8202d3",
+      "apiVersion": "v1",
+      "resourceVersion": "3472207121",
+      "fieldPath": "spec.initContainers{istio-validation}"
+    },
+    "reason": "Pulled",
+    "message": "Container image \"docker.io/istio/proxyv2:1.16.1\" already present on machine",
+    "source": {
+      "component": "kubelet",
+      "host": "aks-userpb-17130176-vmss00006v"
+    },
+    "firstTimestamp": "2023-10-11T12:07:52Z",
+    "lastTimestamp": "2023-10-11T12:07:52Z",
+    "count": 1,
+    "type": "Normal",
+    "eventTime": null,
+    "reportingComponent": "",
+    "reportingInstance": ""
+  }
+]
