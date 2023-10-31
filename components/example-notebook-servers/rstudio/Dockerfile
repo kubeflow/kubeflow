@@ -67,17 +67,15 @@ RUN case "${TARGETARCH}" in \
  && rm /tmp/Miniforge3.sh \
  && conda config --system --set auto_update_conda false \
  && conda config --system --set show_channel_urls true \
- && echo "conda ${MINIFORGE_VERSION:0:-2}" >> ${CONDA_DIR}/conda-meta/pinned \
- && echo "python ${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "python ==${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     python=${PYTHON_VERSION} \
-    conda=${MINIFORGE_VERSION:0:-2} \
     pip=${PIP_VERSION} \
  && conda update -y -q --all \
  && conda clean -a -f -y
 
 # install - r packages
-RUN echo "r-base ${R_BASE_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+RUN echo "r-base ==${R_BASE_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     r-base=${R_BASE_VERSION} \
     r-reticulate=${R_RETICULATE_VERSION} \
