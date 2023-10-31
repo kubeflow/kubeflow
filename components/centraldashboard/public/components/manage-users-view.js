@@ -9,17 +9,18 @@ import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@vaadin/vaadin-grid/vaadin-grid.js';
 import '@vaadin/vaadin-grid/vaadin-grid-selection-column.js';
 import '@vaadin/vaadin-grid/vaadin-grid-sort-column.js';
-
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 import {html, PolymerElement} from '@polymer/polymer';
 
 import './manage-users-view-contributor.js';
 import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
 import utilitiesMixin from './utilities-mixin.js';
-import localizationMixin from './localization-mixin.js';
 
 // eslint-disable-next-line max-len
-export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class ManageUsersView extends mixinBehaviors([AppLocalizeBehavior], utilitiesMixin(PolymerElement)) {
     static get template() {
         return html([`
             <style>${css.toString()}</style>
@@ -47,9 +48,10 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
     /**
      * Returns namespaces and roles
      * @param {[object]} ns Namespaces array.
+     * @param {[object]} lang Language string.
      * @return {[string, [string]]} rows for namespace table.
      */
-    nsBreakdown(ns) {
+    nsBreakdown(ns, lang) {
         const {namespaces} = this;
         if (!namespaces) return;
         const roleStrings = {

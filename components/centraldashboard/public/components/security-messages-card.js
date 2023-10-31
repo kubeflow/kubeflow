@@ -7,7 +7,6 @@ import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-progress/paper-progress.js';
 import './iframe-link.js';
-import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
@@ -17,8 +16,7 @@ import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 /**
  * Component to retrieve and display recently modified Jupyter Notebooks.
  */
-// eslint-disable-next-line max-len
-export class SecurityMessagesCard extends localizationMixin(PolymerElement) {
+export class SecurityMessagesCard extends PolymerElement {
     static get template() {
         return html`
         <style include="paper-material-styles">

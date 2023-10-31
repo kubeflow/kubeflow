@@ -72,17 +72,11 @@ export class Api {
         .get(
           '/dashboard-links',
           async (req: Request, res: Response) => {
-            const acceptlanguage = req.header('accept-language');
             const cm = await this.k8sService.getConfigMap();
             let langLinks = {};
             try {
               const links = JSON.parse(cm.data["links"]);
-              const lang = this.resolveLanguage (
-                this.getBrowserLanguages(acceptlanguage), 
-                Object.getOwnPropertyNames(links), 
-                cm.data["defaultLanguage"]
-              );
-              langLinks = links[lang];
+              langLinks = links[req.query.lang];
             }catch(e){
               return apiError({
                 res, code: 500,

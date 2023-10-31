@@ -74,11 +74,11 @@ describe('Main Page', () => {
     cy.get('main-page').shadow().find('a[href="https://grafana.aaw-dev.cloud.statcan.ca/d/ZLp774O4z/namespace-metrics?orgId=1&var-namespace=test-namespace&kiosk=tv"]').should('exist');
     cy.get('main-page').shadow().find('a[href="https://grafana.aaw-dev.cloud.statcan.ca/d/ZLp774O4z/namespace-metrics?orgId=1&var-namespace=test-namespace&kiosk=tv"]').find('paper-item').should('have.text', 'Metrics');
 
-    cy.get('main-page').shadow().find('a[href="https://github.com/kubeflow/kubeflow"]').should('exist');
-    cy.get('main-page').shadow().find('a[href="https://github.com/kubeflow/kubeflow"]').find('paper-item').should('have.text', 'GitHub');
+    cy.get('main-page').shadow().find('a[href="https://github.com/StatCan/kubeflow"]').should('exist');
+    cy.get('main-page').shadow().find('a[href="https://github.com/StatCan/kubeflow"]').find('paper-item').should('have.text', 'GitHub');
 
-    cy.get('main-page').shadow().find('a[href="https://www.kubeflow.org/docs/about/kubeflow/"]').should('exist');
-    cy.get('main-page').shadow().find('a[href="https://www.kubeflow.org/docs/about/kubeflow/"]').find('paper-item').should('have.text', 'Documentation');
+    cy.get('main-page').shadow().find('a[href="https://statcan.github.io/aaw/"]').should('exist');
+    cy.get('main-page').shadow().find('a[href="https://statcan.github.io/aaw/"]').find('paper-item').should('have.text', 'Documentation');
   
     //mock env info to hide manage contributors link
     cy.intercept('GET', `/api/workgroup/env-info`, {
@@ -174,10 +174,10 @@ describe('Main Page', () => {
     cy.get('main-page').shadow().find('a[href="https://grafana.aaw-dev.cloud.statcan.ca/d/ZLp774O4z/namespace-metrics?orgId=1&var-namespace=test-namespace-2&kiosk=tv"]').should('exist');
     cy.get('main-page').shadow().find('a[href="https://grafana.aaw-dev.cloud.statcan.ca/d/ZLp774O4z/namespace-metrics?orgId=1&var-namespace=test-namespace-2&kiosk=tv"]').find('paper-item').should('have.text', 'Metrics');
 
-    cy.get('main-page').shadow().find('a[href="https://github.com/kubeflow/kubeflow"]').should('exist');
-    cy.get('main-page').shadow().find('a[href="https://github.com/kubeflow/kubeflow"]').find('paper-item').should('have.text', 'GitHub');
+    cy.get('main-page').shadow().find('a[href="https://github.com/StatCan/kubeflow"]').should('exist');
+    cy.get('main-page').shadow().find('a[href="https://github.com/StatCan/kubeflow"]').find('paper-item').should('have.text', 'GitHub');
 
-    cy.get('main-page').shadow().find('a[href="https://www.kubeflow.org/docs/about/kubeflow/"]').should('exist');
-    cy.get('main-page').shadow().find('a[href="https://www.kubeflow.org/docs/about/kubeflow/"]').find('paper-item').should('have.text', 'Documentation');
+    cy.get('main-page').shadow().find('a[href="https://statcan.github.io/aaw/"]').should('exist');
+    cy.get('main-page').shadow().find('a[href="https://statcan.github.io/aaw/"]').find('paper-item').should('have.text', 'Documentation');
   });
 })

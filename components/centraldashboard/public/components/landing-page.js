@@ -8,7 +8,9 @@ import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
-import localizationMixin from './localization-mixin.js';
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
@@ -26,7 +28,7 @@ import utilitiesMixin from './utilities-mixin.js';
  * Replaces registration-page
  */
 // eslint-disable-next-line max-len
-export class LandingPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class LandingPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMixin(PolymerElement)) {
     static get template() {
         const vars = {logo};
 

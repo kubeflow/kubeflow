@@ -336,3 +336,9 @@ a[href]:hover, iframe-link:hover {
     color: var(--paper-blue-700);
     text-decoration: underline;
 }
+
+.language-button {
+    font-size: 14px;
+    color: #3c4043;
+    text-transform: none;
+}

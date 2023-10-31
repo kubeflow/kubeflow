@@ -4,6 +4,7 @@ import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './pipelines-card';
 import {mockRequest} from '../ajax_test_helper';
+import {languages} from '../assets/i18n/languages.json';
 
 const FIXTURE_ID = 'pipelines-card-fixture';
 const PIPELINES_CARD_ID = 'test-pipelines-card';
@@ -30,6 +31,8 @@ describe('Pipelines Card', () => {
         jasmine.Ajax.install();
         document.getElementById(FIXTURE_ID).create();
         pipelinesCard = document.getElementById(PIPELINES_CARD_ID);
+        pipelinesCard.language = 'en';
+        pipelinesCard.resources = languages;
     });
 
     afterEach(() => {

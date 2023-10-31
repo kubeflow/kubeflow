@@ -13,11 +13,12 @@ import './resources/paper-chip.js';
 import './resources/md2-input/md2-input.js';
 import css from './manage-users-view-contributor.css';
 import template from './manage-users-view-contributor.pug';
-import utilitiesMixin from './utilities-mixin.js';
-import localizationMixin from './localization-mixin.js';
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 
 // eslint-disable-next-line max-len
-export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class ManageUsersViewContributor extends mixinBehaviors([AppLocalizeBehavior], PolymerElement) {
     static get template() {
         return html([`
             <style>${css.toString()}</style>

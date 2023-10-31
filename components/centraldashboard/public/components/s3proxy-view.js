@@ -1,8 +1,10 @@
-import localizationMixin from './localization-mixin.js';
+// eslint-disable-next-line max-len
+import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 import {html, PolymerElement} from '@polymer/polymer';
 
 // eslint-disable-next-line max-len
-export class S3ProxyView extends localizationMixin(PolymerElement) {
+export class S3ProxyView extends mixinBehaviors([AppLocalizeBehavior], PolymerElement) {
     static get template() {
         return html`
             <style>
@@ -21,7 +23,7 @@ export class S3ProxyView extends localizationMixin(PolymerElement) {
                 }
             </style>
             <p>
-            {{localize('s3Proxy.defaultMessage')}}
+                {{localize('s3Proxy.defaultMessage')}}
             </p>
         `;
     }

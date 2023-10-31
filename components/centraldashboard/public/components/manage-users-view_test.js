@@ -5,6 +5,7 @@ import {mockIronAjax, yieldForRequests} from '../ajax_test_helper';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './dashboard-view';
+import {languages} from '../assets/i18n/languages.json';
 
 const FIXTURE_ID = 'manage-users-view-fixture';
 const MU_VIEW_SELECTOR_ID = 'test-manage-users-view';
@@ -33,6 +34,8 @@ describe('Manage Users View', () => {
     beforeEach(() => {
         document.getElementById(FIXTURE_ID).create();
         manageUsersView = document.getElementById(MU_VIEW_SELECTOR_ID);
+        manageUsersView.language = 'en';
+        manageUsersView.resources = languages;
     });
 
     afterEach(() => {
