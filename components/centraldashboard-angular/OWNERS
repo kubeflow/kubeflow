@@ -1,5 +1,6 @@
 approvers:
   - orfeas-k
-  - tasos-ale
 reviewers:
   - kimwnasptd
+emeritus_approvers:
+  - tasos-ale

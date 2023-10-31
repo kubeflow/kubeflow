@@ -1,4 +1,5 @@
 approvers:
-- elenzio9
-- orfeas-k
-- tasos-ale
+  - elenzio9
+  - orfeas-k
+emeritus_approvers:
+  - tasos-ale

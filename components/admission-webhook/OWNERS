@@ -1,8 +1,8 @@
 approvers:
-  - discordianfish
-  - elikatsis
   - kimwnasptd
-  - StefanoFioravanzo
   - thesuperzapper
+emeritus_approvers:
+  - elikatsis
+  - discordianfish
+  - StefanoFioravanzo
   - yanniszark
-reviewers:
