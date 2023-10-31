@@ -10,8 +10,8 @@ ARG TARGETARCH
 USER root
 
 # args - software versions
-ARG JUPYTERLAB_VERSION=4.0.7
-ARG JUPYTER_VERSION=7.0.5
+ARG JUPYTERLAB_VERSION=3.6.6
+ARG JUPYTER_VERSION=6.5.6
 ARG MINIFORGE_VERSION=23.3.1-1
 ARG NODE_MAJOR_VERSION=18
 ARG PIP_VERSION=23.2.1
@@ -56,18 +56,16 @@ RUN case "${TARGETARCH}" in \
  && rm /tmp/Miniforge3.sh \
  && conda config --system --set auto_update_conda false \
  && conda config --system --set show_channel_urls true \
- && echo "conda ${MINIFORGE_VERSION:0:-2}" >> ${CONDA_DIR}/conda-meta/pinned \
- && echo "python ${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "python ==${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     python=${PYTHON_VERSION} \
-    conda=${MINIFORGE_VERSION:0:-2} \
     pip=${PIP_VERSION} \
  && conda update -y -q --all \
  && conda clean -a -f -y
 
 # install - jupyter
-RUN echo "jupyterlab >=${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
- && echo "notebook >=${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+RUN echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "notebook ==${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     jupyterlab==${JUPYTERLAB_VERSION} \
     notebook==${JUPYTER_VERSION} \
