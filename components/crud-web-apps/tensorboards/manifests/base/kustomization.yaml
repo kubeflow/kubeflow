@@ -14,7 +14,7 @@ commonLabels:
 images:
 - name: docker.io/kubeflownotebookswg/tensorboards-web-app
   newName: docker.io/kubeflownotebookswg/tensorboards-web-app
-  newTag: v1.8.0-rc.6
+  newTag: v1.8.0
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:
