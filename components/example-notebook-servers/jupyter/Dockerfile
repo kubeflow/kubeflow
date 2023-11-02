@@ -79,16 +79,14 @@ RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
 # s6 - copy scripts
 COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
+# configure - jupyter
+RUN jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
+
 # s6 - 01-copy-tmp-home
 USER root
 RUN mkdir -p /tmp_home \
  && cp -r ${HOME} /tmp_home \
  && chown -R ${NB_USER}:users /tmp_home
 USER $NB_UID
-
-# generate jupyter config
-RUN jupyter notebook --generate-config \
- && jupyter lab --generate-config \
- && jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
 
 EXPOSE 8888
