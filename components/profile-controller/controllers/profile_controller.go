@@ -93,8 +93,7 @@ type ProfileReconciler struct {
 	WorkloadIdentity            string
 	DefaultNamespaceLabelsPaths []string
 	cancelFileWatchers          context.CancelFunc
-	fileWatcherCount            int
-	fileWatcherStopped          chan int
+	fileWatchersShutdown        chan struct{}
 }
 
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs="*"
@@ -374,24 +373,19 @@ func (r *ProfileReconciler) mapEventToRequest(o client.Object) []reconcile.Reque
 
 // Shutdown all file watcher instances
 func (r *ProfileReconciler) ShutdownFileWatchers() {
-	defer close(r.fileWatcherStopped)
-	r.cancelFileWatchers()
-	stoppedCount := 0
-	if r.fileWatcherCount == 0 {
-		// Exit if there are no file watchers configured
+	// If no file watchers were configured, return
+	if r.fileWatchersShutdown == nil || r.cancelFileWatchers == nil {
 		return
 	}
+	r.cancelFileWatchers()
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	for {
 		// Wait for all watchers to have stopped or
 		// for the context to be cancelled
 		select {
-		case <-r.fileWatcherStopped:
-			stoppedCount = stoppedCount + 1
-			if stoppedCount == r.fileWatcherCount {
-				return
-			}
+		case <-r.fileWatchersShutdown:
+			return
 		case <-ctx.Done():
 			r.Log.Error(errors.New("Timeout"), "Unable to shutdown all watchers")
 			return
@@ -400,25 +394,36 @@ func (r *ProfileReconciler) ShutdownFileWatchers() {
 }
 
 // Setup file watcher instances to watch namespace labels files
-func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ctx context.Context, mgr ctrl.Manager) error {
-	r.fileWatcherStopped = make(chan int)
+func (r *ProfileReconciler) setupFileWatchers(events chan event.GenericEvent, mgr ctrl.Manager) error {
 	// Watch config files with namespace labels. If the files change, trigger
 	// a reconciliation for all Profiles.
-	for _, namespaceLabelsPath := range r.DefaultNamespaceLabelsPaths {
+	ctx, cancel := context.WithCancel(context.Background())
+	r.cancelFileWatchers = cancel
+	var fileWatcherCountMu sync.Mutex
+	fileWatcherCount := 0
+	for i, namespaceLabelsPath := range r.DefaultNamespaceLabelsPaths {
 		// Right now we are creating separate watchers per file to avoid having to write more complicated
 		// logic to have a single watcher watch multiple files and account for symlink resolution because
 		// we only watch two files max. If we need to watch more files later
 		// we should create a solution to have one watcher watch multiple files.
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
+			// Shutdown previously configured watchers
 			r.ShutdownFileWatchers()
 			return errors.Wrap(err, "Failed to start file watcher")
 		}
 		if err := watcher.Add(namespaceLabelsPath); err != nil {
+			// Close watcher and previously configured watchers
+			watcher.Close()
 			r.ShutdownFileWatchers()
 			return errors.Wrapf(err, "Failed to watch file %s", namespaceLabelsPath)
 		}
-
+		// create channel to notify when watchers are shutdown
+		if i == 0 {
+			r.fileWatchersShutdown = make(chan struct{})
+		}
+		// Keep track of number of file watchers for when the watchers are shutdown
+		fileWatcherCount = fileWatcherCount + 1
 		go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent, ctx context.Context, namespaceLabelsPath string, mgr ctrl.Manager) {
 			elected := false
 			var mu sync.Mutex
@@ -462,19 +467,24 @@ func (r *ProfileReconciler) SetupFileWatchers(events chan event.GenericEvent, ct
 						namespaceLabelsPath)
 				case <-ctx.Done():
 					watcher.Close()
-					r.fileWatcherStopped <- 1
+					fileWatcherCountMu.Lock()
+					// update the watcher count now that a watcher was shutdown
+					fileWatcherCount = fileWatcherCount - 1
+					// if all watchers were shutdown, close channel
+					// to notify watcher shutdown goroutine
+					if fileWatcherCount == 0 {
+						close(r.fileWatchersShutdown)
+					}
+					fileWatcherCountMu.Unlock()
 					return
 				}
 			}
 		}(watcher, events, ctx, namespaceLabelsPath, mgr)
-		r.fileWatcherCount = r.fileWatcherCount + 1
 	}
 	return nil
 }
 
 func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager, events chan event.GenericEvent) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	r.cancelFileWatchers = cancel
 	c := ctrl.NewControllerManagedBy(mgr).
 		For(&profilev1.Profile{}).
 		Owns(&corev1.Namespace{}).
@@ -490,7 +500,7 @@ func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager, events chan event
 	if err != nil {
 		return err
 	}
-	err = r.SetupFileWatchers(events, ctx, mgr)
+	err = r.setupFileWatchers(events, mgr)
 	if err != nil {
 		return err
 	}

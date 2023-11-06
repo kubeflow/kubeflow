@@ -301,38 +301,38 @@ func TestSetupFileWatchers(t *testing.T) {
 	defer close(events)
 	r := createMockReconciler()
 	r.DefaultNamespaceLabelsPaths = []string{fullPath}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	r.cancelFileWatchers = cancel
 	elected := make(chan struct{})
 	fakeMgr := FakeManager{
 		elected: elected,
 	}
 	// The manager is not the leader so we shouldn't receive any events on file update
-	err = r.SetupFileWatchers(events, ctx, fakeMgr)
-	eventReceived := make(chan bool)
+	err = r.setupFileWatchers(events, fakeMgr)
+	assert.Nil(t, err)
+	defer r.ShutdownFileWatchers()
 	ctx, cancelWatchTestFunction := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelWatchTestFunction()
-	go watchTestFunction(events, eventReceived, ctx)
 	err = os.WriteFile(fullPath, []byte("change file"), 0700)
+	eventReceived := watchTestFunction(events, ctx)
 	assert.Nil(t, err)
-	assert.False(t, <-eventReceived)
+	assert.False(t, eventReceived)
 	// Make the manager the leader and make sure updates to file provide event
+	clearEvents(events)
 	close(fakeMgr.elected)
-	ctx, cancelWatchTestFunctionLeader := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancelWatchTestFunctionLeader := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelWatchTestFunctionLeader()
-	go watchTestFunction(events, eventReceived, ctx)
 	err = os.WriteFile(fullPath, []byte("change file another time"), 0700)
+	eventReceived = watchTestFunction(events, ctx)
 	assert.Nil(t, err)
-	assert.True(t, <-eventReceived)
-	r.ShutdownFileWatchers()
+	assert.True(t, eventReceived)
 	// Make sure after shutting down no more events are sent
+	clearEvents(events)
+	r.ShutdownFileWatchers()
 	ctx, cancelWatchTestFunctionShutdown := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelWatchTestFunctionShutdown()
-	go watchTestFunction(events, eventReceived, ctx)
 	err = os.WriteFile(fullPath, []byte("change file again"), 0700)
+	eventReceived = watchTestFunction(events, ctx)
 	assert.Nil(t, err)
-	assert.False(t, <-eventReceived)
+	assert.False(t, eventReceived)
 }
 
 func TestSetupFileWatchersMissingFile(t *testing.T) {
@@ -340,12 +340,10 @@ func TestSetupFileWatchersMissingFile(t *testing.T) {
 	defer close(events)
 	r := createMockReconciler()
 	r.DefaultNamespaceLabelsPaths = []string{"missing-file.yaml"}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	r.cancelFileWatchers = cancel
 	fakeMgr := FakeManager{}
-	err := r.SetupFileWatchers(events, ctx, fakeMgr)
+	err := r.setupFileWatchers(events, fakeMgr)
 	assert.NotNil(t, err)
+	defer r.ShutdownFileWatchers()
 }
 
 func TestSetupFileWatchersMissingSecondFile(t *testing.T) {
@@ -363,30 +361,40 @@ func TestSetupFileWatchersMissingSecondFile(t *testing.T) {
 	defer close(events)
 	r := createMockReconciler()
 	r.DefaultNamespaceLabelsPaths = []string{fullPath, "missing-file.yaml"}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	r.cancelFileWatchers = cancel
 	fakeMgr := FakeManager{}
-	err = r.SetupFileWatchers(events, ctx, fakeMgr)
+	err = r.setupFileWatchers(events, fakeMgr)
 	assert.NotNil(t, err)
+	defer r.ShutdownFileWatchers()
 	// Make sure updates to first file does not provide event
-	eventReceived := make(chan bool)
 	ctx, cancelWatchTestFunction := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancelWatchTestFunction()
-	go watchTestFunction(events, eventReceived, ctx)
+	eventReceived := watchTestFunction(events, ctx)
 	err = os.WriteFile(fullPath, []byte("change file"), 0700)
 	assert.Nil(t, err)
-	assert.False(t, <-eventReceived)
+	assert.False(t, eventReceived)
 }
 
-func watchTestFunction(events chan event.GenericEvent, triggered chan bool, ctx context.Context) {
-	// true is sent to triggered channel if watch was successful
+func watchTestFunction(events chan event.GenericEvent, ctx context.Context) bool {
+	// true is returned if an event was received
 	for {
 		select {
 		case _ = <-events:
-			triggered <- true
+			return true
 		case <-ctx.Done():
-			triggered <- false
+			return false
+		}
+	}
+}
+
+func clearEvents(events chan event.GenericEvent) {
+	// clear events for 1 second between different stages of the file watcher tests
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	for {
+		select {
+		case _ = <-events:
+			return
+		case <-ctx.Done():
 			return
 		}
 	}

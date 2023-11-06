@@ -117,7 +117,6 @@ func main() {
 	}
 
 	events := make(chan event.GenericEvent)
-	defer close(events)
 
 	if err = r.SetupWithManager(mgr, events); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Profile")
