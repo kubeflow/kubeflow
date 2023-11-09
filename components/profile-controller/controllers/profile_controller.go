@@ -484,7 +484,8 @@ func (r *ProfileReconciler) setupFileWatchers(events chan event.GenericEvent, mg
 	return nil
 }
 
-func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager, events chan event.GenericEvent) error {
+func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	events := make(chan event.GenericEvent)
 	c := ctrl.NewControllerManagedBy(mgr).
 		For(&profilev1.Profile{}).
 		Owns(&corev1.Namespace{}).
