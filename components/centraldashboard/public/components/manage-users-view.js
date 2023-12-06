@@ -17,6 +17,7 @@ import './resources/md2-input/md2-input.js';
 import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
 import utilitiesMixin from './utilities-mixin.js';
+import {ALL_NAMESPACES} from './namespace-selector';
 
 export class ManageUsersView extends utilitiesMixin(PolymerElement) {
     static get template() {
@@ -60,8 +61,10 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         ];
         if (ns.length <= 1) return arr;
         const otherNamespaces = namespaces
-            .filter((n) => n != ownedNamespace)
+            .filter((n) => n != ownedNamespace
+                        && n.namespace !== ALL_NAMESPACES)
             .map((i) => i.namespace).join(', ');
+        if (!otherNamespaces.length) return arr;
         arr.push(
             [otherNamespaces, 'Contributor'],
         );
