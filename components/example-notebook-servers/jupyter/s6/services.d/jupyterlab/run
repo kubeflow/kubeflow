@@ -1,4 +1,9 @@
 #!/command/with-contenv bash
+
+# the runtime directory must be a path that is NOT a persistent volume
+# as volumes often cause permission issues https://github.com/jupyter/notebook/issues/5058
+export JUPYTER_RUNTIME_DIR="/tmp/jupyter_runtime"
+
 cd "${HOME}"
 exec /opt/conda/bin/jupyter lab \
   --notebook-dir="${HOME}" \
@@ -9,5 +14,6 @@ exec /opt/conda/bin/jupyter lab \
   --ServerApp.token="" \
   --ServerApp.password="" \
   --ServerApp.allow_origin="*" \
-  --ServerApp.base_url="${NB_PREFIX}" \
-  --ServerApp.authenticate_prometheus=False
+  --ServerApp.allow_remote_access=True \
+  --ServerApp.authenticate_prometheus=False \
+  --ServerApp.base_url="${NB_PREFIX}"
