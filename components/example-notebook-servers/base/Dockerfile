@@ -13,6 +13,8 @@ ENV NB_UID 1000
 ENV NB_PREFIX /
 ENV HOME /home/$NB_USER
 ENV SHELL /bin/bash
+# Might be needed for slow storage see https://github.com/pi-hole/docker-pi-hole/pull/1192
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 0 
 
 # args - software versions
 ARG KUBECTL_VERSION=v1.27.6
