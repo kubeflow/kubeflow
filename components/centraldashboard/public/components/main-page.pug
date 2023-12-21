@@ -4,6 +4,8 @@ iron-ajax(auto, id='ajax-dashboard-links', url='/api/dashboard-links', handle-as
     on-response='_onHasDashboardLinksResponse', on-error='_onHasDashboardLinksError', loading='{{pageLoading}}')
 iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
+iron-ajax(auto, url="[[getNotebookServersUrl]]", handle-as="json",
+    loading="{{loading}}", on-response="_onNotebookServersResponse", on-error="_onNotebookServersError")
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
         force-narrow='[[or(thinView, hideSidebar)]]',
