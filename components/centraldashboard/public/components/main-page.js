@@ -589,28 +589,36 @@ export class MainPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMix
         this.loading = true;
 
         try {
-            response.notebooks.forEach((nb)=>this.startNotebook(nb));
+            const defaultnotebook = response.notebooks.find((nb)=>
+                nb.labels['notebook.statcan.gc.ca/default-notebook'] &&
+                nb.status.phase === 'stopped'
+            );
+            if (defaultnotebook) {
+                this.startNotebook(defaultnotebook);
+            }
         } catch (err) {
             this._onNotebookServersError(err);
         }
         this.loading = false;
     }
 
-    async startNotebook(notebook) {
-        if (notebook.labels['notebook.statcan.gc.ca/default-notebook'] &&
-            notebook.status.phase === 'stopped') {
-            // start the notebook
-            const response = await fetch(
-                // eslint-disable-next-line max-len
-                `jupyter/api/namespaces/${notebook.namespace}/notebooks/${notebook.name}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({stopped: false}),
-                });
-            const resp = response.json();
-        }
+    startNotebook(notebook) {
+        // start the notebook
+        fetch(
+            // eslint-disable-next-line max-len
+            `jupyter/api/namespaces/${notebook.namespace}/notebooks/${notebook.name}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({stopped: false}),
+            }
+        )
+            .then((response)=>{
+                if (!response.ok) {
+                    throw new Error('Failed to start default notebook');
+                }
+            });
     }
 
     /**
