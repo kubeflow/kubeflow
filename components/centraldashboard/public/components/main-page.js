@@ -271,6 +271,10 @@ export class MainPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMix
             this._setRegistrationFlow(true);
         }
         this._setWorkgroupStatusHasLoaded(true);
+
+
+        // TODO: maybe set the auto start of notebook here? since this is 
+        // where we set user information i.e. after login
     }
 
     /**
