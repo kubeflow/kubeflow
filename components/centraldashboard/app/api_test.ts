@@ -34,11 +34,22 @@ describe('Main API', () => {
       port = addressInfo.port;
     });
 
-    it('Should return a 405 status code', (done) => {
-      get(`http://localhost:${port}/api/metrics/podcpu`, (res) => {
-        expect(res.statusCode).toBe(405);
-        done();
+    it('Should return a 405 status code', async () => {
+        const metricsEndpoint = new Promise((resolve) => {
+            get(`http://localhost:${port}/api/metrics`, (res) => {
+                expect(res.statusCode).toBe(405);
+                resolve();
+            });
+        });
+
+      const metricsTypeEndpoint = new Promise((resolve) => {
+          get(`http://localhost:${port}/api/metrics/podcpu`, (res) => {
+              expect(res.statusCode).toBe(405);
+              resolve();
+          });
       });
+
+      await Promise.all([metricsEndpoint, metricsTypeEndpoint]);
     });
   });
 
@@ -47,7 +58,7 @@ describe('Main API', () => {
       mockK8sService = jasmine.createSpyObj<KubernetesService>(['']);
       mockProfilesService = jasmine.createSpyObj<DefaultApi>(['']);
       mockMetricsService = jasmine.createSpyObj<MetricsService>([
-        'getNodeCpuUtilization', 'getPodCpuUtilization', 'getPodMemoryUsage'
+        'getNodeCpuUtilization', 'getPodCpuUtilization', 'getPodMemoryUsage', 'getChartsLink'
       ]);
 
       testApp = express();
@@ -62,6 +73,15 @@ describe('Main API', () => {
       } else {
         port = addressInfo.port;
       }
+    });
+
+    it('Should retrieve charts link in Metrics service', (done) => {
+        get(`http://localhost:${port}/api/metrics`, (res) => {
+            expect(res.statusCode).toBe(200);
+            expect(mockMetricsService.getChartsLink)
+                .toHaveBeenCalled();
+            done();
+        });
     });
 
     it('Should retrieve Node CPU Utilization for default 15m interval',

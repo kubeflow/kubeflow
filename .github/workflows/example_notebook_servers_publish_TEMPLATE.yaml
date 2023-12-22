@@ -1,0 +1,67 @@
+name: Build & Publish Notebook Servers (TEMPLATE)
+on:
+  workflow_call:
+    inputs:
+      build_arch:
+        required: true
+        description: "architectures to build for, comma separated"
+        type: string
+      image_folders:
+        required: true
+        description: "image folders to build, ordered by dependency, whitespace separated"
+        type: string
+
+env:
+  REGISTRY: docker.io/kubeflownotebookswg
+  CACHE_IMAGE: ghcr.io/${{ github.repository }}/notebook-servers/build-cache
+
+jobs:
+  build_and_push_images:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            version:
+              - 'releasing/version/VERSION'
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: kubeflownotebookswg
+          password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+      - name: Build and Push Notebook Server images
+        env:
+          ARCH: ${{ inputs.build_arch }}
+          IMAGE_FOLDERS: ${{ inputs.image_folders }}
+          SHOULD_TAG_LATEST: ${{ github.ref == 'refs/heads/master' }}
+          SHOULD_TAG_VERSION: ${{ steps.filter.outputs.version == 'true' }}
+        run: |
+          if [[ "$SHOULD_TAG_LATEST" = "true" ]]; then
+            export ALSO_TAG_LATEST=1
+          fi
+          if [[ "$SHOULD_TAG_VERSION" = "true" ]]; then
+              export ALSO_TAG_VERSION=$(cat releasing/version/VERSION)
+          fi
+          cd components/example-notebook-servers/
+          make docker-build-push-multi-arch

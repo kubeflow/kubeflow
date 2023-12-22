@@ -1,0 +1,36 @@
+name: VWA Multi-Arch Build Test
+on:
+  pull_request:
+    paths:
+      - components/crud-web-apps/volumes/**
+      - components/crud-web-apps/common/**
+    branches:
+      - master
+      - v*-branch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+env:
+  IMG: volumes-web-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build multi-arch Image
+      run: |
+        cd components/crud-web-apps/volumes
+        ARCH=linux/amd64 make docker-build-multi-arch
+        ARCH=linux/ppc64le make docker-build-multi-arch
+        ARCH=linux/arm64/v8 make docker-build-multi-arch

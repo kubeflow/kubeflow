@@ -1,9 +1,9 @@
-<div class="snack-container">
+<div class="mat-body snack-container">
   <mat-icon
     [ngClass]="[icon, 'pad']"
     attr.data-cy-snack-status="{{ data.snackType }}"
     >{{ icon }}
   </mat-icon>
   <span>{{ data.msg }}</span>
-  <button mat-button color="accent" (click)="dismiss()" i18n>DISMISS</button>
+  <button mat-button color="primary" (click)="dismiss()" i18n>DISMISS</button>
 </div>

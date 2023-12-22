@@ -1,5 +1,11 @@
-# Use the respective Makefile to build the image.
-FROM ubuntu:20.04
+#
+# NOTE: Use the Makefiles to build this image correctly.
+#
+
+ARG BASE_IMG=<ubuntu>
+FROM $BASE_IMG
+
+ARG TARGETARCH
 
 # common environemnt variables
 ENV NB_USER jovyan
@@ -9,11 +15,8 @@ ENV HOME /home/$NB_USER
 ENV SHELL /bin/bash
 
 # args - software versions
-ARG KUBECTL_ARCH="amd64"
-ARG KUBECTL_VERSION=v1.21.0
-ARG S6_ARCH="amd64"
- # renovate: datasource=github-tags depName=just-containers/s6-overlay versioning=loose
-ARG S6_VERSION=v2.2.0.3
+ARG KUBECTL_VERSION=v1.27.6
+ARG S6_VERSION=v3.1.5.0
 
 # set shell to bash
 SHELL ["/bin/bash", "-c"]
@@ -38,24 +41,35 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     unzip \
     vim \
     wget \
+    xz-utils \
     zip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 # install - s6 overlay
-RUN export GNUPGHOME=/tmp/ \
- && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer" -o /tmp/s6-overlay-${S6_VERSION}-installer \
- && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer.sig" -o /tmp/s6-overlay-${S6_VERSION}-installer.sig \
- && gpg --keyserver keys.gnupg.net --keyserver pgp.surfnet.nl --recv-keys 6101B2783B2FD161 \
- && gpg -q --verify /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer \
- && chmod +x /tmp/s6-overlay-${S6_VERSION}-installer \
- && /tmp/s6-overlay-${S6_VERSION}-installer / \
- && rm /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer
+RUN case "${TARGETARCH}" in \
+      amd64) S6_ARCH="x86_64" ;; \
+      arm64) S6_ARCH="aarch64" ;; \
+      ppc64le) S6_ARCH="ppc64le" ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac \
+ && curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-noarch.tar.xz" -o /tmp/s6-overlay-noarch.tar.xz \
+ && curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-noarch.tar.xz.sha256" -o /tmp/s6-overlay-noarch.tar.xz.sha256 \
+ && echo "$(cat /tmp/s6-overlay-noarch.tar.xz.sha256 | awk '{ print $1; }')  /tmp/s6-overlay-noarch.tar.xz" | sha256sum -c - \
+ && curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" -o /tmp/s6-overlay-${S6_ARCH}.tar.xz \
+ && curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz.sha256" -o /tmp/s6-overlay-${S6_ARCH}.tar.xz.sha256 \
+ && echo "$(cat /tmp/s6-overlay-${S6_ARCH}.tar.xz.sha256 | awk '{ print $1; }')  /tmp/s6-overlay-${S6_ARCH}.tar.xz" | sha256sum -c - \
+ && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
+ && tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz \
+ && rm /tmp/s6-overlay-noarch.tar.xz  \
+       /tmp/s6-overlay-noarch.tar.xz.sha256 \
+       /tmp/s6-overlay-${S6_ARCH}.tar.xz \
+       /tmp/s6-overlay-${S6_ARCH}.tar.xz.sha256
 
 # install - kubectl
-RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" -o /usr/local/bin/kubectl \
- && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
- && echo "$(cat /tmp/kubectl.sha256) /usr/local/bin/kubectl" | sha256sum --check \
+RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl \
+ && curl -fsSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
+ && echo "$(cat /tmp/kubectl.sha256 | awk '{ print $1; }')  /usr/local/bin/kubectl" | sha256sum -c - \
  && rm /tmp/kubectl.sha256 \
  && chmod +x /usr/local/bin/kubectl
 
@@ -63,8 +77,7 @@ RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_A
 RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
  && mkdir -p ${HOME} \
  && chown -R ${NB_USER}:users ${HOME} \
- && chown -R ${NB_USER}:users /usr/local/bin \
- && chown -R ${NB_USER}:users /etc/s6
+ && chown -R ${NB_USER}:users /usr/local/bin
 
 # set locale configs
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
@@ -74,3 +87,5 @@ ENV LANGUAGE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 USER $NB_UID
+
+ENTRYPOINT ["/init"]

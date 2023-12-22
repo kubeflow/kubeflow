@@ -1,3 +1,5 @@
+@import '~kubeflow/styles/variables.scss';
+
 .server-type-wrapper {
   margin-bottom: 2rem;
   border: none;
@@ -10,7 +12,7 @@
   }
 
   .mat-button-toggle-checked {
-    border: 2px solid #1e88e5;
+    border: 2px solid $kubeflow-blue-primary-hue;
     background-color: white;
   }
 

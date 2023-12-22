@@ -14,6 +14,11 @@ export interface TimeSeriesPoint {
   value: number;
 }
 
+export interface MetricsInfo {
+  resourceChartsLink: string | undefined;
+  resourceChartsLinkText: string;
+}
+
 /**
  * Interface definition for implementers of metrics services capable of
  * returning time-series resource utilization metrics for the Kubeflow system.
@@ -39,4 +44,10 @@ export interface MetricsService {
    * @param interval
    */
   getPodMemoryUsage(interval: Interval): Promise<TimeSeriesPoint[]>;
+
+  /**
+   * Return a MetricsInfo object containing the url of the metric dashboard and the
+   * text to display for the redirect button.
+   */
+  getChartsLink(): MetricsInfo;
 }

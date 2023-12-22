@@ -1,5 +1,7 @@
 iron-ajax(auto, url='/api/workgroup/exists', handle-as='json',
     on-response='_onHasWorkgroupResponse', on-error='_onHasWorkgroupError', loading='{{pageLoading}}')
+iron-ajax(auto, url='/api/metrics', handle-as='json',
+    last-response='{{metrics}}', loading='{{pageLoading}}')
 iron-ajax(auto, url='/api/dashboard-links', handle-as='json',
     on-response='_onHasDashboardLinksResponse', on-error='_onHasDashboardLinksError', loading='{{pageLoading}}')
 iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', handle-as='json',
@@ -78,7 +80,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', route='{{route}}',
                     namespaces='[[namespaces]]', selected='{{namespace}}',
                     hides, hidden$='[[hideNamespaces]]'
-                    all-namespaces='[[allNamespaces]]', 
+                    all-namespaces='[[allNamespaces]]',
                     user='[[user]]')
                 footer#User-Badge
                     logout-button(logout-url='[[logoutUrl]]')
@@ -94,7 +96,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
                     dashboard-view(namespace='[[queryParams.ns]]',
-                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]')
+                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]' metrics='[[metrics]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')

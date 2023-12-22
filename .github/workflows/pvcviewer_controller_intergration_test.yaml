@@ -1,0 +1,68 @@
+name: PVCViewer Controller Integration Test
+on:
+  pull_request:
+    paths:
+      - components/pvcviewer-controller/**
+    branches:
+      - master
+      - v*-branch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+env:
+  IMG: pvcviewer-controller
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build PVCViewer Controller Image
+      run: |
+        cd components/pvcviewer-controller
+        make docker-build-multi-arch
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
+
+    - name: Load Images into KinD Cluster
+      run: |
+        kind load docker-image "${IMG}:${TAG}"
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Install cert-manager
+      run: ./components/testing/gh-actions/install_cert_manager.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/pvcviewer-controller/config
+        kubectl create ns kubeflow
+
+        export CURRENT_IMAGE="docker.io/kubeflownotebookswg/${IMG}"
+        export PR_IMAGE="${IMG}:${TAG}"
+
+        # escape "." in the image names, as it is a special characters in sed
+        export CURRENT_IMAGE=$(echo "$CURRENT_IMAGE" | sed 's|\.|\\.|g')
+        export PR_IMAGE=$(echo "$PR_IMAGE" | sed 's|\.|\\.|g')
+
+        kustomize build base \
+          | sed "s|${CURRENT_IMAGE}:[a-zA-Z0-9_.-]*|${PR_IMAGE}|g" \
+          | kubectl apply -f -
+
+        kubectl wait pods -n kubeflow -l app=pvcviewer --for=condition=Ready --timeout=300s

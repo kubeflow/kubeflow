@@ -1,7 +1,7 @@
 import * as monitoring from '@google-cloud/monitoring';
 import fetch from 'node-fetch';
 
-import {Interval, MetricsService, TimeSeriesPoint} from './metrics_service';
+import {Interval, MetricsInfo, MetricsService, TimeSeriesPoint} from './metrics_service';
 
 const CLUSTER_NAME_URL =
     'http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster-name';
@@ -193,5 +193,12 @@ export class StackdriverMetricsService implements MetricsService {
       }
     }
     return this.clusterName;
+  }
+
+  getChartsLink(): MetricsInfo {
+    return {
+      resourceChartsLink: `https://app.google.stackdriver.com/kubernetes?project=${this.projectId}`,
+      resourceChartsLinkText: 'View in Stackdriver'
+    };
   }
 }

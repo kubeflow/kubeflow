@@ -210,7 +210,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	foundPod := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
-		log.Info(fmt.Sprintf("No Pods are currently running for Notebook Server: %s in namesace: %s.", instance.Name, instance.Namespace))
+		log.Info(fmt.Sprintf("No Pods are currently running for Notebook Server: %s in namespace: %s.", instance.Name, instance.Namespace))
 	} else if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -377,18 +377,30 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 				},
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{
-					"statefulset":   instance.Name,
-					"notebook-name": instance.Name,
-				}},
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"statefulset":   instance.Name,
+						"notebook-name": instance.Name,
+					},
+					Annotations: map[string]string{},
+				},
 				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
 	}
+
 	// copy all of the Notebook labels to the pod including poddefault related labels
 	l := &ss.Spec.Template.ObjectMeta.Labels
 	for k, v := range instance.ObjectMeta.Labels {
 		(*l)[k] = v
+	}
+
+	// copy all of the Notebook annotations to the pod.
+	a := &ss.Spec.Template.ObjectMeta.Annotations
+	for k, v := range instance.ObjectMeta.Annotations {
+		if !strings.Contains(k, "kubectl") && !strings.Contains(k, "notebook") {
+			(*a)[k] = v
+		}
 	}
 
 	podSpec := &ss.Spec.Template.Spec

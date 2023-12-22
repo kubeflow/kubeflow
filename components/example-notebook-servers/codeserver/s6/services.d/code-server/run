@@ -1,5 +1,10 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
+cd "${HOME}"
 exec /usr/bin/code-server \
   --bind-addr 0.0.0.0:8888 \
   --disable-telemetry \
-  --auth none
+  --disable-update-check \
+  --disable-workspace-trust \
+  --disable-getting-started-override \
+  --auth none \
+  "${HOME}"

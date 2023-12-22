@@ -8,4 +8,7 @@ configMapGenerator:
   - WORKLOAD_IDENTITY=
   - USERID_HEADER="kubeflow-userid"
   - USERID_PREFIX=
+  - ISTIO_INGRESS_GATEWAY_PRINCIPAL="cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"
+  - NOTEBOOK_CONTROLLER_PRINCIPAL="cluster.local/ns/kubeflow/sa/notebook-controller-service-account"
+  - KFP_UI_PRINCIPAL="cluster.local/ns/kubeflow/sa/ml-pipeline-ui"
   name: config

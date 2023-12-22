@@ -35,7 +35,7 @@ const AuthorizationPolicy = "authorizationpolicies"
 const USER = "user"
 const ROLE = "role"
 
-//roleBindingNameMap maps frontend role names to k8s role names and vice-versa
+// roleBindingNameMap maps frontend role names to k8s role names and vice-versa
 var roleBindingNameMap = map[string]string{
 	"kubeflow-admin": "admin",
 	"kubeflow-edit":  "edit",
@@ -57,7 +57,7 @@ type BindingClient struct {
 	roleBindingLister v1.RoleBindingLister
 }
 
-//getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
+// getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
 func getBindingName(binding *Binding) (string, error) {
 	// Only keep lower case letters and numbers, replace other with -
 	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
@@ -77,6 +77,14 @@ func getBindingName(binding *Binding) (string, error) {
 }
 
 func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string) istioSecurity.AuthorizationPolicy {
+	istioIGWPrincipal := GetEnvDefault(
+		"ISTIO_INGRESS_GATEWAY_PRINCIPAL",
+		"cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account")
+
+	kfpUIPrincipal := GetEnvDefault(
+		"KFP_UI_PRINCIPAL",
+		"cluster.local/ns/kubeflow/sa/ml-pipeline-ui")
+
 	return istioSecurity.AuthorizationPolicy{
 		Rules: []*istioSecurity.Rule{
 			{
@@ -88,6 +96,14 @@ func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix 
 						},
 					},
 				},
+				From: []*istioSecurity.Rule_From{{
+					Source: &istioSecurity.Source{
+						Principals: []string{
+							istioIGWPrincipal,
+							kfpUIPrincipal,
+						},
+					},
+				}},
 			},
 		},
 	}

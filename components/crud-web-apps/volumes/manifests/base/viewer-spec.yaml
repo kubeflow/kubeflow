@@ -1,0 +1,46 @@
+# Note: the volumes-web-app allows expanding strings using ${VAR_NAME}
+# You may use any environment variable. This lets us e.g. specify images that can be modified using kustomize's image transformer.
+# Additionally, 'PVC_NAME', 'NAME' and 'NAMESPACE' are defined
+# Name of the pvc is set by the volumes web app
+pvc: $NAME
+podSpec:
+  serviceAccountName: default-editor
+  containers:
+    - name: main
+      image: $VOLUME_VIEWER_IMAGE
+      env:
+        - name: FB_ADDRESS
+          value: "0.0.0.0"
+        - name: FB_PORT
+          value: "8080"
+        - name: FB_DATABASE
+          value: /tmp/filebrowser.db
+        - name: FB_NOAUTH
+          value: "true"
+        - name: FB_BASEURL
+          value: /pvcviewers/$NAMESPACE/$NAME/
+      readinessProbe:
+        tcpSocket:
+          port: 8080
+        initialDelaySeconds: 2
+        periodSeconds: 10
+      # viewer-volume is provided automatically by the volumes web app
+      volumeMounts:
+        - name: viewer-volume
+          mountPath: /srv
+      workingDir: /srv
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  volumes:
+    - name: viewer-volume
+      persistentVolumeClaim:
+        claimName: $NAME
+networking:
+  targetPort: 8080
+  basePrefix: "/pvcviewers"
+  rewrite: "/"
+  timeout: 30s
+rwoScheduling: true

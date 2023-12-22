@@ -11,7 +11,7 @@ on:
 env:
   DOCKER_USER: kubeflownotebookswg
   IMG: kubeflownotebookswg/poddefaults-webhook
-  ARCH: linux/ppc64le,linux/amd64
+  ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
 jobs:
   push_to_registry:
@@ -24,6 +24,7 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
+        base: ${{ github.ref }}
         filters: |
           version:
             - 'releasing/version/VERSION'
@@ -43,6 +44,9 @@ jobs:
     - name: Build and push multi-arch docker image
       run: |
         cd components/admission-webhook
+        ARCH=linux/amd64 make docker-build-multi-arch
+        ARCH=linux/ppc64le make docker-build-multi-arch
+        ARCH=linux/arm64/v8 make docker-build-multi-arch
         make docker-build-push-multi-arch
 
     - name: Build and push latest multi-arch docker image

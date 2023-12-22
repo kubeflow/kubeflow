@@ -1,0 +1,334 @@
+@use '~@angular/material' as mat;
+@import './kubeflow.css';
+@import './variables.scss';
+
+// Define the primary palette for the color that appears most
+// frequently throughout your application.
+$kubeflow-primary-palette: (
+  400: $kubeflow-blue-hue-1,
+  500: $kubeflow-blue-hue-2,
+  600: $kubeflow-blue-hue-3,
+  700: $kubeflow-blue-primary-hue,
+  800: $kubeflow-blue-hue-4,
+  900: $kubeflow-blue-hue-5,
+  contrast: (
+    400: $kubeflow-white,
+    500: $kubeflow-white,
+    600: $kubeflow-white,
+    700: $kubeflow-white,
+    800: $kubeflow-white,
+    900: $kubeflow-white,
+  ),
+);
+
+// Create the typography config that contains the styles of each level
+$kubeflow-typography-config: mat.define-typography-config(
+  $body-1:
+    mat.define-typography-level(
+      $font-family: Roboto,
+      $font-weight: $kubeflow-font-weight-regular,
+      $font-size: $kubeflow-font-size-regular,
+      $line-height: 20px,
+      $letter-spacing: 0.25px,
+    ),
+  $headline:
+    mat.define-typography-level(
+      $font-family: Roboto,
+      $font-weight: $kubeflow-font-weight-regular,
+      $font-size: $kubeflow-font-size-xlarge,
+      $line-height: 24px,
+      $letter-spacing: 0.18px,
+    ),
+  $title:
+    mat.define-typography-level(
+      $font-family: Roboto,
+      $font-weight: $kubeflow-font-weight-medium,
+      $font-size: $kubeflow-font-size-large,
+      $line-height: 24px,
+      $letter-spacing: 0.15px,
+    ),
+);
+
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$kubeflow-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: mat.define-palette($kubeflow-primary-palette, 700),
+      accent: mat.define-palette(mat.$pink-palette, A200, A100, A400),
+    ),
+  )
+);
+
+// Always include only once per project.
+// Passing the typography config to core mixin will apply the specified values
+// to the corresponding Angular Material components.
+@include mat.core($kubeflow-typography-config);
+
+// Include theme styles for core and each component used in the app.
+// Alternatively, you can import and @include the theme mixins for each
+// component that you are using.
+@include mat.all-component-themes($kubeflow-theme);
+
+.mat-headline {
+  color: $kubeflow-black-1;
+}
+
+.mat-title {
+  color: $kubeflow-black-1;
+}
+
+// Use the material icons offline
+$material-icons-font-path: '~material-icons/iconfont/';
+@import '~material-icons/iconfont/material-icons.scss';
+
+// Material Form Field error message
+mat-form-field .mat-form-field {
+  &-underline {
+    position: static;
+  }
+  &-subscript-wrapper {
+    position: static;
+  }
+}
+
+// Custom css
+html,
+body {
+  margin: 0;
+  background: white;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-step-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.lib-step-info-wrapper {
+  width: fit-content;
+  width: -moz-fit-content;
+  flex-grow: 0;
+  margin-right: 10%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fit-content {
+  width: fit-content;
+  width: -moz-fit-content;
+}
+
+.bold {
+  font-weight: 500;
+}
+
+.wide {
+  width: 100%;
+}
+
+.right-align {
+  text-align: right;
+}
+
+.mat-tooltip-panel .mat-tooltip {
+  font-size: 14px !important;
+}
+
+.mat-snack-bar-container {
+  max-width: 100% !important;
+  width: 700px;
+}
+
+.form--container.mat-dialog-content {
+  max-height: 88vh;
+  padding: 16px;
+}
+
+.mat-form-field-wrapper {
+  padding-bottom: 0.2rem !important;
+}
+
+// Truncate text
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * common table
+ */
+.lib-table .mat-paginator-container {
+  min-height: 48px;
+}
+
+// Form global css
+.form--dialog-padding .mat-dialog-container {
+  padding: 0 24px;
+}
+
+.mat-button-base.form--button-margin {
+  margin-right: 16px;
+}
+
+// Make the outline grey instead of black
+.mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  color: rgba(0, 0, 0, 0.16);
+}
+
+.mat-checkbox-layout {
+  margin-bottom: 10px;
+}
+
+.form--input-padding .mat-form-field {
+  // Get the select and input elements have the same height
+  line-height: 0;
+}
+
+// Center an element
+.center-flex {
+  display: flex;
+  justify-content: center;
+}
+
+// Have a row of inputs
+.row {
+  display: flex;
+  flex-direction: row;
+  margin-right: -0.5rem;
+  margin-left: -0.5rem;
+}
+
+.column {
+  flex: 1 1 0px;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.mat-button.button-with-icon .mat-button-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+// tooltips show we as wide as possible
+.custom-tooltip {
+  max-width: unset !important;
+  white-space: pre-line;
+}
+
+// Strip button from all default styles
+.reset-button-to-text {
+  background-color: transparent;
+  border-width: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  padding: 0;
+}
+
+/*
+ * padding for the page
+ */
+.page-padding {
+  padding-left: $page-space-left;
+  padding-right: $page-space-right;
+}
+
+.page-padding-right {
+  padding-right: $page-space-right;
+}
+
+.page-padding-left {
+  padding-left: $page-space-left;
+}
+
+/*
+ * Classes for showing a Toolbar, footer and scrollable content
+ */
+.lib-content-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-flex-layout-column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.lib-flex-grow {
+  flex-grow: 1;
+}
+
+.lib-overflow-auto {
+  overflow: auto;
+}
+
+.mat-chip {
+  &.mat-chip-blue {
+    background-color: var(--accent-color);
+    color: white;
+
+    .mat-icon {
+      color: white;
+    }
+  }
+}
+
+/*
+* Classes for showing an object's details page in web apps
+*/
+.details-page {
+  .details-page-outer {
+    padding-top: 1.5rem;
+    flex-grow: 1;
+    overflow: auto;
+    padding-left: $page-space-left;
+    padding-right: $page-space-right;
+  }
+
+  .details-page-inner {
+    margin-bottom: 1rem;
+    padding-left: $page-space-left;
+    padding-right: $page-space-right;
+  }
+
+  .details-page-inner-2 {
+    display: flex;
+    align-items: center;
+  }
+}
+
+// Classes for styling anchor elements
+
+.lib-link {
+  color: $link-color;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lib-link:visited {
+  color: $link-color;
+}
+
+.lib-link:hover {
+  text-decoration: underline;
+}

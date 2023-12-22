@@ -24,7 +24,7 @@ docker-build:
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . \
 	  --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) \
 	  --build-arg commit=$(COMMIT) \
-      --label=git-verions=$(TAG)
+      --label=git-version=$(TAG)
 	@echo Built $(IMG):$(TAG)
 
 docker-push:
@@ -32,12 +32,12 @@ docker-push:
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} -f ${DOCKERFILE} .
+	docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} -f ${DOCKERFILE} . --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) --build-arg commit=$(COMMIT) --label=git-version=$(TAG)
 
 
 .PHONY: docker-build-push-multi-arch
 docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry
-	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ${DOCKERFILE} .
+	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ${DOCKERFILE} . --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) --build-arg commit=$(COMMIT) --label=git-version=$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.

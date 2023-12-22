@@ -1,0 +1,63 @@
+name: Build & Publish PVCViewer Controller Docker image
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/pvcviewer-controller/**
+      - components/common/**
+      - releasing/version/VERSION
+
+env:
+  DOCKER_USER: kubeflownotebookswg
+  IMG: kubeflownotebookswg/pvcviewer-controller
+  ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        base: ${{ github.ref }}
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ env.DOCKER_USER }}
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and push multi-arch docker image
+      run: |
+        cd components/pvcviewer-controller
+        ARCH=linux/amd64 make docker-build-multi-arch
+        ARCH=linux/ppc64le make docker-build-multi-arch
+        ARCH=linux/arm64/v8 make docker-build-multi-arch
+        make docker-build-push-multi-arch
+
+    - name: Build and push latest multi-arch docker image
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export TAG=latest
+        cd components/pvcviewer-controller
+        make docker-build-push-multi-arch
+
+    - name: Build and push multi-arch docker image on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/pvcviewer-controller
+        make docker-build-push-multi-arch

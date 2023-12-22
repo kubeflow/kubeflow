@@ -43,15 +43,15 @@ describe('+New Tensorboard form dialog', () => {
     cy.get('[data-cy-resource-table-row="Status"]').each(element => {
       if (tbs[i].status.phase === STATUS_TYPE.READY) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'check_circle');
       } else if (tbs[i].status.phase === STATUS_TYPE.UNAVAILABLE) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'timelapse');
       } else if (tbs[i].status.phase === STATUS_TYPE.WARNING) {
         cy.wrap(element)
-          .find('lib-status>mat-icon')
+          .find('lib-status-icon>mat-icon')
           .should('contain', 'warning');
       } else if (
         tbs[i].status.phase === STATUS_TYPE.WAITING ||
