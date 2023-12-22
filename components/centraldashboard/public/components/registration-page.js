@@ -137,6 +137,10 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             documentationItems,
             legalLinks
         } = ev.detail.response;
+        this.menuLinks = menuLinks || [];
+        this.externalLinks = externalLinks || [];
+        this.quickLinks = quickLinks || [];
+        this.documentationItems = documentationItems || [];
         this.legalLinks = legalLinks || [];
     }
 }
