@@ -8,11 +8,16 @@ on:
       - components/example-notebook-servers/**
       - releasing/version/VERSION
 
+permissions:
+  contents: read
+
 jobs:
   base_images:
     name: Build & Push - Base
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -23,6 +28,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ base_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -34,6 +41,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ base_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -45,6 +54,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ base_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -55,6 +66,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ jupyter_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -65,6 +78,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ jupyter_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -76,6 +91,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ jupyter_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       # TODO: support 'linux/arm64' for PyTorch CUDA images
       build_arch: linux/amd64
@@ -88,6 +105,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ jupyter_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       build_arch: linux/amd64,linux/arm64
       image_folders: |
@@ -99,6 +118,8 @@ jobs:
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     needs: [ jupyter_images ]
     secrets: inherit
+    permissions:
+      packages: write
     with:
       # TODO: support 'linux/arm64' for TensorFlow CUDA images
       build_arch: linux/amd64

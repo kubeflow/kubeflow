@@ -11,6 +11,9 @@ on:
         description: "image folders to build, ordered by dependency, whitespace separated"
         type: string
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: docker.io/kubeflownotebookswg
   CACHE_IMAGE: ghcr.io/${{ github.repository }}/notebook-servers/build-cache
@@ -19,6 +22,8 @@ jobs:
   build_and_push_images:
     name: Build & Push Images
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
