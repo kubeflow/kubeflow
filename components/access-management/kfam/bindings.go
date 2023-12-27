@@ -200,28 +200,41 @@ func (c *BindingClient) List(user string, namespaces []string, role string) (*Bi
 			return nil, err
 		}
 		for _, roleBinding := range roleBindings {
-			userVal, ok := roleBinding.Annotations[USER]
-			if !ok {
-				continue
+			var subject rbacv1.Subject
+			for _, roleBindingSubject := range roleBinding.Subjects {
+				if roleBindingSubject.Kind == rbacv1.UserKind && roleBindingSubject.Name == user {
+					subject = roleBindingSubject
+					break
+				}
 			}
-			if user != "" && user != userVal {
-				continue
+			if subject == (rbacv1.Subject{}) {
+				userVal, ok := roleBinding.Annotations[USER]
+				if !ok {
+					continue
+				}
+				if user != "" && user != userVal {
+					continue
+				}
+				subject = roleBinding.Subjects[0]
 			}
-			roleVal, ok := roleBinding.Annotations[ROLE]
-			if !ok {
-				continue
-			}
-			if role != "" && role != roleVal {
-				continue
-			}
-			if len(roleBinding.Subjects) != 1 {
-				return nil, fmt.Errorf("binding subject length not equal to 1, actual length: %v",
-					len(roleBinding.Subjects))
+			
+			if role != "" {
+				if role != roleBinding.RoleRef.Name {
+					continue
+				}
+
+				roleVal, ok := roleBinding.Annotations[ROLE]
+				if !ok {
+					continue
+				}
+				if role != roleVal {
+					continue
+				}
 			}
 			binding := Binding{
 				User: &rbacv1.Subject{
-					Kind: roleBinding.Subjects[0].Kind,
-					Name: roleBinding.Subjects[0].Name,
+					Kind: subject.Kind,
+					Name: subject.Name,
 				},
 				ReferredNamespace: ns,
 				RoleRef: &rbacv1.RoleRef{
