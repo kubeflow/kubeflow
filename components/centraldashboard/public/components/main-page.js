@@ -128,6 +128,10 @@ export class MainPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMix
                 return lang;
             }},
             resources: {value: languages},
+            getNotebookServersUrl: {
+                type: String,
+                computed: '_getNotebookServersUrl(namespace)',
+            },
         };
     }
 
@@ -174,6 +178,16 @@ export class MainPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMix
 
         localStorage.setItem('lang', browserLang);
         return browserLang;
+    }
+
+    /**
+     * Returns the URL to list the available Jupyter servers for the namespace.
+     * @param {string} namespace
+     * @return {string}
+     */
+    _getNotebookServersUrl(namespace) {
+        if (!namespace) return null;
+        return `/jupyter/api/namespaces/${namespace}/notebooks`;
     }
 
     /**
@@ -566,6 +580,55 @@ export class MainPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMix
         this.menuLinks = JSON.parse(JSON.stringify(this.menuLinks));
     }
 
+    /**
+     * Handles the list Notebooks Servers response to set date format and icon.
+     * @param {Event} responseEvent
+     */
+    async _onNotebookServersResponse(responseEvent) {
+        const response = responseEvent.detail.response;
+        this.loading = true;
+
+        try {
+            const defaultnotebook = response.notebooks.find((nb)=>
+                nb.labels['notebook.statcan.gc.ca/default-notebook'] &&
+                nb.status.phase === 'stopped'
+            );
+            if (defaultnotebook) {
+                this.startNotebook(defaultnotebook);
+            }
+        } catch (err) {
+            this._onNotebookServersError(err);
+        }
+        this.loading = false;
+    }
+
+    startNotebook(notebook) {
+        // start the notebook
+        fetch(
+            // eslint-disable-next-line max-len
+            `jupyter/api/namespaces/${notebook.namespace}/notebooks/${notebook.name}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({stopped: false}),
+            }
+        )
+            .then((response)=>{
+                if (!response.ok) {
+                    throw new Error('Failed to start default notebook');
+                }
+            });
+    }
+
+    /**
+     * Handles an Notebooks error response.
+     * @param {Error} error
+     */
+    _onNotebookServersError(error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+    }
 
     _showManageUsers(isolationMode, ownedNamespace) {
         return isolationMode==='multi-user'
