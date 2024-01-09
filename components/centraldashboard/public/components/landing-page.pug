@@ -1,9 +1,19 @@
+iron-ajax#MakeNamespace(method='POST', url='/api/workgroup/create', handle-as='json', last-error='{{error}}', last-response='{{resp}}',
+    content-type='application/json', loading='{{submittingWorkgroup}}')
 paper-card#MainCard
     figure#Logo !{logo}
     neon-animatable.Main-Content
-        h2 {{localize('registrationPage.lblWelcome')}}
-        aside {{localize('landingPage.landingDesc')}} 
-          a(href='https://statcan-aaw.slack.com', tabindex='-1', target="_blank") {{localize('landingPage.slackLink')}}
+            h2 {{localize('registrationPage.lblWelcome')}}
+
+            p {{localize('landingPage.firstTime')}}
+            p {{localize('landingPage.autoNamespace')}}
+
+            md2-input#Email(label="{{localize('landingPage.email')}}", value='{{emailAddress}}', disabled="true")
+            md2-input#Namespace(label="{{localize('landingPage.yourNamespace')}}", value='{{namespaceName}}', disabled='true')
+            aside {{localize('landingPage.landingDesc')}} 
+                a(href='https://statcan-aaw.slack.com', tabindex='-1', target="_blank") {{localize('landingPage.slackLink')}}
+            .actions
+            paper-button(on-click='nextPage') {{localize('registrationPage.btnNext')}}
 
 nav#Links
     a(href='https://github.com/kubeflow/kubeflow', tabindex='-1', target="_blank") {{localize('registrationPage.linkGitHub')}}

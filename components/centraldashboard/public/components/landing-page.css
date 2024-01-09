@@ -52,7 +52,6 @@ h2+aside {
 }
 
 #MainCard .Main-Content {
-  height: 275px;
 }
 
 neon-animatable {
@@ -67,9 +66,7 @@ neon-animatable {
 
 #Links {
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  position: absolute;
+  position: relative;
   padding: 3em;
   font-size: .8em;
   width: 100%;

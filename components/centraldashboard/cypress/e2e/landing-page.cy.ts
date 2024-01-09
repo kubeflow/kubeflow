@@ -3,7 +3,7 @@ describe('Landing Page', () => {
     cy.mockDashboardLinksRequest();
     cy.intercept('GET', `/api/workgroup/exists`, {
       "hasAuth":true,
-      "user":"user.name",
+      "user":"user.name@email.com",
       "hasWorkgroup":false,
       "registrationFlowAllowed":true
     }).as('mockWorkgroupRequest');
@@ -16,7 +16,8 @@ describe('Landing Page', () => {
   it('should access the landing page', ()=>{
     cy.get('main-page').shadow().find('landing-page').should('exist');
     cy.get('main-page').shadow().find('landing-page').shadow().find('#MainCard > neon-animatable > h2').should('have.text', 'Welcome');
-    cy.get('main-page').shadow().find('landing-page').shadow().find('#MainCard > neon-animatable > aside').should('have.text', 'It seems like you have not been assigned to a workspace, please refer to your project owner or join us on our Slack support channel at https://statcan-aaw.slack.com');
     cy.get('main-page').shadow().find('landing-page').shadow().find('#MainCard > neon-animatable > aside').find('a').should('exist').and('have.prop', 'href', 'https://statcan-aaw.slack.com/');
+    cy.get('main-page').shadow().find('landing-page').shadow().find('#MainCard > neon-animatable').find('md2-input#Email').should('exist').and('have.prop', 'value', 'user.name@email.com');
+    cy.get('main-page').shadow().find('landing-page').shadow().find('#MainCard > neon-animatable').find('md2-input#Namespace').should('exist').and('have.prop', 'value', 'user-name');
   });
 });

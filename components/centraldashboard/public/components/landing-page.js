@@ -31,10 +31,116 @@ import utilitiesMixin from './utilities-mixin.js';
 export class LandingPage extends mixinBehaviors([AppLocalizeBehavior], utilitiesMixin(PolymerElement)) {
     static get template() {
         const vars = {logo};
-
         return html([
             `<style>${css.toString()}</style>${template(vars)}`]);
     }
+
+    static get properties() {
+        return {
+            userDetails: {type: Object, observer: '_onUserDetails'},
+            namespaceName: String,
+            emailAddress: String,
+            error: Object,
+            flowComplete: {type: Boolean, value: false},
+            waitForRedirect: {type: Boolean, value: false},
+            showAPIText: {type: Boolean, value: false},
+        };
+    }
+
+    ready() {
+        super.ready();
+    }
+
+    _onUserDetails(d) {
+        this.emailAddress = this.userDetails;
+        this.generateNamespace(this.userDetails);
+    }
+
+    async generateNamespace(email) {
+        // Since email includes an @ , we split to the left side of it'
+        const name = email.split('@', 1);
+        let ns = name[0];
+        ns = ns
+            .replace(/[^\w]|\./g, '-')
+            .replace(/^-+|-+$|_/g, '')
+            .toLowerCase();
+
+        this.getNamespaces(ns);
+    }
+
+    async getNamespaces(ns) {
+        await fetch(
+            `/api/namespaces/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                const namespaceNames = [];
+                data.forEach((element) => {
+                    namespaceNames.push(element.metadata.name);
+                });
+                let counter = 1;
+                const originalNs = ns;
+                if (namespaceNames.includes(originalNs)) {
+                    while (namespaceNames.includes(originalNs + counter)) {
+                        counter++;
+                    }
+                    ns = originalNs + counter;
+                }
+                this.namespaceName = ns;
+            }).catch((e)=> {
+                this.set('error', {response: {
+                    error: e,
+                    namespace: this.namespaceName,
+                }});
+            });
+    }
+
+    async nextPage() {
+        const API = this.$.MakeNamespace;
+        API.body = {namespace: this.namespaceName};
+        this.waitForRedirect = true;
+        await API.generateRequest().completes.catch((e) => e);
+        await this.sleep(1); // So the errors and callbacks can schedule
+        if (this.error && this.error.response) {
+            if (this.error.response.error) {
+                this.set('error', {response: {
+                    error: 'registrationPage.errDuplicate',
+                    namespace: this.namespaceName,
+                }});
+            }
+            return this.waitForRedirect = false;
+        }
+        /*
+         * Poll for profile over a span of 20 seconds (every 300ms)
+         * if still not there, let the user click next again!
+         */
+        const success = await this.pollProfile(66, 300);
+        if (success) this._successSetup();
+        this.waitForRedirect = false;
+    }
+
+    async pollProfile(times, delay) {
+        const profileAPI = this.$.GetMyNamespace;
+        if (times < 1) throw Error('Cannot poll profile < 1 times!');
+        for (let i = 0; i < times; i++) {
+            const req = profileAPI.generateRequest();
+            await req.completes.catch(() => 0);
+            if (req.response && req.response.hasWorkgroup) return true;
+            await this.sleep(delay);
+        }
+    }
+
+    _successSetup() {
+        this.flowComplete = true;
+        this.set('error', {});
+        this.fireEvent('flowcomplete');
+    }
 }
+
 
 window.customElements.define('landing-page', LandingPage);
