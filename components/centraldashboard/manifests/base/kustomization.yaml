@@ -10,11 +10,6 @@ resources:
 - service-account.yaml
 - service.yaml
 - configmap.yaml
-commonLabels:
-  kustomize.component: centraldashboard
-  app: centraldashboard
-  app.kubernetes.io/component: centraldashboard
-  app.kubernetes.io/name: centraldashboard
 images:
 - name: docker.io/kubeflownotebookswg/centraldashboard
   newName: docker.io/kubeflownotebookswg/centraldashboard
@@ -25,46 +20,64 @@ configMapGenerator:
   name: centraldashboard-parameters
 generatorOptions:
   disableNameSuffixHash: true
-vars:
-- fieldref:
-    fieldPath: metadata.namespace
-  name: CD_NAMESPACE
-  objref:
-    apiVersion: v1
-    kind: Service
-    name: centraldashboard
-- fieldref:
-    fieldPath: data.CD_CLUSTER_DOMAIN
-  name: CD_CLUSTER_DOMAIN
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: centraldashboard-parameters
-- fieldref:
+labels:
+- includeSelectors: true
+  pairs:
+    app: centraldashboard
+    app.kubernetes.io/component: centraldashboard
+    app.kubernetes.io/name: centraldashboard
+    kustomize.component: centraldashboard
+
+replacements:
+- source:
     fieldPath: data.CD_USERID_HEADER
-  name: CD_USERID_HEADER
-  objref:
-    apiVersion: v1
     kind: ConfigMap
     name: centraldashboard-parameters
-- fieldref:
+    version: v1
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.0.env.0.value
+    select:
+      group: apps
+      kind: Deployment
+      name: centraldashboard
+      version: v1
+- source:
     fieldPath: data.CD_USERID_PREFIX
-  name: CD_USERID_PREFIX
-  objref:
-    apiVersion: v1
     kind: ConfigMap
     name: centraldashboard-parameters
-- fieldref:
+    version: v1
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.0.env.1.value
+    select:
+      group: apps
+      kind: Deployment
+      name: centraldashboard
+      version: v1
+- source:
     fieldPath: data.CD_REGISTRATION_FLOW
-  name: CD_REGISTRATION_FLOW
-  objref:
-    apiVersion: v1
     kind: ConfigMap
     name: centraldashboard-parameters
-- fieldref:
+    version: v1
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.0.env.3.value
+    select:
+      group: apps
+      kind: Deployment
+      name: centraldashboard
+      version: v1
+- source:
     fieldPath: metadata.name
-  name: CD_CONFIGMAP_NAME
-  objref:
-    apiVersion: v1
     kind: ConfigMap
     name: centraldashboard-config
+    version: v1
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.0.env.4.value
+    select:
+      group: apps
+      kind: Deployment
+      name: centraldashboard
+      version: v1

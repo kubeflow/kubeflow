@@ -15,6 +15,6 @@ spec:
       uri: /
     route:
     - destination:
-        host: centraldashboard.$(CD_NAMESPACE).svc.$(CD_CLUSTER_DOMAIN)
+        host: centraldashboard.CD_NAMESPACE_PLACEHOLDER.svc.CD_CLUSTER_DOMAIN_PLACEHOLDER
         port:
           number: 80
