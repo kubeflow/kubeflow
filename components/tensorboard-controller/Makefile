@@ -82,8 +82,7 @@ docker-push:
 
 .PHONY: docker-build-multi-arch
 docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
-	cd ../ && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f tensorboard-controller/Dockerfile .
-
+	cd ../ && docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} -f tensorboard-controller/Dockerfile .
 
 .PHONY: docker-build-push-multi-arch
 docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
