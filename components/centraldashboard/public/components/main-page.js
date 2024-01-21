@@ -337,6 +337,25 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * Parse namespace in external links
+     * @param {string} href - external link
+     * @param {Object} queryParamsChange - queryParams updated on-the-fly
+     * @return {string}
+     */
+    _buildExternalHref(href, queryParamsChange) {
+        // The "queryParams" value from "queryParamsChange" is not updated as
+        // expected in the "iframe-link", but it works in anchor element.
+        // A temporary workaround is  to use "this.queryParams" as an input
+        // instead of "queryParamsChange.base".
+        // const queryParams = queryParamsChange.base;
+        const queryParams = this.queryParams;
+        if (!queryParams || !queryParams['ns']) {
+            return href.replace('{ns}', '');
+        }
+        return href.replace('{ns}', queryParams['ns']);
+    }
+
+    /**
      * Builds the new iframeSrc string based on the subroute path, current
      * hash fragment, and the query string parameters other than ns.
      */
