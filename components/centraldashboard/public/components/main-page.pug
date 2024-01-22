@@ -70,8 +70,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 a.privacy(title="{{localize('mainPage.menuPrivacyTitle')}}", target='_blank', href='https://policies.google.com/privacy') {{localize('mainPage.menuPrivacy')}}
                 .bullet
                 a.usage(title="{{localize('mainPage.menuUsageReportingTitle')}}", target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') {{localize('mainPage.menuUsageReporting')}}
-            section.build build version&nbsp;
-                span(title="{{localize('mainPage.footerBuildVersion', 'buildVersion', buildVersion, 'dashVersion', dashVersion, 'isolationMode', isolationMode)}}") [[buildVersion]]
+            // AAW commented out section: section.build build version&nbsp;
+            //    span(title="{{localize('mainPage.footerBuildVersion', 'buildVersion', buildVersion, 'dashVersion', dashVersion, 'isolationMode', isolationMode)}}") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
