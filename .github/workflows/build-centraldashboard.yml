@@ -59,24 +59,24 @@ jobs:
     - name: Docker build
       run: |
         docker build \
-          -t localhost:5000/kubeflow/centraldashboard:${{ github.sha }} \
+          -t localhost:5000/kubeflow/centraldashboard-aaw2:${{ github.sha }} \
           --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
           --build-arg commit=$(git rev-parse HEAD) \
           components/centraldashboard/
-        docker push localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
+        docker push localhost:5000/kubeflow/centraldashboard-aaw2:${{ github.sha }}
         docker image prune
 
     # Scan image for vulnerabilities
     - name: Aqua Security Trivy image scan
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin ${{ env.TRIVY_VERSION }}
-        trivy image localhost:5000/kubeflow/centraldashboard:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
+        trivy image localhost:5000/kubeflow/centraldashboard-aaw2:${{ github.sha }} --exit-code 1 --timeout=20m --security-checks vuln --severity CRITICAL
 
     # Run Dockle
     - name: Run dockle
       uses: goodwithtech/dockle-action@main
       with:
-        image: localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
+        image: localhost:5000/kubeflow/centraldashboard-aaw2:${{ github.sha }}
         format: 'list'
         exit-code: '0'
         exit-level: 'fatal'
@@ -96,9 +96,9 @@ jobs:
     - name: Docker push
       if: steps.should-i-push.outputs.boolean == 'true'
       run: |
-        docker pull localhost:5000/kubeflow/centraldashboard:${{ github.sha }}
-        docker tag localhost:5000/kubeflow/centraldashboard:${{ github.sha }} ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
-        docker push ${{ env.REGISTRY }}/kubeflow/centraldashboard:${{ github.sha }}
+        docker pull localhost:5000/kubeflow/centraldashboard-aaw2:${{ github.sha }}
+        docker tag localhost:5000/kubeflow/centraldashboard-aaw2:${{ github.sha }} ${{ env.REGISTRY }}/kubeflow/centraldashboard-aaw2:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/kubeflow/centraldashboard-aaw2:${{ github.sha }}
 
     - name: Slack Notification
       if: failure() && github.event_name=='schedule'
