@@ -1,6 +1,7 @@
 approvers:
-  - elikatsis
   - kimwnasptd
-  - StefanoFioravanzo
   - thesuperzapper
+emeritus_approvers:
+  - elikatsis
+  - StefanoFioravanzo
   - yanniszark

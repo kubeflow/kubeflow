@@ -1,8 +1,8 @@
 approvers:
-  - elikatsis
   - kimwnasptd
+  - thesuperzapper
+emeritus_approvers:
+  - elikatsis
   - kunmingg
   - StefanoFioravanzo
-  - thesuperzapper
   - yanniszark
-reviewers:
