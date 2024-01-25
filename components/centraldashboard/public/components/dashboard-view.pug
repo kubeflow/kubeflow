@@ -2,6 +2,8 @@ template(is='dom-if', if='[[securityMessages.length]]')
     div.security-messages
         security-messages-card(messages='[[securityMessages]]')
 div#grid
+    .defaultNotebook
+        notebook-default-card(namespace='[[namespace]]')
     .column
         paper-card#Quick-Links(heading="{{localize('dashboardView.headingQuickLinks')}}")
             template(is='dom-repeat', items='[[quickLinks]]')

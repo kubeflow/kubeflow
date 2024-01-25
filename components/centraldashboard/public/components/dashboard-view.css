@@ -29,7 +29,6 @@
 }
 
 .column {
-    grid-row: 1;
     min-width: 320px;
     max-width: 400px;
 }
@@ -40,7 +39,6 @@
 .column>* {
     margin-bottom: .75em; /* 12px */
 }
-
 
 #Platform-Links {
     --paper-card-header-color: #2c6acb;
