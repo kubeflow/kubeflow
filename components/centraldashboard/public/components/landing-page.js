@@ -121,6 +121,21 @@ export class LandingPage extends mixinBehaviors([AppLocalizeBehavior], utilities
          */
         const success = await this.pollProfile(66, 300);
         if (success) this._successSetup();
+
+        // Create the default notebook
+        const APICreateDefault = this.$.CreateDefaultNotebook;
+
+        await APICreateDefault.generateRequest().completes.catch((e) => e);
+        await this.sleep(1); // So the errors and callbacks can schedule
+        if (this.error && this.error.response) {
+            if (this.error.response.error) {
+                this.set('error', {response: {
+                    error: 'registrationPage.errCreateNotebook',
+                    namespace: this.namespaceName,
+                }});
+            }
+            return this.waitForRedirect = false;
+        }
         this.waitForRedirect = false;
     }
 

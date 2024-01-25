@@ -1,5 +1,7 @@
 iron-ajax#MakeNamespace(method='POST', url='/api/workgroup/create', handle-as='json', last-error='{{error}}', last-response='{{resp}}',
     content-type='application/json', loading='{{submittingWorkgroup}}')
+iron-ajax#GetMyNamespace(url='/api/workgroup/exists', handle-as='json')
+iron-ajax#CreateDefaultNotebook(method='POST', url='/jupyter/api/namespaces/[[namespaceName]]/createdefault', headers='{"Content-Type": "application/json"}')
 paper-card#MainCard
     figure#Logo !{logo}
     neon-animatable.Main-Content
