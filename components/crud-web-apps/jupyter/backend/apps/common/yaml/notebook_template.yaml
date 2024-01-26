@@ -7,7 +7,7 @@ metadata:
     app: {name}
   annotations:
     notebooks.kubeflow.org/server-type: ""
-    notebooks.kubeflow.org/creator: {creator}
+    notebooks.kubeflow.org/creator: "{creator}"
 spec:
   template:
     spec:
