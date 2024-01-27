@@ -31,15 +31,15 @@ spec:
           protocol: TCP
         env:
         - name: USERID_HEADER
-          value: $(CD_USERID_HEADER)
+          value: CD_USERID_HEADER_PLACEHOLDER
         - name: USERID_PREFIX
-          value: $(CD_USERID_PREFIX)
+          value: CD_USERID_PREFIX_PLACEHOLDER
         - name: PROFILES_KFAM_SERVICE_HOST
           value: profiles-kfam.kubeflow
         - name: REGISTRATION_FLOW
-          value: $(CD_REGISTRATION_FLOW)
+          value: CD_REGISTRATION_FLOW_PLACEHOLDER
         - name: DASHBOARD_LINKS_CONFIGMAP
-          value: $(CD_CONFIGMAP_NAME)
+          value: CD_CONFIGMAP_NAME_PLACEHOLDER
         - name: LOGOUT_URL
           value: '/authservice/logout'
         - name: POD_NAMESPACE
