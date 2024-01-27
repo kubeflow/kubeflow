@@ -1,4 +1,4 @@
-Flask==1.1.1
+Flask==2.3.2
 Flask-API==2.0
 kubernetes==10.0.1
 requests==2.22.0
