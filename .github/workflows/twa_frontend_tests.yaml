@@ -4,6 +4,9 @@ on:
     paths:
       - components/crud-web-apps/tensorboards/frontend/**
 
+permissions:
+  contents: read
+
 jobs:
   frontend-format-linting-check:
     name: Code format and lint

@@ -7,6 +7,10 @@ on:
       - v*-branch
     paths:
       - "**.py"
+
+permissions:
+  contents: read
+
 jobs:
   flake8-lint:
     runs-on: ubuntu-latest

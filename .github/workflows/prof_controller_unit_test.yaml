@@ -4,6 +4,9 @@ on:
     paths:
       - components/profile-controller/**
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

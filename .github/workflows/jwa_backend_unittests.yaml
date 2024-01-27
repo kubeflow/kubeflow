@@ -4,6 +4,9 @@ on:
     paths:
       - components/crud-web-apps/jupyter/backend/**
 
+permissions:
+  contents: read
+
 jobs:
   run-backend-unittests:
     name: Unittests
