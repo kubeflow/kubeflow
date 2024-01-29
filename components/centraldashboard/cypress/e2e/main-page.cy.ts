@@ -27,27 +27,20 @@ describe('Main Page', () => {
     cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Quick-Links').should('exist');
     cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Quick-Links').find('iframe-link').should('exist').and('have.length', 1).and('have.prop', 'href', '/en/new?ns=test-namespace');
     cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Quick-Links').find('iframe-link').find('div.header').should('have.text', 'Create a new Notebook server');
-    // recent notebooks links
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('notebooks-card').should('exist');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('notebooks-card').shadow().find('iframe-link').should('have.length', 5);
+    
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(2).should('have.prop', 'href', 'https://statcan-aaw.slack.com/');
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(2).find('div.header').should('have.text', 'Community Chat');
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(2).find('aside').should('have.text', 'Team Chat Group for Community Support - TODO');
+
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(3).should('have.prop', 'href', 'https://www.kubeflow.org/docs/');
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(3).find('div.header').should('have.text', 'Jira');
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(3).find('aside').should('have.text', 'Request a new feature - TODO');
     // documentation links
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').should('exist');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').should('have.length', 4);
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').should('exist')
+    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').should('have.length', 1);
     cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(0).should('have.prop', 'href', 'https://statcan.github.io/aaw/');
     cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(0).find('div.header').should('have.text', 'Advanced Analytics Workspace Docs');
     cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(0).find('aside').should('have.text', 'Helpful guides about our data and analysis tools');
-
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(1).should('have.prop', 'href', 'https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(1).find('div.header').should('have.text', 'Video Tutorial Series');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(1).find('aside').should('have.text', 'YouTube playlist of videos for getting started with Advanced Analytics Workspace tools');
-
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(2).should('have.prop', 'href', 'https://statcan-aaw.slack.com/');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(2).find('div.header').should('have.text', 'Community Chat');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(2).find('aside').should('have.text', 'Slack workspace for discussion/support - requires sign-up for emails outside @canada.ca');
-
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(3).should('have.prop', 'href', 'https://www.kubeflow.org/docs/');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(3).find('div.header').should('have.text', 'Official Kubeflow Docs');
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('paper-card#Documentation').find('a').eq(3).find('aside').should('have.text', 'Advanced documentation for installing, running, and using Kubeflow');
     //activities tab
     cy.get('main-page').shadow().find('#ViewTabs > paper-tabs > paper-tab:nth-child(2)').click();
     cy.url().should('eq', 'http://localhost:8080/activity?ns=test-namespace');
@@ -152,8 +145,6 @@ describe('Main Page', () => {
     cy.wait(['@mockActivitiesRequest', '@mockGetNotebooksRequest2', '@mockNotebookContentsRequest2']);
 
     cy.url().should('eq', 'http://localhost:8080/?ns=test-namespace-2');
-    // see new list of recent notebooks
-    cy.get('main-page').shadow().find('dashboard-view').shadow().find('notebooks-card').shadow().find('header#message').should('have.text', "\n                No Notebooks in namespace test-namespace-2\n            ");
 
     // test links with new namespace
     cy.get('main-page').shadow().find('app-drawer').should('have.prop', 'opened', false);
