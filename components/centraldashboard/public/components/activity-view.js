@@ -42,7 +42,7 @@ export class ActivityView extends PolymerElement {
                     pointer-events: none
                 }
             </style>
-            <iron-ajax id="ajax" url="/api/activities/[[namespace]]"
+            <iron-ajax id="ajax" url="/dashboard/api/activities/[[namespace]]"
                 handle-as="json" loading="{{loading}}"
                 on-response="_onResponse" on-error="_onError">
             </iron-ajax>

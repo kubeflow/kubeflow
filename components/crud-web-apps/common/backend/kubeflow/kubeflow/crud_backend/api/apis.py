@@ -1,10 +1,12 @@
-from kubernetes import client, config
+from kubernetes import client, config, dynamic
 from kubernetes.config import ConfigException
 
 try:
     config.load_incluster_config()
+    dyamicClient = dynamic.DynamicClient(client.ApiClient(configuration=config.load_incluster_config()))
 except ConfigException:
     config.load_kube_config()
+    dyamicClient = dynamic.DynamicClient(client.ApiClient(configuration=config.load_config()))
 
 # Create the Apis
 v1_core = client.CoreV1Api()

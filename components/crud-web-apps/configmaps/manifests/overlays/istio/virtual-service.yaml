@@ -1,0 +1,24 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: configmaps-web-app-configmaps-web-app
+spec:
+  gateways:
+  - kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - headers:
+      request:
+        add:
+          x-forwarded-prefix: /configmaps
+    match:
+    - uri:
+        prefix: /configmaps/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: configmaps-web-app-service.$(CMWA_NAMESPACE).svc.$(CMWA_CLUSTER_DOMAIN)
+        port:
+          number: 80

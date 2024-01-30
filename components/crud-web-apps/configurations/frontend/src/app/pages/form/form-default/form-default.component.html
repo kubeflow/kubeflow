@@ -1,0 +1,76 @@
+<div class="form--container" mat-dialog-content>
+  <form novalidate [formGroup]="formCtrl">
+    <lib-form-section
+      title="New Notebook Config"
+      text="Create a new Notebook Config"
+      icon="fa:fas:hdd"
+      i18n-title
+      i18n-text
+    >
+    </lib-form-section>
+
+    <!--Name / Namespace-->
+    <lib-form-name-namespace-inputs
+      [nameControl]="formCtrl.get('name')"
+      [namespaceControl]="formCtrl.get('namespace')"
+      resourceName="Configuration"
+      i18n-resourceName
+      [existingNames]="configurationNames"
+    >
+    </lib-form-name-namespace-inputs>
+
+    <div>
+      <mat-checkbox formControlName="isSync">Whether to synchronize to another namespace</mat-checkbox>
+    </div>
+    
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>Configuration Desc</mat-label>
+      <input matInput formControlName="desc" type="text" />
+    </mat-form-field>
+    
+    <mat-label i18n>Notebook Envs</mat-label>
+    <app-list-key-value
+      #envs
+      [formArray]="formCtrl.get('envs')"
+      [fromLabels]=secrets
+      (selectionChange)="onSelectionChange($event)"
+      addButtonText="Add Env"
+      keyLabel="Env Name"
+      fromLabel="Env From"
+      valueLabel="Env Value"
+    ></app-list-key-value>
+
+    <mat-label i18n>Notebook Config Files</mat-label>
+    <app-list-key-value
+      #volumes
+      [formArray]="formCtrl.get('volumes')"
+      [fromLabels]=configmaps
+      (selectionChange)="onNBSelectionChange($event)"
+      addButtonText="Add Config File"
+      keyLabel="Config Name"
+      fromLabel="Config From"
+      valueLabel="Config Value"
+      pathLabel="Config Path"
+      valueMultSelect=true
+    ></app-list-key-value>
+
+    <button
+    mat-raised-button
+    color="primary"
+    class="form--button-margin"
+    type="submit"
+    [disabled]="!formCtrl.valid || blockSubmit"
+    (click)="onSubmit()"
+    i18n
+    >
+      CREATE
+    </button>
+
+    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+      CANCEL
+    </button>
+  </form>
+</div>

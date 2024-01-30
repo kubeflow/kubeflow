@@ -27,7 +27,7 @@ export class IframeLink extends PolymerElement {
                     color: inherit
                 }
             </style>
-            <a id="link" href$="/[[prefix]][[href]]" tabindex="-1">
+            <a id="link" href$="dashboard/[[prefix]][[href]]" tabindex="-1">
                 <slot></slot>
             </a>`;
     }

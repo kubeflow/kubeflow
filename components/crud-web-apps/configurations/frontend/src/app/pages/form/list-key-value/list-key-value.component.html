@@ -1,0 +1,74 @@
+<!-- <h3 *ngIf="header">{{ header }}</h3> -->
+
+<div class="flex-column">
+  <div
+    *ngFor="let ctrl of formArray.controls; let i = index"
+    class="key-value-entry"
+  >
+    <mat-form-field appearance="outline">
+      <mat-label>{{ keyLabel }}</mat-label>
+      <input [formControl]="ctrl.get('key')" matInput />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="column"
+    >
+      <mat-label i18n>{{ fromLabel }}</mat-label>
+      <mat-select (selectionChange)="onSelectionChange(i)" [formControl]="ctrl.get('from')">
+        <mat-option *ngFor="let value of fromLabels" [value]="value">
+          {{value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="column"
+      *ngIf="valueMultSelect"
+    >
+      <mat-label i18n>{{ valueLabel }}</mat-label>
+      <mat-select [formControl]="ctrl.get('value')" multiple>
+        <mat-option *ngFor="let value of ctrl.get('valueList').value" [value]="value">
+          {{value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="column"
+      *ngIf="valueMultSelect"
+    >
+      <mat-label i18n>{{ pathLabel }}</mat-label>
+      <input [formControl]="ctrl.get('path')" matInput />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="column"
+      *ngIf="!valueMultSelect"
+    >
+      <mat-label i18n>{{ valueLabel }}</mat-label>
+      <mat-select [formControl]="ctrl.get('value')">
+        <mat-option *ngFor="let value of ctrl.get('valueList').value" [value]="value">
+          {{value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button
+      mat-icon-button
+      matSuffix
+      (click)="removeCtrl(i)"
+      matTooltip="Remove item from the list"
+      class="delete-btn"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>
+
+<button mat-stroked-button color="primary" (click)="addCtrl()" class="add-btn">
+  <mat-icon>add</mat-icon>{{ addButtonText }}
+</button>
