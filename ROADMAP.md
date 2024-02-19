@@ -8,7 +8,7 @@ The Kubeflow Community plans to deliver its v1.9 release in Jul 2024 per this [t
 * CNCF Transition
 * LLM APIs
 * New component: Model Registry
-* Kubeflow Pipelines and kfp-tekton merged in a single GitHub repository
+* Kubeflow Pipelines and kfp-tekton V2 merged in a single GitHub repository
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
 * [Training Operators](https://github.com/kubeflow/training-operator/issues/1994)
