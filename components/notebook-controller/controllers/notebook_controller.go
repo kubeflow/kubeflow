@@ -449,7 +449,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     "ClusterIP",
-			Selector: map[string]string{"statefulset": instance.Name},
+			Selector: map[string]string{"statefulset": instance.Name, "notebook-name": instance.Name},
 			Ports: []corev1.ServicePort{
 				{
 					// Make port name follow Istio pattern so it can be managed by istio rbac
