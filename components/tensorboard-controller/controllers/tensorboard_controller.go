@@ -301,7 +301,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      tb.Name,
+			Name:      fmt.Sprintf("tensorboard-%s", tb.Name),
 			Namespace: tb.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
@@ -335,7 +335,7 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
-	vsvc.SetName(tb.Name)
+	vsvc.SetName(fmt.Sprintf("tensorboard-%s", tb.Name))
 	vsvc.SetNamespace(tb.Namespace)
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)

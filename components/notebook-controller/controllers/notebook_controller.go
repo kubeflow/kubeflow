@@ -444,7 +444,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name,
+			Name:      fmt.Sprintf("notebook-%s-%s", instance.Namespace, instance.Name),
 			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
