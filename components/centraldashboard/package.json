@@ -71,7 +71,7 @@
         "chartjs-plugin-crosshair": "^1.1.4",
         "express": "^4.17.1",
         "node-fetch": "^2.6.7",
-        "prometheus-query": "^3.3.2",
+        "prometheus-query": "^3.4.0",
         "web-animations-js": "^2.3.2"
     },
     "devDependencies": {
