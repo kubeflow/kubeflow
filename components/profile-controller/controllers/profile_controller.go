@@ -135,6 +135,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		},
 	}
 	setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
+	setNamespaceLabels(ns, instance.ObjectMeta.Labels)
 	logger.Info("List of labels to be added to namespace", "labels", ns.Labels)
 	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
 		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
