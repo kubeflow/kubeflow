@@ -32,15 +32,15 @@ we provide update / share / delete APIs and perform permission check on every co
 
 ## APIs
 
-#####`/v1/profiles`
+##### `/v1/profiles`
 * `create`: create new profile; 
   * called when new user self-register.
 
-#####`/v1/profiles/{profile}`
+##### `/v1/profiles/{profile}`
 * `delete`: delete profile; 
   * called when admin or owner delete profile / namespace.
 
-#####`/v1/bindings`
+##### `/v1/bindings`
 * `create`: create new binding; 
   * called when admin or owner share namespace access with other users.
 * `get`: get bindings; 
