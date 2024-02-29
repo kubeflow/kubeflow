@@ -1,6 +1,9 @@
 # We want to rely on fine grained OWNERs files.
 # Approvers listed here is just a backup in case someone is out.
 approvers:
-- pdmack
-- james-jwu
-- zijianjoy
+  - andreyvelich
+  - james-jwu
+  - jbottum
+  - johnugeorge
+  - terrytangyuan
+  - zijianjoy
