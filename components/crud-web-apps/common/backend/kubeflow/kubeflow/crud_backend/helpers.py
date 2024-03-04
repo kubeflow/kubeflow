@@ -51,7 +51,8 @@ def load_yaml(f):
         else:
             # YAML exists and is not empty
             return contents
-    except yaml.YAMLError:
+    except yaml.YAMLError as e:
+        log.error("Error parsing: %s, %s", f, e)
         return None
 
 
@@ -80,7 +81,8 @@ def load_param_yaml(f, **kwargs):
         else:
             # YAML exists and is not empty
             return contents
-    except yaml.YAMLError:
+    except yaml.YAMLError as e:
+        log.error("Error parsing: %s, %s", f, e)
         return None
 
 
