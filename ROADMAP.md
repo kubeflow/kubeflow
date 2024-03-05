@@ -1,6 +1,26 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.8 Release, Planned for release: Oct 2023
+## Kubeflow 1.9 Release, Planned for release: Jul 2024
+The Kubeflow Community plans to deliver its v1.9 release in Jul 2024 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.9/README.md#timeline). The high level deliverables are tracked in the [v1.9 Release](https://github.com/orgs/kubeflow/projects/61) Github project board. The v1.9 release process will be managed by the v1.9 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.9/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
+
+### Themes
+* Kubernetes 1.29 support
+* CNCF Transition
+* LLM APIs
+* New component: Model Registry
+* Kubeflow Pipelines and kfp-tekton V2 merged in a single GitHub repository
+
+### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
+* [Training Operators](https://github.com/kubeflow/training-operator/issues/1994)
+* [KServe](https://github.com/orgs/kserve/projects/12)
+* [Katib](https://github.com/kubeflow/katib/issues/2255)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/issues/10402)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/7459)
+* [Manifests](https://github.com/kubeflow/manifests/issues/2592)
+* [Security](https://github.com/kubeflow/manifests/issues/2598)
+* [Model Registry](https://github.com/kubeflow/model-registry/issues/3)
+
+## Kubeflow 1.8 Release, Delivered: Nov 2023
 The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this [timeline](https://github.com/kubeflow/community/tree/master/releases/release-1.8#timeline). The high level deliverables are tracked in the [v1.8 Release](https://github.com/orgs/kubeflow/projects/58/) Github project board. The v1.8 release process will be managed by the v1.8 [release team](https://github.com/kubeflow/community/blob/a956b3f6f15c49f928e37eaafec40d7f73ee1d5b/releases/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
 ### Themes
