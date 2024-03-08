@@ -1,4 +1,7 @@
 <img src="https://www.kubeflow.org/images/logo.svg" width="100">
+
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/2660/badge)](https://bestpractices.coreinfrastructure.org/projects/2660) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/kubeflow/kubeflow/badge)](https://securityscorecards.dev/viewer/?uri=github.com/kubeflow/kubeflow) [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/kubeflow/badge)](https://clomonitor.io/projects/cncf/kubeflow)
+
 Kubeflow the cloud-native platform for machine learning operations - pipelines, training and deployment.
 
 ---
