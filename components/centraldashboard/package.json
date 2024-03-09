@@ -91,7 +91,7 @@
         "copy-webpack-plugin": "^5.1.1",
         "core-js": "^2.6.9",
         "cross-env": "^5.2.1",
-        "css-loader": "^2.1.1",
+        "css-loader": "^6.8.1",
         "eslint": "^5.16.0",
         "eslint-config-google": "^0.12.0",
         "eslint-loader": "^2.2.1",
