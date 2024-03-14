@@ -25,4 +25,5 @@ paper-card#MainCard
 nav#Links
     a(href='https://github.com/kubeflow/kubeflow', tabindex='-1', target="_blank") GitHub
     a(href='https://www.kubeflow.org/docs/about/kubeflow/', tabindex='-1', target="_blank") Documentation
-    a(href='https://policies.google.com/privacy', tabindex='-1', target="_blank") Privacy
+    template(is='dom-repeat', items='[[legalLinks]]')
+         a.privacy(title='[[item.desc]]', target='_blank', href='[[item.link]]') [[item.text]] 
