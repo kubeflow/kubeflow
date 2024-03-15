@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 
@@ -31,6 +32,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	kubefloworgv1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
@@ -96,26 +98,45 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ProfileReconciler{
-		Client:                     mgr.GetClient(),
-		Scheme:                     mgr.GetScheme(),
-		Log:                        ctrl.Log.WithName("controllers").WithName("Profile"),
-		UserIdHeader:               userIdHeader,
-		UserIdPrefix:               userIdPrefix,
-		WorkloadIdentity:           workloadIdentity,
-		DefaultNamespaceLabelsPath: defaultNamespaceLabelsPath,
-	}).SetupWithManager(mgr); err != nil {
+	namespaceLabelsPaths := []string{defaultNamespaceLabelsPath}
+
+	// Check if optional extra namespace labels path is configured
+	extraDefaultNamespaceLabelsPath := os.Getenv("EXTRA_NAMESPACE_LABELS_PATH")
+	if extraDefaultNamespaceLabelsPath != "" {
+		namespaceLabelsPaths = append(namespaceLabelsPaths, extraDefaultNamespaceLabelsPath)
+	}
+	r := &controllers.ProfileReconciler{
+		Client:                      mgr.GetClient(),
+		Scheme:                      mgr.GetScheme(),
+		Log:                         ctrl.Log.WithName("controllers").WithName("Profile"),
+		UserIdHeader:                userIdHeader,
+		UserIdPrefix:                userIdPrefix,
+		WorkloadIdentity:            workloadIdentity,
+		DefaultNamespaceLabelsPaths: namespaceLabelsPaths,
+	}
+
+	if err = r.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Profile")
 		os.Exit(1)
 	}
+
+	err = mgr.Add(manager.RunnableFunc(func(ctx context.Context) error {
+		// Add runnable to shutdown watchers so that they still shutdown when manager shuts down
+		<-ctx.Done()
+		r.ShutdownFileWatchers()
+		return nil
+	}))
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
+		r.ShutdownFileWatchers()
 		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
+		r.ShutdownFileWatchers()
 		os.Exit(1)
 	}
 

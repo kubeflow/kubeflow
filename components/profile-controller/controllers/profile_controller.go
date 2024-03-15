@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -85,12 +86,14 @@ type Plugin interface {
 // ProfileReconciler reconciles a Profile object
 type ProfileReconciler struct {
 	client.Client
-	Scheme                     *runtime.Scheme
-	Log                        logr.Logger
-	UserIdHeader               string
-	UserIdPrefix               string
-	WorkloadIdentity           string
-	DefaultNamespaceLabelsPath string
+	Scheme                      *runtime.Scheme
+	Log                         logr.Logger
+	UserIdHeader                string
+	UserIdPrefix                string
+	WorkloadIdentity            string
+	DefaultNamespaceLabelsPaths []string
+	cancelFileWatchers          context.CancelFunc
+	fileWatchersShutdown        chan struct{}
 }
 
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs="*"
@@ -104,12 +107,15 @@ type ProfileReconciler struct {
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("profile", request.NamespacedName)
-	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
-
+	defaultKubeflowNamespaceLabels, err := r.readDefaultLabelsFromFiles(r.DefaultNamespaceLabelsPaths)
+	if err != nil {
+		r.ShutdownFileWatchers()
+		os.Exit(1)
+	}
 	// Fetch the Profile instance
 	instance := &profilev1.Profile{}
 	logger.Info("Start to Reconcile.", "namespace", request.Namespace, "name", request.Name)
-	err := r.Get(ctx, request.NamespacedName, instance)
+	err = r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -365,39 +371,121 @@ func (r *ProfileReconciler) mapEventToRequest(o client.Object) []reconcile.Reque
 	return req
 }
 
-func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	// Watch config file with namespace labels. If the file changes, trigger
-	// a reconciliation for all Profiles.
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return errors.Wrap(err, "Failed to start file watcher")
+// Shutdown all file watcher instances
+func (r *ProfileReconciler) ShutdownFileWatchers() {
+	// If no file watchers were configured, return
+	if r.fileWatchersShutdown == nil || r.cancelFileWatchers == nil {
+		return
 	}
-	if err := watcher.Add(r.DefaultNamespaceLabelsPath); err != nil {
-		return errors.Wrapf(err, "Failed to watch file %s", r.DefaultNamespaceLabelsPath)
-	}
-	events := make(chan event.GenericEvent)
-	go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent) {
-		defer watcher.Close()
-		for {
-			select {
-			case fsEvent := <-watcher.Events:
-				if fsEvent.Op != fsnotify.Remove && fsEvent.Op != fsnotify.Write {
-					break
-				}
-				// ConfigMaps work with symlinks. See:
-				// https://martensson.io/go-fsnotify-and-kubernetes-configmaps/
-				if fsEvent.Op == fsnotify.Remove {
-					watcher.Remove(fsEvent.Name)
-					watcher.Add(r.DefaultNamespaceLabelsPath)
-				}
-				reconcileEvents <- event.GenericEvent{}
-			case err := <-watcher.Errors:
-				r.Log.Error(err, "Error while watching config file", "path",
-					r.DefaultNamespaceLabelsPath)
-			}
+	r.cancelFileWatchers()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	for {
+		// Wait for all watchers to have stopped or
+		// for the context to be cancelled
+		select {
+		case <-r.fileWatchersShutdown:
+			return
+		case <-ctx.Done():
+			r.Log.Error(errors.New("Timeout"), "Unable to shutdown all watchers")
+			return
 		}
-	}(watcher, events)
+	}
+}
 
+// Setup file watcher instances to watch namespace labels files
+func (r *ProfileReconciler) setupFileWatchers(events chan event.GenericEvent, mgr ctrl.Manager) error {
+	// Watch config files with namespace labels. If the files change, trigger
+	// a reconciliation for all Profiles.
+	ctx, cancel := context.WithCancel(context.Background())
+	r.cancelFileWatchers = cancel
+	var fileWatcherCountMu sync.Mutex
+	fileWatcherCount := 0
+	for i, namespaceLabelsPath := range r.DefaultNamespaceLabelsPaths {
+		// Right now we are creating separate watchers per file to avoid having to write more complicated
+		// logic to have a single watcher watch multiple files and account for symlink resolution because
+		// we only watch two files max. If we need to watch more files later
+		// we should create a solution to have one watcher watch multiple files.
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			// Shutdown previously configured watchers
+			r.ShutdownFileWatchers()
+			return errors.Wrap(err, "Failed to start file watcher")
+		}
+		if err := watcher.Add(namespaceLabelsPath); err != nil {
+			// Close watcher and previously configured watchers
+			watcher.Close()
+			r.ShutdownFileWatchers()
+			return errors.Wrapf(err, "Failed to watch file %s", namespaceLabelsPath)
+		}
+		// create channel to notify when watchers are shutdown
+		if i == 0 {
+			r.fileWatchersShutdown = make(chan struct{})
+		}
+		// Keep track of number of file watchers for when the watchers are shutdown
+		fileWatcherCount = fileWatcherCount + 1
+		go func(watcher *fsnotify.Watcher, reconcileEvents chan event.GenericEvent, ctx context.Context, namespaceLabelsPath string, mgr ctrl.Manager) {
+			elected := false
+			var mu sync.Mutex
+			go func() {
+				// Convey if the process is the leader
+				for {
+					select {
+					case <-mgr.Elected():
+						mu.Lock()
+						elected = true
+						mu.Unlock()
+						return
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+			for {
+				select {
+				case fsEvent := <-watcher.Events:
+					mu.Lock()
+					if fsEvent.Op != fsnotify.Remove && fsEvent.Op != fsnotify.Write {
+						mu.Unlock()
+						break
+					}
+					// ConfigMaps work with symlinks. See:
+					// https://martensson.io/go-fsnotify-and-kubernetes-configmaps/
+					if fsEvent.Op == fsnotify.Remove {
+						watcher.Remove(fsEvent.Name)
+						watcher.Add(namespaceLabelsPath)
+					}
+					if elected {
+						// Only send events if the manager is the leader
+						// otherwise the channel will block and prevent the watcher
+						// from updating symlinks
+						reconcileEvents <- event.GenericEvent{}
+					}
+					mu.Unlock()
+				case err := <-watcher.Errors:
+					r.Log.Error(err, "Error while watching config file", "path",
+						namespaceLabelsPath)
+				case <-ctx.Done():
+					watcher.Close()
+					fileWatcherCountMu.Lock()
+					// update the watcher count now that a watcher was shutdown
+					fileWatcherCount = fileWatcherCount - 1
+					// if all watchers were shutdown, close channel
+					// to notify watcher shutdown goroutine
+					if fileWatcherCount == 0 {
+						close(r.fileWatchersShutdown)
+					}
+					fileWatcherCountMu.Unlock()
+					return
+				}
+			}
+		}(watcher, events, ctx, namespaceLabelsPath, mgr)
+	}
+	return nil
+}
+
+func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	events := make(chan event.GenericEvent)
 	c := ctrl.NewControllerManagedBy(mgr).
 		For(&profilev1.Profile{}).
 		Owns(&corev1.Namespace{}).
@@ -409,7 +497,11 @@ func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.mapEventToRequest),
 		)
 
-	err = c.Complete(r)
+	err := c.Complete(r)
+	if err != nil {
+		return err
+	}
+	err = r.setupFileWatchers(events, mgr)
 	if err != nil {
 		return err
 	}
@@ -772,21 +864,26 @@ func setNamespaceLabels(ns *corev1.Namespace, newLabels map[string]string) {
 	}
 }
 
-func (r *ProfileReconciler) readDefaultLabelsFromFile(path string) map[string]string {
-	logger := r.Log.WithName("read-config-file").WithValues("path", path)
-	dat, err := ioutil.ReadFile(path)
-	if err != nil {
-		logger.Error(err, "namespace labels properties file doesn't exist")
-		os.Exit(1)
+func (r *ProfileReconciler) readDefaultLabelsFromFiles(labelPaths []string) (map[string]string, error) {
+	allLabels := map[string]string{}
+	for _, path := range labelPaths {
+		logger := r.Log.WithName("read-config-file").WithValues("path", path)
+		dat, err := ioutil.ReadFile(path)
+		if err != nil {
+			logger.Error(err, "unable to read default namespace labels file")
+			return nil, err
+		}
+		labels := map[string]string{}
+		err = yaml.Unmarshal(dat, &labels)
+		if err != nil {
+			logger.Error(err, "unable to parse default namespace labels file")
+			return nil, err
+		}
+		for labelKey, labelVal := range labels {
+			allLabels[labelKey] = labelVal
+		}
 	}
-
-	labels := map[string]string{}
-	err = yaml.Unmarshal(dat, &labels)
-	if err != nil {
-		logger.Error(err, "Unable to parse default namespace labels.")
-		os.Exit(1)
-	}
-	return labels
+	return allLabels, nil
 }
 
 func GetEnvDefault(variable string, defaultVal string) string {
