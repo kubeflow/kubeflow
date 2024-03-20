@@ -474,9 +474,18 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 							Paths: []string{
 								"/healthz",
 								"/metrics",
+								"/ready",
 								"/wait-for-drain",
+								"/v1/models/*",
 							},
 						},
+					},
+				},
+				When: []*istioSecurity.Condition{
+					{
+						// Allow access to above paths from the knative-serving namespace
+						Key:    fmt.Sprintf("source.namespace"),
+						Values: []string{"knative-serving"},
 					},
 				},
 			},
