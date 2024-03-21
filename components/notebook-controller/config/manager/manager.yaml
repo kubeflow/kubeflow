@@ -32,6 +32,11 @@ spec:
               configMapKeyRef:
                 name: config
                 key: ISTIO_GATEWAY
+          - name: ISTIO_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: config
+                key: ISTIO_HOST
           - name: CLUSTER_DOMAIN
             valueFrom:
               configMapKeyRef:

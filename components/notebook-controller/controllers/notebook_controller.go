@@ -496,8 +496,14 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	vsvc.SetKind("VirtualService")
 	vsvc.SetName(virtualServiceName(name, namespace))
 	vsvc.SetNamespace(namespace)
-	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
-		return nil, fmt.Errorf("set .spec.hosts error: %v", err)
+
+	istioHost := os.Getenv("ISTIO_HOST")
+	if len(istioHost) == 0 {
+		istioHost = "*"
+	}
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
+		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
+
 	}
 
 	istioGateway := os.Getenv("ISTIO_GATEWAY")
