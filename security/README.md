@@ -1,6 +1,6 @@
 # Kubeflow Security Team
 
-This folder contains information reguarding the newly formed (January 2023) Kubeflow Security Team. 
+This folder contains information regarding the newly formed (January 2023) Kubeflow Security Team. 
 
 Since this team is just beginning, there is a lot of work to be done. If you are a security professional and you are a Kubeflow User we encourage you to get involved with the Kubeflow Security Team. 
 
