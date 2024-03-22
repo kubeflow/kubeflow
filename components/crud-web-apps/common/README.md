@@ -36,7 +36,7 @@ cd ../../common/backend && pip install -e .
 
 This will install all the dependencies of the package and you will now be able to include code from `kubeflow.kubeflow.crud_backend` in you current Python environment.
 
-In order to build a Docker image and use this code you coud build a wheel and then install it:
+In order to build a Docker image and use this code you could build a wheel and then install it:
 ```dockerfile
 ### Docker
 FROM python:3.7 AS backend-kubeflow-wheel
@@ -62,7 +62,7 @@ The common Angular library contains common code for:
 * Making http calls and handing their errors
 * Surfacing errors and warnings
 * Polling mechanisms
-* Universal styling accross the different web apps
+* Universal styling across the different web apps
 * Handling forms
 
 ### How to use
