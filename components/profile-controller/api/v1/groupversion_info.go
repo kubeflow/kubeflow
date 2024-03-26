@@ -15,11 +15,13 @@ limitations under the License.
 */
 
 // Package v1 contains API Schema definitions for the  v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=kubeflow.org
+// +kubebuilder:object:generate=true
+// +groupName=kubeflow.org
 package v1
 
 import (
+	"reflect"
+
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
@@ -33,4 +35,6 @@ var (
 
 	// AddToScheme adds the types in this group-version to the given scheme.
 	AddToScheme = SchemeBuilder.AddToScheme
+
+	ProfileKind = reflect.TypeOf(&Profile{}).Elem().Name()
 )
