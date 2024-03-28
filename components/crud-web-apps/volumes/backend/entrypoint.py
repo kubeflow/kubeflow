@@ -1,8 +1,11 @@
 import os
 import sys
 
-from apps import default
+import gevent
 from kubeflow.kubeflow.crud_backend import config, logging
+from kubeflow.kubeflow.crud_backend.api import pod, pvc
+
+from apps import default
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +40,11 @@ if UI_FLAVOR == "default":
 else:
     log.error("No UI flavor for '%s'", UI_FLAVOR)
     sys.exit(1)
+
+
+# Start the background watches
+gevent.spawn(pod.watch_pods_all_namespaces)
+gevent.spawn(pvc.watch_pvcs_all_namespaces)
 
 
 if __name__ == "__main__":

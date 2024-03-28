@@ -3,8 +3,7 @@
 from kubeflow.kubeflow.crud_backend import api, logging
 from werkzeug.exceptions import NotFound
 
-from .. import utils
-from .. import status
+from .. import status, utils
 from . import bp
 
 log = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ def get_poddefaults(namespace):
 
 @bp.route("/api/namespaces/<namespace>/notebooks")
 def get_notebooks(namespace):
-    notebooks = api.list_notebooks(namespace)["items"]
+    notebooks = api.list_notebooks(namespace)
     contents = [utils.notebook_dict_from_k8s_obj(nb) for nb in notebooks]
 
     return api.success_response("notebooks", contents)
@@ -71,8 +70,8 @@ def get_notebook_pod(notebook_name, namespace):
     # There should be only one Pod for each Notebook,
     # so we expect items to have length = 1
     pods = api.list_pods(namespace=namespace, label_selector=label_selector)
-    if pods.items:
-        pod = pods.items[0]
+    if pods:
+        pod = pods[0]
         return api.success_response(
             "pod", api.serialize(pod),
         )
