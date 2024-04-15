@@ -34,7 +34,11 @@ def get_poddefaults(namespace):
     # forms
     contents = []
     for pd in pod_defaults["items"]:
-        label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
+        selector = pd["spec"]["selector"]
+        if "matchExpressions" in selector:
+            label = selector["matchExpressions"][0]["key"]
+        else:
+            label = list(selector["matchLabels"].keys())[0]
         if "desc" in pd["spec"]:
             desc = pd["spec"]["desc"]
         else:
