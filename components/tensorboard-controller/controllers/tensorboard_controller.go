@@ -41,6 +41,9 @@ import (
 	tensorboardv1alpha1 "github.com/kubeflow/kubeflow/components/tensorboard-controller/api/v1alpha1"
 )
 
+const namePrefix = "tb-"
+const maxNameLength = 63
+
 // TensorboardReconciler reconciles a Tensorboard object
 type TensorboardReconciler struct {
 	client.Client
@@ -83,6 +86,12 @@ func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// tensorboards-web-app deletes objects using foreground deletion policy, Tensorboard CR will stay until all owned objects are deleted
 	// reconcile loop might keep on trying to recreate the resources that the API server tries to delete.
 	// so when Tensorboard CR is terminating, reconcile loop should do nothing
+
+	// Make sure the prefix doesn't cause the derived resource names to get too long
+	if len(instance.Name)+len(namePrefix) > maxNameLength {
+		return reconcile.Result{},
+			fmt.Errorf("tensorboard name must not be longer than %d characters", maxNameLength-len(namePrefix))
+	}
 
 	if !instance.DeletionTimestamp.IsZero() {
 		return ctrl.Result{}, nil
@@ -263,7 +272,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 			Replicas: proto.Int32(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": tb.Name,
+					"app":              tb.Name,
 					"tensorboard-name": tb.Name,
 				},
 			},
@@ -303,7 +312,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("tensorboard-%s", tb.Name),
+			Name:      fmt.Sprintf("%s%s", namePrefix, tb.Name),
 			Namespace: tb.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
@@ -337,7 +346,7 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
-	vsvc.SetName(fmt.Sprintf("tensorboard-%s", tb.Name))
+	vsvc.SetName(fmt.Sprintf("%s%s", namePrefix, tb.Name))
 	vsvc.SetNamespace(tb.Namespace)
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)

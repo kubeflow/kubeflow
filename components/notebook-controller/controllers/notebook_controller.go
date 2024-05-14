@@ -53,6 +53,8 @@ const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
 const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
 
 const PrefixEnvVar = "NB_PREFIX"
+const namePrefix = "notebook-"
+const maxNameLength = 63
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
@@ -102,6 +104,12 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 		if err != nil {
 			return ctrl.Result{}, err
+		}
+
+		// Make sure the prefix doesn't cause the derived resource names to get too long
+		if len(nbName)+len(namePrefix) > maxNameLength {
+			return reconcile.Result{},
+				fmt.Errorf("notebook name must not be longer than %d characters", maxNameLength-len(namePrefix))
 		}
 
 		involvedNotebookKey := types.NamespacedName{Name: nbName, Namespace: req.Namespace}
@@ -444,7 +452,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("notebook-%s-%s", instance.Namespace, instance.Name),
+			Name:      fmt.Sprintf("%s%s-%s", namePrefix, instance.Namespace, instance.Name),
 			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
@@ -465,7 +473,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 }
 
 func virtualServiceName(kfName string, namespace string) string {
-	return fmt.Sprintf("notebook-%s-%s", namespace, kfName)
+	return fmt.Sprintf("%s%s-%s", namePrefix, namespace, kfName)
 }
 
 func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
