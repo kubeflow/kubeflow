@@ -97,10 +97,7 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		log.Info("Notebook is already stopping")
 		removeAnnotations(&instance.ObjectMeta, r.Log)
 		err = r.Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
 	// Ensure that the underlying Notebook Pod exists
@@ -111,10 +108,7 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 		removeAnnotations(&instance.ObjectMeta, r.Log)
 		err = r.Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 	if err != nil {
 		return ctrl.Result{}, err
@@ -319,11 +313,7 @@ func updateLastCullingCheckTimestampAnnotation(meta *metav1.ObjectMeta, log logr
 
 func annotationsExist(instance *v1beta1.Notebook) bool {
 	meta := instance.ObjectMeta
-	if metav1.HasAnnotation(meta, LAST_ACTIVITY_ANNOTATION) &&
-		metav1.HasAnnotation(meta, LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION) {
-		return true
-	}
-	return false
+	return metav1.HasAnnotation(meta, LAST_ACTIVITY_ANNOTATION) && metav1.HasAnnotation(meta, LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION)
 }
 
 func initializeAnnotations(meta *metav1.ObjectMeta) {
@@ -375,10 +365,7 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	if meta.GetAnnotations() == nil {
 		return false
 	}
-	if metav1.HasAnnotation(meta, STOP_ANNOTATION) {
-		return true
-	}
-	return false
+	return metav1.HasAnnotation(meta, STOP_ANNOTATION)
 }
 
 // Some Utility Functions
@@ -392,8 +379,7 @@ func GetEnvDefault(variable string, defaultVal string) string {
 
 // Time / Frequency Utility functions
 func createTimestamp() string {
-	now := time.Now()
-	return now.Format(time.RFC3339)
+	return time.Now().Format(time.RFC3339)
 }
 
 func getRequeueTime() time.Duration {
