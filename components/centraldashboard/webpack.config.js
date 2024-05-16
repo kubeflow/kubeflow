@@ -2,7 +2,7 @@
 
 const {resolve} = require('path');
 const {execSync} = require('child_process');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DefinePlugin = require('webpack').DefinePlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -161,10 +161,12 @@ module.exports = {
         },
     },
     plugins: [
-        new CleanWebpackPlugin([DESTINATION]),
-        new CopyWebpackPlugin(POLYFILLS.concat([
-            {from: resolve(SRC, 'kubeflow-palette.css'), to: DESTINATION},
-        ])),
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin({
+            patterns: POLYFILLS.concat(
+              [{from: resolve(SRC, 'kubeflow-palette.css'), to: DESTINATION}]
+            )
+        }),
         new DefinePlugin({
             BUILD_VERSION: JSON.stringify(BUILD_VERSION),
             VERSION: JSON.stringify(PKG_VERSION),
