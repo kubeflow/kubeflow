@@ -87,6 +87,7 @@
         "@types/jasmine": "^3.4.2",
         "@types/node-fetch": "^2.5.2",
         "@types/puppeteer": "^2.0.0",
+        "@types/serve-static": "^1.15.5",
         "babel-loader": "^8.0.6",
         "clean-webpack-plugin": "^1.0.1",
         "concurrently": "^4.1.2",
