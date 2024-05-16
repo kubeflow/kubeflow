@@ -38,6 +38,6 @@ spec:
           value: profiles-kfam.kubeflow
         - name: REGISTRATION_FLOW
           value: $(CD_REGISTRATION_FLOW)
-        - name: DASHBOARD_LINKS_CONFIGMAP
+        - name: DASHBOARD_CONFIGMAP
           value: $(CD_CONFIGMAP_NAME)
       serviceAccountName: centraldashboard-angular
