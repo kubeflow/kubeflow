@@ -51,8 +51,8 @@ const APP_API_NAME = 'applications';
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
   private namespace = process.env.POD_NAMESPACE || 'kubeflow';
-  private coreAPI: k8s.Core_v1Api;
-  private customObjectsAPI: k8s.Custom_objectsApi;
+  private coreAPI: k8s.CoreV1Api;
+  private customObjectsAPI: k8s.CustomObjectsApi;
   private dashboardConfigMap = DASHBOARD_CONFIGMAP;
 
   constructor(private kubeConfig: k8s.KubeConfig) {
@@ -63,9 +63,9 @@ export class KubernetesService {
     if (context && context.namespace) {
       this.namespace = context.namespace;
     }
-    this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
+    this.coreAPI = this.kubeConfig.makeApiClient(k8s.CoreV1Api);
     this.customObjectsAPI =
-        this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
+        this.kubeConfig.makeApiClient(k8s.CustomObjectsApi);
   }
 
   /** Retrieves the list of namespaces from the Cluster. */
@@ -91,7 +91,7 @@ export class KubernetesService {
   }
 
   /** Retrieves the list of events for the given Namespace from the Cluster. */
-  async getEventsForNamespace(namespace: string): Promise<k8s.V1Event[]> {
+  async getEventsForNamespace(namespace: string): Promise<k8s.CoreV1Event[]> {
     try {
       const {body} = await this.coreAPI.listNamespacedEvent(namespace);
       return body.items;

@@ -39,7 +39,7 @@
     "dependencies": {
         "@babel/polyfill": "^7.6.0",
         "@google-cloud/monitoring": "^2.3.5",
-        "@kubernetes/client-node": "^0.8.2",
+        "@kubernetes/client-node": "^0.19.0",
         "@polymer/app-layout": "^3.1.0",
         "@polymer/app-route": "^3.0.0",
         "@polymer/iron-a11y-keys": "^3.0.1",
