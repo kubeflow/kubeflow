@@ -194,31 +194,24 @@ module.exports = {
     devServer: {
         port: 8080,
         proxy: {
-            '/api': 'http://localhost:8082',
+            '/api': {
+                target: 'http://localhost:8082',
+            },
             '/jupyter': {
                 target: 'http://localhost:8085',
                 pathRewrite: {'^/jupyter': ''},
-                headers: {
-                    'kubeflow-userid': 'user',
-                },
             },
-            // Requests at /notebook currently fail with a 504 error 
+            // NOTE: this makes `/notebook` requests fail with a 504 error
             '/notebook': {
                 target: 'http://localhost:8086',
                 pathRewrite: {
                     '^/notebook/(.*?)/(.*?)/(.*)':
                         '/$1/services/$2/proxy/notebook/$1/$2/$3',
                 },
-                headers: {
-                    'kubeflow-userid': 'user',
-                },
             },
             '/pipeline': {
                 target: 'http://localhost:8087',
                 pathRewrite: {'^/pipeline': ''},
-                headers: {
-                    'kubeflow-userid': 'user',
-                },
             },
         },
         historyApiFallback: {
