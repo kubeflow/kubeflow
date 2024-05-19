@@ -57,7 +57,6 @@ Make sure you have installed node 16!
     - You will need to inject your requrests with a `kubeflow-userid` header
     - You can do this in Chrome by using the [Header Editor](https://chromewebstore.google.com/detail/eningockdidmgiojffjmkdblpjocbhgh) extension
     - For example, set the `kubeflow-userid` header to `user@example.com`
-    - __WARNING:__ an unknown issue stops the iframe apps (like Pipelines, Notebooks) from seeing the selected namespace. If you can help, please do!
 
 ### Server Components
 

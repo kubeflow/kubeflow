@@ -141,23 +141,14 @@ module.exports = {
         ]),
     },
     optimization: {
-        minimizer: [new TerserPlugin({
+        minimizer: [
+          new TerserPlugin({
             cache: true,
             parallel: true,
             sourceMap: true,
             extractComments: true,
-        })],
-        splitChunks: {
-            cacheGroups: {
-                vendor: {
-                    test: NODE_MODULES,
-                    chunks: 'all',
-                    name: 'vendor',
-                    priority: 10,
-                    enforce: true,
-                },
-            },
-        },
+          })
+        ],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -173,9 +164,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),
             template: resolve(SRC, 'index.html'),
-            excludeChunks: ['lib'],
             inject: true,
             scriptLoading: 'defer',
+            excludeChunks: ['dashboard_lib'],
             minify: ENV == 'development' ? false : {
                 collapseWhitespace: true,
                 removeComments: true,
