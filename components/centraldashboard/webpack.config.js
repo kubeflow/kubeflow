@@ -7,7 +7,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DefinePlugin = require('webpack').DefinePlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 let commit = process.env.BUILD_COMMIT || '';
 
@@ -176,6 +175,7 @@ module.exports = {
             template: resolve(SRC, 'index.html'),
             excludeChunks: ['lib'],
             inject: true,
+            scriptLoading: 'defer',
             minify: ENV == 'development' ? false : {
                 collapseWhitespace: true,
                 removeComments: true,
@@ -188,9 +188,6 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name].css',
             chunkFilename: '[id].css',
-        }),
-        new ScriptExtHtmlWebpackPlugin({
-            defaultAttribute: 'defer',
         }),
     ],
     devServer: {

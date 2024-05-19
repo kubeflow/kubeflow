@@ -121,7 +121,6 @@
         "pug-loader": "^2.4.0",
         "puppeteer": "^1.20.0",
         "raw-loader": "^2.0.0",
-        "script-ext-html-webpack-plugin": "^2.1.5",
         "terser-webpack-plugin": "^4.2.3",
         "ts-node": "^10.4.0",
         "tslint": "^6.1.3",
