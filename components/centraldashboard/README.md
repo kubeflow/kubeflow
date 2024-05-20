@@ -31,24 +31,32 @@ kubectl --record deployment.apps/centraldashboard \
 ## Development
 
 ### Getting Started
-Make sure you have the latest LTS version of `node` installed along with `npm`.
 
-1. Clone the repository and change directories to `components/centraldashboard`
-2. Run `make build-local`. This will install all of the project dependencies and
-   prepare your system for development.
-3. To start a development environment, run `npm run dev`.
-    - This runs [webpack](https://webpack.js.org/) over the front-end code in
-      the [public](./public) folder and starts the
-      [webpack-dev-server](https://webpack.js.org/configuration/dev-server/) at
-      http://localhost:8081.
-    - It also starts the Express API server at http://localhost:8082. Requests
-      from the front-end starting with `/api` are proxied to the Express
-      server. All other requests are handled by the front-end server which
-      mirrors the production configuration.
-4. - To access the Jupyter Web App run: `kubectl port-forward -n kubeflow svc/jupyter-web-app-service 8085:80`.
-    - To access Pipeline Web App run: `kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8087:80`.`
+Make sure you have installed node 16!
 
-    This forwards requests to Kubernetes services from `http://localhost:service-proxy-port`. See the [webpack config file](https://github.com/kubeflow/kubeflow/blob/master/components/centraldashboard/webpack.config.js) for more details.
+1. We STRONGLY recommend using [nvm](https://github.com/nvm-sh/nvm):
+     - Uninstall any Homebrew versions with `brew uninstall node` (or `node@XX`)
+     - Install `nvm` with `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`
+     - Install node `16` with `nvm install 16`
+     - Use node `16` with `nvm use 16`
+     - Set node `16` as the default with `nvm alias default 16`
+2. Run `cd components/centraldashboard`
+3. Run `npm install` to install npm dependencies
+4. Run `npm run dev` to start the development server, this will:
+    - Run [webpack](https://webpack.js.org/) over the front-end code in the [public](./public) folder
+    - Run [webpack-dev-server](https://webpack.js.org/configuration/dev-server/) at http://localhost:8081
+    - Run the Express API server at http://localhost:8082
+    - Proxy requests from the front-end starting with `/api` to the Express server. 
+    - All other requests are handled by the front-end server which mirrors the production configuration.
+5. Run port-forwards:
+    - Kubeflow Access Management API: `kubectl port-forward -n kubeflow svc/profiles-kfam 8081:8081`
+    - Kubeflow Notebooks: `kubectl port-forward -n kubeflow svc/jupyter-web-app-service 8085:80`
+    - Kubeflow Pipelines: `kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8087:80`
+    - See [`webpack.config.js`](https://github.com/kubeflow/kubeflow/blob/master/components/centraldashboard/webpack.config.js) for more details.
+6. Open your browser to `http://localhost:8080` to see the dashboard:
+    - You will need to inject your requrests with a `kubeflow-userid` header
+    - You can do this in Chrome by using the [Header Editor](https://chromewebstore.google.com/detail/eningockdidmgiojffjmkdblpjocbhgh) extension
+    - For example, set the `kubeflow-userid` header to `user@example.com`
 
 ### Server Components
 

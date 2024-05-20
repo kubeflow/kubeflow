@@ -1,5 +1,12 @@
 #!/bin/bash
-set -e
-curl --silent --location --remote-name "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.2.3/kustomize_kustomize.v3.2.3_linux_amd64"
-chmod a+x kustomize_kustomize.v3.2.3_linux_amd64
-sudo mv kustomize_kustomize.v3.2.3_linux_amd64 /usr/local/bin/kustomize
+
+set -euo pipefail
+
+KUSTOMIZE_VERSION="5.4.1"
+KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+
+echo "Installing kustomize ${KUSTOMIZE_VERSION} ..."
+curl -sL -o kustomize.tar.gz "$KUSTOMIZE_URL"
+tar -xzf kustomize.tar.gz
+chmod +x kustomize
+sudo mv kustomize /usr/local/bin

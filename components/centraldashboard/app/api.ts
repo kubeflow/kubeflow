@@ -49,8 +49,10 @@ export class Api {
               }
 
               let interval = Interval.Last15m;
-              if (Interval[req.query.interval] !== undefined) {
-                interval = Number(Interval[req.query.interval]);
+              const intervalQuery = req.query.interval as string;
+              const intervalQueryKey = intervalQuery as keyof typeof Interval;
+              if (Interval[intervalQueryKey] !== undefined) {
+                  interval = Interval[intervalQueryKey];
               }
               switch (req.params.type) {
                 case 'node':

@@ -2,12 +2,11 @@
 
 const {resolve} = require('path');
 const {execSync} = require('child_process');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DefinePlugin = require('webpack').DefinePlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 let commit = process.env.BUILD_COMMIT || '';
 
@@ -142,29 +141,22 @@ module.exports = {
         ]),
     },
     optimization: {
-        minimizer: [new TerserPlugin({
+        minimizer: [
+          new TerserPlugin({
             cache: true,
             parallel: true,
             sourceMap: true,
             extractComments: true,
-        })],
-        splitChunks: {
-            cacheGroups: {
-                vendor: {
-                    test: NODE_MODULES,
-                    chunks: 'all',
-                    name: 'vendor',
-                    priority: 10,
-                    enforce: true,
-                },
-            },
-        },
+          })
+        ],
     },
     plugins: [
-        new CleanWebpackPlugin([DESTINATION]),
-        new CopyWebpackPlugin(POLYFILLS.concat([
-            {from: resolve(SRC, 'kubeflow-palette.css'), to: DESTINATION},
-        ])),
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin({
+            patterns: POLYFILLS.concat(
+              [{from: resolve(SRC, 'kubeflow-palette.css'), to: DESTINATION}]
+            )
+        }),
         new DefinePlugin({
             BUILD_VERSION: JSON.stringify(BUILD_VERSION),
             VERSION: JSON.stringify(PKG_VERSION),
@@ -172,8 +164,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),
             template: resolve(SRC, 'index.html'),
-            excludeChunks: ['lib'],
             inject: true,
+            scriptLoading: 'defer',
+            excludeChunks: ['dashboard_lib'],
             minify: ENV == 'development' ? false : {
                 collapseWhitespace: true,
                 removeComments: true,
@@ -187,38 +180,28 @@ module.exports = {
             filename: '[name].css',
             chunkFilename: '[id].css',
         }),
-        new ScriptExtHtmlWebpackPlugin({
-            defaultAttribute: 'defer',
-        }),
     ],
     devServer: {
         port: 8080,
         proxy: {
-            '/api': 'http://localhost:8082',
+            '/api': {
+                target: 'http://localhost:8082',
+            },
             '/jupyter': {
                 target: 'http://localhost:8085',
                 pathRewrite: {'^/jupyter': ''},
-                headers: {
-                    'kubeflow-userid': 'user',
-                },
             },
-            // Requests at /notebook currently fail with a 504 error 
+            // NOTE: this makes `/notebook` requests fail with a 504 error
             '/notebook': {
                 target: 'http://localhost:8086',
                 pathRewrite: {
                     '^/notebook/(.*?)/(.*?)/(.*)':
                         '/$1/services/$2/proxy/notebook/$1/$2/$3',
                 },
-                headers: {
-                    'kubeflow-userid': 'user',
-                },
             },
             '/pipeline': {
                 target: 'http://localhost:8087',
                 pathRewrite: {'^/pipeline': ''},
-                headers: {
-                    'kubeflow-userid': 'user',
-                },
             },
         },
         historyApiFallback: {

@@ -1,10 +1,10 @@
 /** Time-series interval enumeration. */
 export enum Interval {
-  Last5m,
-  Last15m,
-  Last30m,
-  Last60m,
-  Last180m
+  Last5m = 'Last5m',
+  Last15m = 'Last15m',
+  Last30m = 'Last30m',
+  Last60m = 'Last60m',
+  Last180m = 'Last180m',
 }
 
 /** Data-point contained in a time series. */
