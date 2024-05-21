@@ -58,13 +58,6 @@ app-drawer-layout[narrow] #MainDrawer {
     }
 }
 
-app-drawer-layout[bleed] #MainDrawer {
-    background: var(--primary-background-color);
-    --app-drawer-content-container: {
-        background: transparent !important;
-    }
-}
-
 #PageLoader {
     @apply --layout-fullbleed;
     @apply --layout-center-center;
@@ -107,7 +100,7 @@ app-drawer-layout[bleed] #MainDrawer {
 }
 
 #MainDrawer .inner-menu-item {
-    padding-left: 65px;
+    padding-left: 60px;
     margin: 0;
     font-size: 13px;
     min-height: 30px;

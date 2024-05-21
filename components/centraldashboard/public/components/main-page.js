@@ -444,7 +444,16 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     _toggleMenuSection(e) {
-        e.target.nextElementSibling.toggle();
+        // look upwards until we find <paper-item>
+        let el = e.target;
+        while (el && el.tagName !== 'PAPER-ITEM') {
+            el = el.parentElement;
+        }
+
+        // if we found paper-item, the next sibling is the section
+        if (el) {
+            el.nextElementSibling.toggle();
+        }
     }
 
     /**
