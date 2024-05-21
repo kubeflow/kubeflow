@@ -11,10 +11,14 @@ h1, h2 {
     font-size: 1.2em;
     margin: 0;
 }
-h1 {
-    color: black;
-    padding: 1rem;
+.page-title {
+    margin: auto 0;
+    padding-top: 20px;
+    padding-bottom: 15px;
+    padding-left: 20px;
     border-bottom: 1px solid var(--border-color);
+    font-weight: 400;
+    font-size: 24px;
 }
 #Main-Content {
     padding: 1rem;
@@ -47,23 +51,9 @@ h2 .icon {
 vaadin-grid {
     --lumo-font-size-m: 1em;
     --lumo-body-text-color: currentColor;
-    --lumo-space-m: 0
-}
-vaadin-grid > [slot$='content-0'],
-    vaadin-grid > [slot$='content-1'],
-    vaadin-grid > [slot$='content-2'] {
-    color: var(--subheading-color);
+    --lumo-space-m: 0;
+    color: var(--content-color);
 }
 #NoNamespaceError {margin-top: 1em}
-#ContribError {
-    background: #F44336
-}
-
-md2-input {
-    width: 100%;
-    --md2-input-box: {
-        min-height: 2.5em;
-    }
-}
 
 [hidden] {display: none !important}

@@ -1,7 +1,6 @@
 :host {
     --action-color: var(--google-grey-500);
     position: relative;
-    display: inline-block;
     padding-top: .5em;
 }
 :host([focused]) {
@@ -52,4 +51,19 @@ input {
     color: var(--action-color);
     @apply --paper-input-error;
     @apply --md2-error;
+    overflow-wrap: break-word;
+}
+.paper-material {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: 1rem;
+    color: var(--paper-grey-800);
+    background-color: var(--paper-grey-50);
+    @apply --shadow-elevation-2dp;
+    @apply --paper-material;
+}
+.paper-material h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--paper-red-500);
 }

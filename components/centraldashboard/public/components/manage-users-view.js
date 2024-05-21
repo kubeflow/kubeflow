@@ -9,15 +9,15 @@ import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@vaadin/vaadin-grid/vaadin-grid.js';
 import '@vaadin/vaadin-grid/vaadin-grid-selection-column.js';
 import '@vaadin/vaadin-grid/vaadin-grid-sort-column.js';
+import '@vaadin/vaadin-grid/theme/material/vaadin-grid-styles.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
-import './resources/paper-chip.js';
-import './resources/md2-input/md2-input.js';
 import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
+
+import './manage-users-view-contributor.js';
 import utilitiesMixin from './utilities-mixin.js';
-import {ALL_NAMESPACES} from './namespace-selector';
 
 export class ManageUsersView extends utilitiesMixin(PolymerElement) {
     static get template() {
@@ -35,10 +35,10 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
             user: {type: String, value: 'Loading...'},
             isClusterAdmin: {type: Boolean, value: false},
             namespaces: Array,
-            ownedNamespace: {type: Object, value: () => ({})},
-            newContribEmail: String,
-            contribError: Object,
-            contributorInputEl: Object,
+            hasNamespaces: {type: Boolean, value: false},
+            ownedNamespaces: {type: Array, value: []},
+            editNamespaces: {type: Array, value: []},
+            viewNamespaces: {type: Array, value: []},
         };
     }
     /**
@@ -46,46 +46,37 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
      */
     ready() {
         super.ready();
-        this.contributorInputEl = this.$.ContribEmail;
     }
     /**
-     * Returns 1 to 2 rows containing owner and contributor rows for namespaces
-     * @param {[object]} ns Namespaces array.
-     * @return {[string, [string]]} rows for namespace table.
+     * Returns rows for the namespace roles table.
+     * Each row is an array with [Role, Namespaces],
+     * where Namespaces is a comma-separated string.
+     * @param {[object]} ownedNamespaces - List of namespaces the user owns.
+     * @param {[object]} editNamespaces - List of namespaces the user can edit.
+     * @param {[object]} viewNamespaces - List of namespaces the user can view.
+     * @return {[[string, string]]} - Array of rows.
      */
-    nsBreakdown(ns) {
-        const {ownedNamespace, namespaces} = this;
-        if (!ownedNamespace || !namespaces) return;
-        const arr = [
-            [ownedNamespace.namespace, 'Owner'],
-        ];
-        if (ns.length <= 1) return arr;
-        const otherNamespaces = namespaces
-            .filter((n) => n != ownedNamespace
-                        && n.namespace !== ALL_NAMESPACES)
-            .map((i) => i.namespace).join(', ');
-        if (!otherNamespaces.length) return arr;
-        arr.push(
-            [otherNamespaces, 'Contributor'],
-        );
+    nsBreakdown(ownedNamespaces, editNamespaces, viewNamespaces) {
+        const arr = [];
+        if (ownedNamespaces.length > 0) {
+            const ownedNamespacesList = ownedNamespaces
+                .map((n) => n.namespace)
+                .join(', ');
+            arr.push(['Owner', ownedNamespacesList]);
+        }
+        if (editNamespaces.length > 0) {
+            const editNamespacesList = editNamespaces
+                .map((n) => n.namespace)
+                .join(', ');
+            arr.push(['Contributor', editNamespacesList]);
+        }
+        if (viewNamespaces.length > 0) {
+            const viewNamespacesList = viewNamespaces
+                .map((n) => n.namespace)
+                .join(', ');
+            arr.push(['Viewer', viewNamespacesList]);
+        }
         return arr;
-    }
-    /**
-     * Triggers an API call to create a new Contributor
-     */
-    addNewContrib() {
-        const api = this.$.AddContribAjax;
-        api.body = {contributor: this.newContribEmail};
-        api.generateRequest();
-    }
-    /**
-     * Triggers an API call to remove a Contributor
-     * @param {Event} e
-     */
-    removeContributor(e) {
-        const api = this.$.RemoveContribAjax;
-        api.body = {contributor: e.model.item};
-        api.generateRequest();
     }
     /**
      * Takes an event from iron-ajax and isolates the error from a request that
@@ -98,41 +89,6 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         return bd.error || e.detail.error || e.detail;
     }
     /**
-     * Iron-Ajax response / error handler for addNewContributor
-     * @param {IronAjaxEvent} e
-     */
-    handleContribCreate(e) {
-        if (e.detail.error) {
-            const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError = error;
-            return;
-        }
-        this.contributorList = e.detail.response;
-        this.newContribEmail = this.contribCreateError = '';
-    }
-    /**
-     * Iron-Ajax response / error handler for removeContributor
-     * @param {IronAjaxEvent} e
-     */
-    handleContribDelete(e) {
-        if (e.detail.error) {
-            const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError = error;
-            return;
-        }
-        this.contributorList = e.detail.response;
-        this.newContribEmail = this.contribCreateError = '';
-    }
-    /**
-     * Iron-Ajax error handler for getContributors
-     * @param {IronAjaxEvent} e
-     */
-    onContribFetchError(e) {
-        const error = this._isolateErrorFromIronRequest(e);
-        this.contribError = error;
-        this.$.ContribError.show();
-    }
-    /**
      * Iron-Ajax error handler for getContributors
      * @param {IronAjaxEvent} e
      */
@@ -143,12 +99,11 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
     }
     /**
      * [ComputedProp] Should the ajax call for all namespaces run?
-     * @param {object} ownedNamespace
      * @param {boolean} isClusterAdmin
      * @return {boolean}
      */
-    shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin) {
-        return isClusterAdmin && !this.empty(ownedNamespace);
+    shouldFetchAllNamespaces(isClusterAdmin) {
+        return isClusterAdmin;
     }
 }
 
