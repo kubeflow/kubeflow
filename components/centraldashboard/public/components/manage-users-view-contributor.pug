@@ -1,0 +1,20 @@
+iron-ajax#RemoveContribAjax(method='DELETE', url='/api/workgroup/remove-contributor/[[ownedNamespace.namespace]]',
+    on-response='handleContribDelete', on-error='handleContribDelete', handle-as='json', content-type='application/json')
+iron-ajax#AddContribAjax(method='POST', url='/api/workgroup/add-contributor/[[ownedNamespace.namespace]]',
+    on-response='handleContribCreate', on-error='handleContribCreate', handle-as='json', content-type='application/json')
+iron-ajax#GetContribsAjax(auto='[[!empty(ownedNamespace)]]', url='/api/workgroup/get-contributors/[[ownedNamespace.namespace]]',
+    last-response='{{contributorList}}', on-error='onContribFetchError', handle-as='json')
+h2
+    iron-icon.icon(icon='kubeflow:account-group')
+    span.text
+        | Contributors for -
+        |
+        code [[ownedNamespace.namespace]]
+.content.small
+    md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
+        .prefix(slot='prefix')
+            template(is='dom-repeat', items='[[contributorList]]')
+                paper-chip(on-remove='removeContributor') [[item]]
+paper-toast#ContribError(duration=5000)
+    | Failed to fetch contributor list for {{ownedNamespace.namespace}}, because:
+    strong [[contribError]]

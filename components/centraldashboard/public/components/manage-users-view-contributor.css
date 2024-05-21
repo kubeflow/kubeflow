@@ -1,0 +1,36 @@
+h1, h2 {
+    font-family: Google Sans;
+    font-size: 1.2em;
+    margin: 0;
+}
+h1 {
+    color: black;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+h2 {
+    @apply --layout-horizontal;
+    @apply --layout-center;
+    font-size: 1em;
+    font-weight: 500;
+    color: var(--subheading-color);
+    margin: .5em 0;
+}
+h2 .icon {
+    color: var(--accent-color);
+    margin-right: 1rem;
+    /* Because Hamburger icon has a padding area for ripple*/
+    padding-left: .6rem;
+}
+.content {
+    margin-left: calc(1.6rem + 24px);
+    color: var(--content-color);
+    font-size: .9em;
+}
+.content.small {
+    max-width: 640px;
+}
+#ContribError {
+    background: #F44336
+}
+[hidden] {display: none !important}

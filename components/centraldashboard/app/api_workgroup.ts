@@ -37,14 +37,16 @@ interface EnvironmentInfo {
     isClusterAdmin: boolean;
 }
 
-export type SimpleRole = 'owner'| 'contributor';
-export type WorkgroupRole = 'admin' | 'edit';
+export type SimpleRole = 'owner' | 'contributor' | 'viewer';
+export type WorkgroupRole = 'admin' | 'edit' | 'view';
 export type Role = SimpleRole | WorkgroupRole;
 export const roleMap: ReadonlyMap<Role, Role> = new Map([
     ['admin', 'owner'],
     ['owner', 'admin'],
     ['edit', 'contributor'],
     ['contributor', 'edit'],
+    ['view', 'viewer'],
+    ['viewer', 'view'],
 ]);
 
 export interface SimpleBinding {
@@ -228,8 +230,8 @@ export class WorkgroupApi {
             res.json(users);
         } catch (err) {
             const errMessage = [
-                `Unable to add new contributor for ${namespace}: ${err.stack || err}`,
-                `Unable to fetch contributors for ${namespace}: ${err.stack || err}`,
+                `Unable to add new contributor for ${namespace}. HTTP ${err.response.statusCode || '???'} - ${err.response.statusMessage || 'Unknown'}`,
+                `Unable to fetch contributors for ${namespace}. HTTP ${err.response.statusCode || '???'} - ${err.response.statusMessage || 'Unknown'}`,
             ][errIndex];
             surfaceProfileControllerErrors({
                 res,
