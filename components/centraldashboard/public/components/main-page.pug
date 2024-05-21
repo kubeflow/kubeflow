@@ -38,7 +38,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         paper-item.menu-item
                             iron-icon(icon='[[item.icon]]')
                             | [[item.text]]
-            aside.divider
             template(is='dom-repeat', items='[[externalLinks]]')
                 template(is='dom-if', if='[[item.iframe]]')
                     iframe-link(href$="[[buildHref(item.link, queryParams)]]")
@@ -46,7 +45,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                             iron-icon(icon='[[item.icon]]')
                             | [[item.text]]
                 template(is='dom-if', if='[[!item.iframe]]')
-                    a(href$="[[_buildExternalHref(item.link, queryParams.*)]]",tabindex='-1', target="_blank")
+                    a(href$="[[_buildExternalHref(item.link, queryParams.*)]]", tabindex='-1', target="_blank")
                         paper-item.menu-item
                             iron-icon(icon='[[item.icon]]')
                             | [[item.text]]
