@@ -45,7 +45,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                             iron-icon(icon='[[item.icon]]')
                             | [[item.text]]
                 template(is='dom-if', if='[[!item.iframe]]')
-                    a(href$="[[item.link]]",tabindex='-1', target="_blank")
+                    a(href$="[[_buildExternalHref(item.link, queryParams.*)]]", tabindex='-1', target="_blank")
                         paper-item.menu-item
                             iron-icon(icon='[[item.icon]]')
                             | [[item.text]]
