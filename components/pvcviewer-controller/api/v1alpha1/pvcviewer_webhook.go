@@ -27,6 +27,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
 
@@ -176,23 +177,23 @@ func (r *PVCViewer) validate() error {
 }
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *PVCViewer) ValidateCreate() error {
+func (r *PVCViewer) ValidateCreate() (admission.Warnings, error) {
 	pvcviewerlog.Info("validate create", "name", r.Name)
 
-	return r.validate()
+	return nil, r.validate()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *PVCViewer) ValidateUpdate(old runtime.Object) error {
+func (r *PVCViewer) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	pvcviewerlog.Info("validate update", "name", r.Name)
 
-	return r.validate()
+	return nil, r.validate()
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *PVCViewer) ValidateDelete() error {
+func (r *PVCViewer) ValidateDelete() (admission.Warnings, error) {
 	pvcviewerlog.Info("validate delete", "name", r.Name)
 
 	// We have not registered our webhook to validate delete operations.
-	return nil
+	return nil, nil
 }
