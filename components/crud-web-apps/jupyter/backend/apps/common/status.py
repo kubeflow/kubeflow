@@ -126,23 +126,27 @@ def check_ready_nb(notebook):
 def get_status_from_container_state(notebook):
     container_state = notebook.get("status", {}).get("containerState", {})
 
-    if "waiting" in container_state:
-        # If the Notebook is initializing, the status will be waiting
-        if container_state["waiting"]["reason"] == 'PodInitializing':
-            status_phase = status.STATUS_PHASE.WAITING
-            status_message = container_state["waiting"]["reason"]
-            return status_phase, status_message
-        # In any other case, the status will be warning with a "reason:
-        # message" showing on hover
-        else:
-            status_phase = status.STATUS_PHASE.WARNING
+    if "waiting" not in container_state:
+        return None, None
 
-            reason = container_state["waiting"]["reason"]
-            message = container_state["waiting"]["message"]
-            status_message = '%s: %s' % (reason, message)
-            return status_phase, status_message
+    # If the Notebook is initializing, the status will be waiting
+    waiting_state = container_state["waiting"]
+    if ["reason"] == 'PodInitializing':
+        status_phase = status.STATUS_PHASE.WAITING
+        status_message = waiting_state.get("reason", "Undeternimed reason.")
+        return status_phase, status_message
 
-    return None, None
+    # In any other case, the status will be warning with a "reason:
+    # message" showing on hover
+    else:
+        status_phase = status.STATUS_PHASE.WARNING
+
+        reason = waiting_state.get("reason",
+                                   "No available reason for container state.")
+        message = waiting_state.get("message",
+                                    "No avaiable message for container state.")
+        status_message = '%s: %s' % (reason, message)
+        return status_phase, status_message
 
 
 def get_status_from_conditions(notebook):
