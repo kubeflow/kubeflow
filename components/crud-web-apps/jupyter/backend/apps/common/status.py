@@ -124,6 +124,7 @@ def check_ready_nb(notebook):
 
 
 def get_status_from_container_state(notebook):
+    # https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-states
     container_state = notebook.get("status", {}).get("containerState", {})
 
     if "waiting" not in container_state:
@@ -141,8 +142,7 @@ def get_status_from_container_state(notebook):
     else:
         status_phase = status.STATUS_PHASE.WARNING
 
-        reason = waiting_state.get("reason",
-                                   "No available reason for container state.")
+        reason = waiting_state.get("reason", "Undefined")
         message = waiting_state.get("message",
                                     "No avaiable message for container state.")
         status_message = '%s: %s' % (reason, message)
