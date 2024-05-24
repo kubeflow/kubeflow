@@ -1,0 +1,29 @@
+- op: replace
+  path: /spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/template/properties/spec/properties/containers/items/required
+  value: 
+    - name
+    - image
+
+- op: replace
+  path: /spec/versions/1/schema/openAPIV3Schema/properties/spec/properties/template/properties/spec/properties/containers/items/required
+  value: 
+    - name
+    - image
+
+- op: replace
+  path: /spec/versions/2/schema/openAPIV3Schema/properties/spec/properties/template/properties/spec/properties/containers/items/required
+  value: 
+    - name
+    - image
+
+- op: add
+  path: /spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/template/properties/spec/properties/containers/minItems
+  value: 1
+
+- op: add
+  path: /spec/versions/1/schema/openAPIV3Schema/properties/spec/properties/template/properties/spec/properties/containers/minItems
+  value: 1
+
+- op: add
+  path: /spec/versions/2/schema/openAPIV3Schema/properties/spec/properties/template/properties/spec/properties/containers/minItems
+  value: 1
