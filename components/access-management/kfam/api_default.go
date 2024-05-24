@@ -45,7 +45,7 @@ type KfamV1Alpha1Interface interface {
 type KfamV1Alpha1Client struct {
 	profileClient ProfileInterface
 	bindingClient BindingInterface
-	clusterAdmins  []string
+	clusterAdmins []string
 	userIdHeader  string
 	userIdPrefix  string
 }
@@ -84,8 +84,8 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmins []str
 			roleBindingLister: roleBindingLister,
 		},
 		clusterAdmins: clusterAdmins,
-		userIdHeader: userIdHeader,
-		userIdPrefix: userIdPrefix,
+		userIdHeader:  userIdHeader,
+		userIdPrefix:  userIdPrefix,
 	}, nil
 }
 
