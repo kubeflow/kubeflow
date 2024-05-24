@@ -143,8 +143,10 @@ def get_status_from_container_state(notebook):
         status_phase = status.STATUS_PHASE.WARNING
 
         reason = waiting_state.get("reason", "Undefined")
-        message = waiting_state.get("message",
-                                    "No available message for container state.")
+        message = waiting_state.get(
+            "message",
+            "No available message for container state."
+        )
         status_message = '%s: %s' % (reason, message)
         return status_phase, status_message
 

@@ -48,5 +48,5 @@ class TestStatusFromContainerState(unittest.TestCase):
         self.assertEqual(
             status.get_status_from_container_state(container_state),
             ("warning",
-             "PodInitializing: No available message for container state")
+             "PodInitializing: No available message for container state.")
         )
