@@ -134,7 +134,7 @@ def get_status_from_container_state(notebook):
     waiting_state = container_state["waiting"]
     if ["reason"] == 'PodInitializing':
         status_phase = status.STATUS_PHASE.WAITING
-        status_message = waiting_state.get("reason", "Undeternimed reason.")
+        status_message = waiting_state.get("reason", "Undetermined reason.")
         return status_phase, status_message
 
     # In any other case, the status will be warning with a "reason:
@@ -144,7 +144,7 @@ def get_status_from_container_state(notebook):
 
         reason = waiting_state.get("reason", "Undefined")
         message = waiting_state.get("message",
-                                    "No avaiable message for container state.")
+                                    "No available message for container state.")
         status_message = '%s: %s' % (reason, message)
         return status_phase, status_message
 
