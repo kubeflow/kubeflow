@@ -38,7 +38,7 @@ spec:
           value: profiles-kfam.kubeflow
         - name: REGISTRATION_FLOW
           value: CD_REGISTRATION_FLOW_PLACEHOLDER
-        - name: DASHBOARD_LINKS_CONFIGMAP
+        - name: DASHBOARD_CONFIGMAP
           value: CD_CONFIGMAP_NAME_PLACEHOLDER
         - name: LOGOUT_URL
           value: '/authservice/logout'
