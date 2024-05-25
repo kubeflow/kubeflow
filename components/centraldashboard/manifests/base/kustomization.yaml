@@ -13,7 +13,7 @@ resources:
 images:
 - name: docker.io/kubeflownotebookswg/centraldashboard
   newName: docker.io/kubeflownotebookswg/centraldashboard
-  newTag: latest
+  newTag: 1.9-rc.0-test
 configMapGenerator:
 - envs:
   - params.env

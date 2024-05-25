@@ -5,4 +5,4 @@ resources:
 images:
 - name: docker.io/kubeflownotebookswg/notebook-controller
   newName: docker.io/kubeflownotebookswg/notebook-controller
-  newTag: latest
+  newTag: 1.9-rc.0-test

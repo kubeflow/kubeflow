@@ -16,7 +16,7 @@ commonLabels:
 images:
 - name: docker.io/kubeflownotebookswg/poddefaults-webhook
   newName: docker.io/kubeflownotebookswg/poddefaults-webhook
-  newTag: latest
+  newTag: 1.9-rc.0-test
 namespace: kubeflow
 generatorOptions:
   disableNameSuffixHash: true

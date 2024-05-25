@@ -37,15 +37,15 @@ spawnerFormDefaults:
   ################################################################
   image:
     # the default container image
-    value: kubeflownotebookswg/jupyter-scipy:latest
+    value: kubeflownotebookswg/jupyter-scipy:1.9-rc.0-test
 
     # the list of available container images in the dropdown
     options:
-      - kubeflownotebookswg/jupyter-scipy:latest
-      - kubeflownotebookswg/jupyter-pytorch-full:latest
-      - kubeflownotebookswg/jupyter-pytorch-cuda-full:latest
-      - kubeflownotebookswg/jupyter-tensorflow-full:latest
-      - kubeflownotebookswg/jupyter-tensorflow-cuda-full:latest
+    - kubeflownotebookswg/jupyter-scipy:1.9-rc.0-test
+    - kubeflownotebookswg/jupyter-pytorch-full:1.9-rc.0-test
+    - kubeflownotebookswg/jupyter-pytorch-cuda-full:1.9-rc.0-test
+    - kubeflownotebookswg/jupyter-tensorflow-full:1.9-rc.0-test
+    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:1.9-rc.0-test
 
   ################################################################
   # VSCode-like Container Images (Group 1)
@@ -60,11 +60,11 @@ spawnerFormDefaults:
   ################################################################
   imageGroupOne:
     # the default container image
-    value: kubeflownotebookswg/codeserver-python:latest
+    value: kubeflownotebookswg/codeserver-python:1.9-rc.0-test
 
     # the list of available container images in the dropdown
     options:
-      - kubeflownotebookswg/codeserver-python:latest
+    - kubeflownotebookswg/codeserver-python:1.9-rc.0-test
 
   ################################################################
   # RStudio-like Container Images (Group 2)
@@ -81,11 +81,11 @@ spawnerFormDefaults:
   ################################################################
   imageGroupTwo:
     # the default container image
-    value: kubeflownotebookswg/rstudio-tidyverse:latest
+    value: kubeflownotebookswg/rstudio-tidyverse:1.9-rc.0-test
 
     # the list of available container images in the dropdown
     options:
-      - kubeflownotebookswg/rstudio-tidyverse:latest
+    - kubeflownotebookswg/rstudio-tidyverse:1.9-rc.0-test
 
   ################################################################
   # CPU Resources
@@ -130,10 +130,10 @@ spawnerFormDefaults:
       #  `limitsKey` - what will be set as the actual limit
       #  `uiName` - what will be displayed in the dropdown UI
       vendors:
-        - limitsKey: "nvidia.com/gpu"
-          uiName: "NVIDIA"
-        - limitsKey: "amd.com/gpu"
-          uiName: "AMD"
+      - limitsKey: "nvidia.com/gpu"
+        uiName: "NVIDIA"
+      - limitsKey: "amd.com/gpu"
+        uiName: "AMD"
 
       # the default value of the limit
       # (possible values: "none", "1", "2", "4", "8")
@@ -162,7 +162,7 @@ spawnerFormDefaults:
             requests:
               storage: 5Gi
           accessModes:
-            - ReadWriteOnce
+          - ReadWriteOnce
 
   ################################################################
   # Data Volumes
