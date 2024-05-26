@@ -18,8 +18,8 @@ ENV SHELL /bin/bash
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 300000
 
 # args - software versions
-ARG KUBECTL_VERSION=v1.27.6
-ARG S6_VERSION=v3.1.5.0
+ARG KUBECTL_VERSION=v1.27.14
+ARG S6_VERSION=v3.1.6.2
 
 # set shell to bash
 SHELL ["/bin/bash", "-c"]

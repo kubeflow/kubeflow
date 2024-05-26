@@ -6,9 +6,9 @@ ARG BASE_IMG=<jupyter>
 FROM $BASE_IMG
 
 # args - software versions
-ARG PYTORCH_VERSION=2.1.0
-ARG TORCHAUDIO_VERSION=2.1.0
-ARG TORCHVISION_VERSION=0.16.0
+ARG PYTORCH_VERSION=2.1.2
+ARG TORCHAUDIO_VERSION=2.1.2
+ARG TORCHVISION_VERSION=0.16.2
 
 # nvidia container toolkit
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html

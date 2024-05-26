@@ -9,7 +9,10 @@ FROM $BASE_IMG
 ARG TENSORFLOW_VERSION=2.13.0
 
 # install - tensorflow
+# TODO: remove `h5py` pin when upstream ARM wheels are available again:
+#       https://github.com/h5py/h5py/issues/2408
 RUN python3 -m pip install --quiet --no-cache-dir \
+    h5py==3.10.0 \
     tensorflow==${TENSORFLOW_VERSION}
 
 # install - requirements.txt

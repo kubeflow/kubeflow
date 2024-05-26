@@ -6,9 +6,9 @@ ARG BASE_IMG=<jupyter>
 FROM $BASE_IMG
 
 # args - software versions
-ARG PYTORCH_VERSION=2.1.0
-ARG TORCHAUDIO_VERSION=2.1.0
-ARG TORCHVISION_VERSION=0.16.0
+ARG PYTORCH_VERSION=2.1.2
+ARG TORCHAUDIO_VERSION=2.1.2
+ARG TORCHVISION_VERSION=0.16.2
 
 # install - pytorch (cpu)
 RUN python3 -m pip install --quiet --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
