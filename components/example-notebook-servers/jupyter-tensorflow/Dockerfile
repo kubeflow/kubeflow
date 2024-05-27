@@ -6,7 +6,14 @@ ARG BASE_IMG=<jupyter>
 FROM $BASE_IMG
 
 # args - software versions
-ARG TENSORFLOW_VERSION=2.13.0
+ARG TENSORFLOW_VERSION=2.15.1
+
+# install - h5py
+# TODO: remove when upstream ARM wheels for `h5py` are available again:
+#       https://github.com/h5py/h5py/issues/2408
+RUN mamba install -y -q \
+    h5py==3.11.0 \
+ && mamba clean -a -f -y
 
 # install - tensorflow
 RUN python3 -m pip install --quiet --no-cache-dir \

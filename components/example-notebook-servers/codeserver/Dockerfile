@@ -8,7 +8,7 @@ FROM $BASE_IMG
 ARG TARGETARCH
 
 # args - software versions
-ARG CODESERVER_VERSION=v4.17.1
+ARG CODESERVER_VERSION=v4.89.1
 
 USER root
 
@@ -19,11 +19,6 @@ RUN curl -fsSL "https://github.com/coder/code-server/releases/download/${CODESER
 
 # s6 - copy scripts
 COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
-
-# s6 - 01-copy-tmp-home
-RUN mkdir -p /tmp_home \
- && cp -r ${HOME} /tmp_home \
- && chown -R ${NB_USER}:users /tmp_home
 
 USER $NB_UID
 

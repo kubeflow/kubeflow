@@ -8,14 +8,15 @@ FROM $BASE_IMG
 ARG TARGETARCH
 
 # args - software versions (python)
-ARG MINIFORGE_VERSION=23.3.1-1
-ARG PIP_VERSION=23.2.1
-ARG PYTHON_VERSION=3.11.6
+ARG MINIFORGE_VERSION=24.3.0-0
+ARG PIP_VERSION=24.0
+ARG PYTHON_VERSION=3.11.9
 
 # args - software versions (R)
-ARG RSTUDIO_VERSION=2023.09.0-463
-ARG R_BASE_VERSION=4.3.1
-ARG R_RETICULATE_VERSION=1.34.0
+# https://dailies.rstudio.com/release/
+ARG RSTUDIO_VERSION=2024.04.1-748
+ARG R_BASE_VERSION=4.3.3
+ARG R_RETICULATE_VERSION=1.37.0
 ARG R_PNG_VERSION=0.1_8
 
 USER root
@@ -124,12 +125,12 @@ RUN chmod +x /opt/rsession.sh
 COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
 # s6 - 01-copy-tmp-home
-RUN mkdir -p /tmp_home \
- && cp -r ${HOME} /tmp_home \
- && chown -R ${NB_USER}:users /tmp_home
+# NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
+#       this is a workaround because a PVC will be mounted at $HOME
+#       and the contents of $HOME will be hidden
+RUN cp -r -T "${HOME}" "${HOME_TMP}" \
+ && chown -R ${NB_USER}:users ${HOME_TMP}
 
 USER $NB_UID
 
 EXPOSE 8888
-
-ENTRYPOINT ["/init"]

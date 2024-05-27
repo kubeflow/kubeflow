@@ -10,12 +10,12 @@ ARG TARGETARCH
 USER root
 
 # args - software versions
-ARG JUPYTERLAB_VERSION=3.6.6
-ARG JUPYTER_VERSION=6.5.6
-ARG MINIFORGE_VERSION=23.3.1-1
-ARG NODE_MAJOR_VERSION=18
-ARG PIP_VERSION=23.2.1
-ARG PYTHON_VERSION=3.11.6
+ARG JUPYTERLAB_VERSION=4.2.1
+ARG JUPYTER_VERSION=7.2.0
+ARG MINIFORGE_VERSION=24.3.0-0
+ARG NODE_MAJOR_VERSION=20
+ARG PIP_VERSION=24.0
+ARG PYTHON_VERSION=3.11.9
 
 # install -- node.js
 RUN export DEBIAN_FRONTEND=noninteractive \
@@ -37,6 +37,11 @@ RUN mkdir -p ${CONDA_DIR} \
  && echo "conda activate base" >> /etc/profile \
  && chown -R ${NB_USER}:users ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${HOME}
+
+# create the SYSTEM_CONFIG_PATH for jupyter, and make it owned by NB_USER
+# this is needed for jupyter to write `--level=system` configs
+RUN mkdir -p /usr/local/etc/jupyter \
+ && chown -R ${NB_USER}:users /usr/local/etc/jupyter
 
 # switch to NB_UID for installs
 USER $NB_UID
@@ -80,13 +85,15 @@ RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
 COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
 # configure - jupyter
-RUN jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
+# NOTE: we use `--level=system` to write these configs at `/usr/local/etc/jupyter` because it defaults
+##      to `/opt/conda/etc/jupyter` and conda cleans that directory after every install
+RUN jupyter labextension disable --level=system "@jupyterlab/apputils-extension:announcements" \
+ && jupyter labextension lock --level=system "@jupyterlab/apputils-extension"
 
 # s6 - 01-copy-tmp-home
-USER root
-RUN mkdir -p /tmp_home \
- && cp -r ${HOME} /tmp_home \
- && chown -R ${NB_USER}:users /tmp_home
-USER $NB_UID
+# NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
+#       this is a workaround because a PVC will be mounted at $HOME
+#       and the contents of $HOME will be hidden
+RUN cp -r -T "${HOME}" "${HOME_TMP}"
 
 EXPOSE 8888

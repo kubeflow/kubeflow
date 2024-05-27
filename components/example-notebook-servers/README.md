@@ -60,32 +60,45 @@ Dockerfile | Container Registry | Notes
 [`./jupyter-tensorflow-cuda`](./jupyter-tensorflow-cuda) | [`kubeflownotebookswg/jupyter-tensorflow-cuda`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow-cuda) | JupyterLab + TensorFlow + CUDA
 [`./jupyter-tensorflow-cuda-full`](./jupyter-tensorflow-cuda-full) | [`kubeflownotebookswg/jupyter-tensorflow-cuda-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow-cuda-full) | JupyterLab + TensorFlow + CUDA + Common Packages
 
-## Custom Images
+## Package Installation
 
 Packages installed by users __after spawning__ a Kubeflow Notebook will only last the lifetime of the pod (unless installed into a PVC-backed directory).
 
 To ensure packages are preserved throughout Pod restarts users will need to either:
 
-1. Build custom images that include them, or
+1. Build [custom images](#custom-images) that include them, or
 2. Ensure they are installed in a PVC-backed directory
+
+## Custom Images
+
+You can build your own custom images to use with Kubeflow Notebooks.
+
+The easiest way to ensure your custom image meets the [requirements](#image-requirements) is to extend one of our [base images](#base-images).
+
+### Image Requirements
+
+For a container image to work with Kubeflow Notebooks, it must:
+
+- expose an HTTP interface on port `8888`:
+  - kubeflow sets an environment variable `NB_PREFIX` at runtime with the URL path we expect the container be listening under
+  - kubeflow uses IFrames, so ensure your application sets `Access-Control-Allow-Origin: *` in HTTP response headers
+- run as a user called `jovyan`:
+  - the home directory of `jovyan` should be `/home/jovyan`
+  - the UID of `jovyan` should be `1000`
+- start successfully with an empty PVC mounted at `/home/jovyan`:
+  - kubeflow mounts a PVC at `/home/jovyan` to keep state across Pod restarts
 
 ### Install Python Packages
 
 You may extend one of the images and install any `pip` or `conda` packages your Kubeflow Notebook users are likely to need.
-
 As a guide, look at [`./jupyter-pytorch-full/Dockerfile`](./jupyter-pytorch-full/Dockerfile) for a `pip install ...` example, and the [`./rstudio-tidyverse/Dockerfile`](./rstudio-tidyverse/Dockerfile) for `conda install ...`.
 
-> __NOTE:__ 
-> 
-> A common cause of errors is users running `pip install --user ...`, causing the home-directory (which is backed by a PVC) to contain a different or incompatible version of a package contained in  `/opt/conda/...`
+A common cause of errors is users running `pip install --user ...`, causing the home-directory (which is backed by a PVC) to contain a different or incompatible version of a package contained in  `/opt/conda/...`
 
 ### Install Linux Packages
 
 You may extend one of the images and install any `apt-get` packages your Kubeflow Notebook users are likely to need.
-
-> __NOTE:__ 
-> 
-> Ensure you swap to `root` in the Dockerfile before running `apt-get`, and swap back to `$NB_USER` after.
+Ensure you swap to `root` in the Dockerfile before running `apt-get`, and swap back to `$NB_USER` after.
 
 ### Configure S6 Overlay
 
@@ -107,25 +120,110 @@ The purpose of this script is to snapshot any `KUBERNETES_*` environment variabl
 
 Extra services to be monitored by `s6-overlay` should be placed in their own folder under `/etc/services.d/` containing a script called `run` and optionally a finishing script `finish`.
 
+An example of a service can be found in the `run` script of [`.jupyter/s6/services.d/jupyterlab`](./jupyter/s6/services.d/jupyterlab) which is used to start JupyterLab itself.
 For more information about the `run` and `finish` scripts, please see the [s6-overlay documentation](https://github.com/just-containers/s6-overlay#writing-a-service-script).
-
-An example of a service can be found in the `run` script of [jupyter/s6/services.d/jupyterlab](jupyter/s6/services.d/jupyterlab) which is used to start JupyterLab itself.
 
 #### Run Services As Root
 
 There may be cases when you need to run a service as root, to do this, you can change the Dockerfile to have `USER root` at the end, and then use `s6-setuidgid` to run the user-facing services as `$NB_USER`.
 
-> __NOTE:__ 
-> 
-> Our example images run `s6-overlay` as `$NB_USER` (not `root`), meaning any files or scripts related to `s6-overlay` must be owned by the `$NB_USER` user to successfully run.
+Our example images run `s6-overlay` as `$NB_USER` (not `root`), meaning any files or scripts related to `s6-overlay` must be owned by the `$NB_USER` user to successfully run.
 
+## Build Images
 
-## Troubleshooting
+The server images depend on each other, so you MUST build them in the correct order.
 
-### Jupyter
+### Build Single Image
 
-#### Kernel stuck in `connecting` state:
+You can build a single image (and its dependencies) by running `make` commands in its directory.
 
-This is a problem that occurs from time to time and is not a Kubeflow problem, but rather a browser.
-It can be identified by looking in the browser error console, which will show errors regarding the websocket not connecting.
-To solve the problem, please restart your browser or try using a different browser.
+For example, to build the [`./jupyter-scipy`](./jupyter-scipy) image:
+
+```bash
+# from the root of the repository
+cd components/example-notebook-servers/jupyter-scipy
+
+# optionally define a version tag
+#  default: sha-{GIT_COMMIT}{GIT_TREE_STATE}
+#export TAG="X.Y.Z-patch.N"
+
+# configure the image registry
+#  full image name: {REGISTRY}/{IMAGE_NAME}:{TAG}
+export REGISTRY="docker.io/MY_USERNAME"
+
+# build and push (current CPU architecture)
+make docker-build-dep
+make docker-push-dep
+```
+
+To build the image for different CPU architectures, you can use the following commands:
+
+```bash
+# from the root of the repository
+cd components/example-notebook-servers/jupyter-scipy
+
+# optionally define a version tag
+#export TAG="X.Y.Z-patch.N"
+
+# configure the image registry
+export REGISTRY="docker.io/MY_USERNAME"
+
+# define the image build cache
+#  - sets the following build args:
+#     cache-from: type=registry,ref={CACHE_IMAGE}:{IMAGE_NAME}
+#     cache-to:   type=registry,ref={CACHE_IMAGE}:{IMAGE_NAME},mode=max
+#  - currently, this is a requirement for multi-arch builds.
+#    you won't have access to push to the upstream cache,
+#    so you will need to set your own cache image.
+export CACHE_IMAGE="ghcr.io/kubeflow/kubeflow/notebook-servers/build-cache"
+
+# define the architectures to build for
+export ARCH="linux/amd64,linux/arm64"
+
+# build and push (multiple CPU architectures)
+# requires that `docker buildx` is configured
+make docker-build-push-multi-arch-dep
+```
+
+### Build All Images
+
+You can build all images (in the correct order) by running a `make` command in the root of this directory.
+
+For example, to build all images:
+
+```bash
+# from the root of the repository
+cd components/example-notebook-servers
+
+# optionally define a version tag
+#export TAG="X.Y.Z-patch.N"
+
+# configure the image registry
+export REGISTRY="docker.io/MY_USERNAME"
+
+# build and push (current CPU architecture)
+make docker-build
+make docker-push
+```
+
+To build the images for different CPU architectures, you can use the following commands:
+
+```bash
+# from the root of the repository
+cd components/example-notebook-servers
+
+# optionally define a version tag
+#export TAG="X.Y.Z-patch.N"
+
+# configure the image registry
+export REGISTRY="docker.io/MY_USERNAME"
+
+# define the image build cache
+export CACHE_IMAGE="ghcr.io/kubeflow/kubeflow/notebook-servers/build-cache"
+
+# define the architectures to build for
+export ARCH="linux/amd64,linux/arm64"
+
+# build and push (multiple CPU architectures)
+make docker-build-push-multi-arch
+```

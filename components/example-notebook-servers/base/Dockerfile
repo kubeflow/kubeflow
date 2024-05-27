@@ -13,13 +13,20 @@ ENV NB_UID 1000
 ENV NB_PREFIX /
 ENV HOME /home/$NB_USER
 ENV SHELL /bin/bash
-# Might be needed for slow storage see https://github.com/pi-hole/docker-pi-hole/pull/1192
-# Value is in milliseconds and 300000 is 5 minutes
+
+# we copy the contents of $HOME_TMP to $HOME on startup
+# this is to work around the fact that a PVC will be mounted to $HOME
+# but we still want to have some default files in $HOME
+# see `s6/cont-init.d/01-copy-tmp-home`
+ENV HOME_TMP /tmp_home/$NB_USER
+
+# s3 only gives 5 seconds by default, which is too small for slow PVC storage backends
+# when running `/etc/cont-inid.d/01-copy-tmp-home` (note, this is in milliseconds)
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 300000
 
 # args - software versions
-ARG KUBECTL_VERSION=v1.27.6
-ARG S6_VERSION=v3.1.5.0
+ARG KUBECTL_VERSION=v1.27.14
+ARG S6_VERSION=v3.1.6.2
 
 # set shell to bash
 SHELL ["/bin/bash", "-c"]
@@ -79,7 +86,9 @@ RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETA
 # create user and set required ownership
 RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
  && mkdir -p ${HOME} \
+ && mkdir -p ${HOME_TMP} \
  && chown -R ${NB_USER}:users ${HOME} \
+ && chown -R ${NB_USER}:users ${HOME_TMP} \
  && chown -R ${NB_USER}:users /usr/local/bin
 
 # set locale configs
@@ -88,6 +97,9 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
+
+# s6 - copy scripts
+COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
 USER $NB_UID
 
