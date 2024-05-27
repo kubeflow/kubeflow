@@ -60,8 +60,7 @@ RUN code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSIO
  && code-server --list-extensions --show-versions
 
 # s6 - 01-copy-tmp-home
-USER root
-RUN mkdir -p /tmp_home \
- && cp -r ${HOME} /tmp_home \
- && chown -R ${NB_USER}:users /tmp_home
-USER $NB_UID
+# NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
+#       this is a workaround because a PVC will be mounted at $HOME
+#       and the contents of $HOME will be hidden
+RUN cp -r -T "${HOME}" "${HOME_TMP}"

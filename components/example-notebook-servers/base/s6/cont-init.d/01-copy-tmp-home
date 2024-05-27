@@ -1,0 +1,8 @@
+#!/command/with-contenv bash
+
+# the home directory is usually a PVC
+# we need to copy the contents of $HOME_TMP that we populated during the build
+# NOTE: -n prevents overwriting existing files
+# NOTE: -T ensures that the CONTENTS of $HOME_TMP are copied, and not the directory itself
+echo "INFO: Copying contents of '$HOME_TMP' to '$HOME'..."
+cp -n -r -T "$HOME_TMP" "$HOME"
