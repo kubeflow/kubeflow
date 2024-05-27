@@ -124,12 +124,13 @@ RUN chmod +x /opt/rsession.sh
 # s6 - copy scripts
 COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
-USER $NB_UID
-
 # s6 - 01-copy-tmp-home
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
 #       this is a workaround because a PVC will be mounted at $HOME
 #       and the contents of $HOME will be hidden
-RUN cp -r -T "${HOME}" "${HOME_TMP}"
+RUN cp -r -T "${HOME}" "${HOME_TMP}" \
+ && chown -R ${NB_USER}:users ${HOME_TMP}
+
+USER $NB_UID
 
 EXPOSE 8888
