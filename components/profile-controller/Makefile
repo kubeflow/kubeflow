@@ -37,7 +37,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
-	
+
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -59,7 +59,7 @@ build: generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go -namespace-labels-path ./config/base/namespace-labels.yaml 
+	go run ./main.go -namespace-labels-path ./config/base/namespace-labels.yaml
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
@@ -75,7 +75,7 @@ docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
 	docker buildx build --load --platform ${ARCH} --tag ${IMG}:${TAG} .
 
 .PHONY: docker-build-push-multi-arch
-docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
+docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry
 	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push .
 
 .PHONY: image
@@ -134,6 +134,7 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+ENVTEST_VERSION?=release-0.12
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.2.0
@@ -153,4 +154,4 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@$(ENVTEST_VERSION)
