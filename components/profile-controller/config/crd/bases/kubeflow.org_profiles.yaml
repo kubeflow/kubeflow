@@ -4,6 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
   name: profiles.kubeflow.org
 spec:
   group: kubeflow.org
@@ -60,7 +61,6 @@ spec:
                 - kind
                 - name
                 type: object
-                x-kubernetes-map-type: atomic
               plugins:
                 items:
                   description: Plugin is for customize actions on different platform.
@@ -134,7 +134,6 @@ spec:
                           type: object
                         type: array
                     type: object
-                    x-kubernetes-map-type: atomic
                   scopes:
                     description: A collection of filters that must match each object
                       tracked by a quota. If not specified, the quota matches all
@@ -212,7 +211,6 @@ spec:
                 - kind
                 - name
                 type: object
-                x-kubernetes-map-type: atomic
               plugins:
                 items:
                   description: Plugin is for customize actions on different platform.
@@ -286,7 +284,6 @@ spec:
                           type: object
                         type: array
                     type: object
-                    x-kubernetes-map-type: atomic
                   scopes:
                     description: A collection of filters that must match each object
                       tracked by a quota. If not specified, the quota matches all
@@ -318,3 +315,9 @@ spec:
     storage: false
     subresources:
       status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
