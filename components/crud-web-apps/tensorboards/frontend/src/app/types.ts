@@ -10,6 +10,8 @@ import {
   V1VolumeMount,
 } from '@kubernetes/client-node';
 
+import { Params } from '@angular/router';
+
 export interface TWABackendResponse extends BackendResponse {
   tensorboards?: TensorboardResponseObject[];
   pvcs?: string[];
@@ -30,9 +32,15 @@ export interface TensorboardResponseObject {
 export interface TensorboardProcessedObject extends TensorboardResponseObject {
   deleteAction?: string;
   connectAction?: string;
+  startStopAction?: string;
   editAction?: string;
   ageValue?: string;
   ageTooltip?: string;
+  link: {
+    text: string;
+    url: string;
+    queryParams?: Params | null;
+  };
 }
 
 export interface TensorboardPostObject {

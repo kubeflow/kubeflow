@@ -59,6 +59,8 @@ vet: ## Run go vet against code.
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test -v ./controllers/... -coverprofile cover.out
+
 
 ##@ Build
 
@@ -68,6 +70,14 @@ build: generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
+	go run ./main.go
+
+# Run the controller locally with culling enabled
+.PHONY: run-culling
+run-culling: manifests generate fmt vet 
+	ENABLE_CULLING=true \
+	CULL_IDLE_TIME=10 \
+	IDLENESS_CHECK_PERIOD=1 \
 	go run ./main.go
 
 # Build the docker image

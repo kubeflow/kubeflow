@@ -253,13 +253,18 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 	}
 	(podLabels)["app"] = tb.Name
 
+	replicas := int32(1)
+	if metav1.HasAnnotation(tb.ObjectMeta, "kubeflow-resource-stopped") {
+		replicas = 0
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tb.Name,
 			Namespace: tb.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: proto.Int32(1),
+			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": tb.Name,

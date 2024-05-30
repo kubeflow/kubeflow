@@ -16,14 +16,14 @@ import {
   DashboardState,
   SnackBarConfig,
 } from 'kubeflow';
-import { defaultConfig } from './config';
+import { defaultConfig, getStopDialogConfig } from './config';
 import { environment } from '@app/environment';
 import { TWABackendService } from 'src/app/services/backend.service';
 import {
   TensorboardResponseObject,
   TensorboardProcessedObject,
 } from 'src/app/types';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { FormComponent } from '../form/form.component';
 
 @Component({
@@ -89,6 +89,9 @@ export class IndexComponent implements OnInit, OnDestroy {
     switch (a.action) {
       case 'delete':
         this.deleteTensorboardClicked(a.data);
+        break;
+      case 'start-stop':
+        this.startStopClicked(a.data);
         break;
       case 'connect':
         this.connectResource(a.data);
@@ -180,11 +183,17 @@ export class IndexComponent implements OnInit, OnDestroy {
     ) as TensorboardProcessedObject[];
 
     for (const tensorboard of tensorboardsCopy) {
-      this.processDeletionActionStatus(tensorboard);
-      this.processConnectionActionStatus(tensorboard);
-      this.processAgeField(tensorboard);
+      this.updateTensorboardFields(tensorboard);
     }
     return tensorboardsCopy;
+  }
+
+  public startStopClicked(tensorboard: TensorboardProcessedObject) {
+    if (tensorboard.status.phase === STATUS_TYPE.STOPPED) {
+      this.startTensorboard(tensorboard);
+    } else {
+      this.stopTensorboard(tensorboard);
+    }
   }
 
   public processAgeField(tensorboard: TensorboardProcessedObject) {
@@ -216,5 +225,115 @@ export class IndexComponent implements OnInit, OnDestroy {
     tensorboard: TensorboardProcessedObject,
   ) {
     return `${tensorboard.name}/${tensorboard.namespace}/${tensorboard.logspath}`;
+  }
+
+  startTensorboard(tensorboard: TensorboardProcessedObject) {
+    this.startTensorboardObservable(tensorboard.namespace, tensorboard.name)
+      .subscribe(_ => {
+        tensorboard.status.phase = STATUS_TYPE.WAITING;
+        tensorboard.status.message = 'Starting the tensorboard.';
+        this.updateTensorboardFields(tensorboard);
+      });
+  }
+
+  startTensorboardObservable(namespace: string, name: string): Observable<string> {
+    return new Observable(subscriber => {
+      this.backend.startTensorboard(namespace, name).subscribe(response => {
+        const config: SnackBarConfig = {
+          data: {
+            msg: $localize`Starting tensorboard '${name}'...`,
+            snackType: SnackType.Info,
+          },
+        };
+        this.snackBar.open(config);
+
+        subscriber.next(response);
+        subscriber.complete();
+      });
+    });
+  }
+
+  stopTensorboard(tensorboard: TensorboardProcessedObject) {
+    this
+      .stopNotebookObservable(tensorboard.namespace, tensorboard.name)
+      .subscribe(result => {
+        if (result !== DIALOG_RESP.ACCEPT) {
+          return;
+        }
+
+        tensorboard.status.phase = STATUS_TYPE.WAITING;
+        tensorboard.status.message = 'Preparing to stop the tensorboard.';
+        this.updateTensorboardFields(tensorboard);
+      });
+  }
+
+  stopNotebookObservable(namespace: string, name: string): Observable<string> {
+    return new Observable(subscriber => {
+      const stopDialogConfig = getStopDialogConfig(name);
+      const ref = this.confirmDialog.open(name, stopDialogConfig);
+      const stopSub = ref.componentInstance.applying$.subscribe(applying => {
+        if (!applying) {
+          return;
+        }
+
+        // Close the open dialog only if the request succeeded
+        this.backend.stopTensorboard(namespace, name).subscribe({
+          next: _ => {
+            ref.close(DIALOG_RESP.ACCEPT);
+            const config: SnackBarConfig = {
+              data: {
+                msg: $localize`Stopping tensorboard '${name}'...`,
+                snackType: SnackType.Info,
+              },
+            };
+            this.snackBar.open(config);
+          },
+          error: err => {
+            const errorMsg = `Error ${err}`;
+            stopDialogConfig.error = errorMsg;
+            ref.componentInstance.applying$.next(false);
+            subscriber.next(`fail`);
+          },
+        });
+
+        // request has succeeded
+        ref.afterClosed().subscribe(result => {
+          stopSub.unsubscribe();
+          subscriber.next(result);
+          subscriber.complete();
+        });
+      });
+    });
+  }
+
+  updateTensorboardFields(tensorboard: TensorboardProcessedObject) {
+    this.processAgeField(tensorboard);
+    this.processDeletionActionStatus(tensorboard);
+    this.processConnectionActionStatus(tensorboard);
+    this.processStartStopActionStatus(tensorboard);
+    tensorboard.link = {
+      text: tensorboard.name,
+      url: `/tensorboard/${tensorboard.namespace}/${tensorboard.name}/`,
+    };
+  }
+
+  processStartStopActionStatus(tensorboard: TensorboardProcessedObject) {
+    // Stop button
+    if (tensorboard.status.phase === STATUS_TYPE.READY) {
+      return STATUS_TYPE.UNINITIALIZED;
+    }
+
+    // Start button
+    if (tensorboard.status.phase === STATUS_TYPE.STOPPED) {
+      return STATUS_TYPE.READY;
+    }
+
+    // If it is terminating, then the action should be disabled
+    if (tensorboard.status.phase === STATUS_TYPE.TERMINATING) {
+      return STATUS_TYPE.UNAVAILABLE;
+    }
+
+    // If the Notebook is not Terminating, then always allow the stop action
+    return STATUS_TYPE.UNINITIALIZED;
   }
 }

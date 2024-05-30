@@ -27,3 +27,9 @@ def get_custom_rsrc(group, version, kind, namespace, name):
 
     return custom_api.get_namespaced_custom_object(group, version, namespace,
                                                    kind, name)
+
+def patch_custom_rsrc(group, version, kind, namespace, name, body):
+    authz.ensure_authorized("patch", group, version, kind, namespace)
+
+    return custom_api.patch_namespaced_custom_object(group, version, namespace, 
+                                                     kind, name, body)
