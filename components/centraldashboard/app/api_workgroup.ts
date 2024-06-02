@@ -8,8 +8,8 @@ import {
     ERRORS,
 } from './api';
 
-// From: https://www.w3resource.com/javascript/form/email-validation.php
-const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+// From: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
+const EMAIL_RGX = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
 // Valid actions for handling a contributor
 type ContributorActions = 'create' | 'remove';
