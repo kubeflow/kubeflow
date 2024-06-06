@@ -8,7 +8,8 @@ STOP_ANNOTATION = "kubeflow-resource-stopped"
 
 def process_status(tensorboard):
     """
-    Return status and reason. Status may be [ready|waiting|warning|terminating|stopped]
+    Return status and reason. Status may be [ready|waiting|warning|
+    terminating|stopped]
     """
     # In case the Tb has no status
     status_phase, status_message = get_empty_status(tensorboard)
@@ -30,13 +31,15 @@ def process_status(tensorboard):
     if status_phase is not None:
         return status.create_status(status_phase, status_message)
 
-    # Extract information about the status from the conditions of the Tb's status
+    # Extract information about the status from the conditions
     status_phase, status_message = get_status_from_conditions(tensorboard)
     if status_phase is not None:
         return status.create_status(status_phase, status_message)
 
     # In case there no status available, show a generic message
-    status_phase, status_message = status.STATUS_PHASE.WARNING, "Couldn't find any information for the status of this tensorboard."
+    status_phase = status.STATUS_PHASE.WARNING
+    status_message = ("Couldn't find any information for the status of "
+                      "this tensorboard.")
     return status.create_status(status_phase, status_message)
 
 
@@ -50,10 +53,12 @@ def get_empty_status(tensorboard):
     current_time = dt.datetime.utcnow().replace(microsecond=0)
     delta = (current_time - tb_creation_time)
 
-    # If the tensorbord has no status, the status will be waiting (instead of warning) and we will
+    # If the tensorbord has no status, the status will be waiting
+    # (instead of warning) and we will
     # show a generic message for the first 10 seconds
     if not conditions and delta.total_seconds() <= 10:
-        status_phase, status_message = status.STATUS_PHASE.WAITING, "Waiting for deployment to create the underlying Pod."
+        status_phase = status.STATUS_PHASE.WAITING
+        status_message = "Waiting for deployment to create the underlying Pod."
         return status_phase, status_message
 
     return None, None
@@ -67,11 +72,14 @@ def get_stopped_status(tensorboard):
     if STOP_ANNOTATION in annotations:
         # If the tensorboard is stopped, the status will be stopped
         if ready_replicas == 0:
-            status_phase, status_message = status.STATUS_PHASE.STOPPED, "No Pods are currently running for this tensorboard."
+            status_phase = status.STATUS_PHASE.STOPPED
+            status_message = ("No Pods are currently running for "
+                              "this tensorboard.")
             return status_phase, status_message
         # If the tensorboard is being stopped, the status will be waiting
         else:
-            status_phase, status_message = status.STATUS_PHASE.WAITING, "Tensorboard is stopping."
+            status_phase = status.STATUS_PHASE.WAITING
+            status_message = "Tensorboard is stopping."
             return status_phase, status_message
 
     return None, None
@@ -82,7 +90,8 @@ def get_deleted_status(tensorboard):
 
     # If the tensorboard is being deleted, the status will be terminating
     if "deletionTimestamp" in metadata:
-        status_phase, status_message = status.STATUS_PHASE.TERMINATING, "Deleting this tensorboard."
+        status_phase = status.STATUS_PHASE.TERMINATING
+        status_message = "Deleting this tensorboard."
         return status_phase, status_message
 
     return None, None
@@ -105,8 +114,8 @@ def get_status_from_conditions(tensorboard):
     for condition in conditions:
         # The status will be warning with a "reason: message" showing on hover
         if "reason" in condition:
-            status_phase, status_message = status.STATUS_PHASE.WARNING, condition[
-                "reason"] + ': ' + condition["message"]
+            status_phase = status.STATUS_PHASE.WARNING
+            status_message = condition["reason"] + ': ' + condition["message"]
             return status_phase, status_message
 
     return None, None

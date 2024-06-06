@@ -48,7 +48,8 @@ def start_stop_tensorboard(namespace, tensorboard, request_body):
     if stop:
         if tensorboard_is_stopped(namespace, tensorboard):
             raise exceptions.Conflict(
-                "Tensorboard %s/%s is already stopped." % (namespace, tensorboard)
+                "Tensorboard %s/%s is already stopped." % (namespace,
+                                                           tensorboard)
             )
 
         log.info("Stopping tensorboard '%s/%s'", namespace, tensorboard)
@@ -65,22 +66,22 @@ def start_stop_tensorboard(namespace, tensorboard, request_body):
         }
 
     log.info(
-        "Sending PATCH to tensorboard %s/%s: %s", namespace, tensorboard, patch_body
+        "Sending PATCH to tensorboard %s/%s: %s", namespace, tensorboard,
+        patch_body
     )
 
-    api.patch_custom_rsrc("tensorboard.kubeflow.org", "v1alpha1", "tensorboards", 
-                          namespace, tensorboard, patch_body)
+    api.patch_custom_rsrc("tensorboard.kubeflow.org", "v1alpha1",
+                          "tensorboards", namespace, tensorboard, patch_body)
 
 
 def tensorboard_is_stopped(namespace, tensorboard):
-    log.info(
-        "Checking if tensorboard %s/%s is already stopped", namespace, tensorboard,
-    )
+    log.info("Checking if tensorboard %s/%s is already stopped",
+             namespace, tensorboard,)
 
     tensorboard = api.get_custom_rsrc(
-        "tensorboard.kubeflow.org", "v1alpha1", "tensorboards", namespace, tensorboard
+        "tensorboard.kubeflow.org", "v1alpha1", "tensorboards", namespace,
+        tensorboard
     )
     annotations = tensorboard.get("metadata", {}).get("annotations", {})
 
     return status.STOP_ANNOTATION in annotations
-
