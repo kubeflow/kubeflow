@@ -228,15 +228,20 @@ export class IndexComponent implements OnInit, OnDestroy {
   }
 
   startTensorboard(tensorboard: TensorboardProcessedObject) {
-    this.startTensorboardObservable(tensorboard.namespace, tensorboard.name)
-      .subscribe(_ => {
-        tensorboard.status.phase = STATUS_TYPE.WAITING;
-        tensorboard.status.message = 'Starting the tensorboard.';
-        this.updateTensorboardFields(tensorboard);
-      });
+    this.startTensorboardObservable(
+      tensorboard.namespace,
+      tensorboard.name,
+    ).subscribe(_ => {
+      tensorboard.status.phase = STATUS_TYPE.WAITING;
+      tensorboard.status.message = 'Starting the tensorboard.';
+      this.updateTensorboardFields(tensorboard);
+    });
   }
 
-  startTensorboardObservable(namespace: string, name: string): Observable<string> {
+  startTensorboardObservable(
+    namespace: string,
+    name: string,
+  ): Observable<string> {
     return new Observable(subscriber => {
       this.backend.startTensorboard(namespace, name).subscribe(response => {
         const config: SnackBarConfig = {
@@ -254,17 +259,18 @@ export class IndexComponent implements OnInit, OnDestroy {
   }
 
   stopTensorboard(tensorboard: TensorboardProcessedObject) {
-    this
-      .stopNotebookObservable(tensorboard.namespace, tensorboard.name)
-      .subscribe(result => {
-        if (result !== DIALOG_RESP.ACCEPT) {
-          return;
-        }
+    this.stopNotebookObservable(
+      tensorboard.namespace,
+      tensorboard.name,
+    ).subscribe(result => {
+      if (result !== DIALOG_RESP.ACCEPT) {
+        return;
+      }
 
-        tensorboard.status.phase = STATUS_TYPE.WAITING;
-        tensorboard.status.message = 'Preparing to stop the tensorboard.';
-        this.updateTensorboardFields(tensorboard);
-      });
+      tensorboard.status.phase = STATUS_TYPE.WAITING;
+      tensorboard.status.message = 'Preparing to stop the tensorboard.';
+      this.updateTensorboardFields(tensorboard);
+    });
   }
 
   stopNotebookObservable(namespace: string, name: string): Observable<string> {

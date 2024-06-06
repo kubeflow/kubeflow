@@ -93,16 +93,18 @@ export class TWABackendService extends BackendService {
   public startTensorboard(namespace: string, name: string): Observable<string> {
     const url = `api/namespaces/${namespace}/tensorboards/${name}`;
 
-    return this.http
-      .patch<TWABackendResponse>(url, { stopped: false })
-      .pipe(catchError(error => this.handleError(error)), map(_ => 'started'),);
+    return this.http.patch<TWABackendResponse>(url, { stopped: false }).pipe(
+      catchError(error => this.handleError(error)),
+      map(_ => 'started'),
+    );
   }
 
   public stopTensorboard(namespace: string, name: string): Observable<string> {
     const url = `api/namespaces/${namespace}/tensorboards/${name}`;
 
-    return this.http
-      .patch<TWABackendResponse>(url, { stopped: true })
-      .pipe(catchError(error => this.handleError(error, false)),map(_ => 'stopped'),);
+    return this.http.patch<TWABackendResponse>(url, { stopped: true }).pipe(
+      catchError(error => this.handleError(error, false)),
+      map(_ => 'stopped'),
+    );
   }
 }
