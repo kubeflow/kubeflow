@@ -134,6 +134,8 @@ spawnerFormDefaults:
           uiName: "NVIDIA"
         - limitsKey: "amd.com/gpu"
           uiName: "AMD"
+        - limitsKey: "habana.ai/gaudi"
+          uiName: "Intel Gaudi"
 
       # the default value of the limit
       # (possible values: "none", "1", "2", "4", "8")
