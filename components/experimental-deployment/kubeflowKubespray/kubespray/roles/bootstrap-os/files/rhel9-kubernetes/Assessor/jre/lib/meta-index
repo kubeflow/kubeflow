@@ -1,0 +1,88 @@
+% VERSION 2
+% WARNING: this file is auto-generated; do not edit
+% UNSUPPORTED: this file and its format may change and/or
+%   may be removed in a future release
+# charsets.jar
+sun/nio
+sun/awt
+! jce.jar
+javax/crypto
+sun/security
+# jfr.jar
+jdk/jfr
+jdk/management
+! jsse.jar
+sun/security
+com/sun/net/
+! management-agent.jar
+@ resources.jar
+com/sun/java/util/jar/pack/
+META-INF/services/sun.util.spi.XmlPropertiesProvider
+META-INF/services/javax.print.PrintServiceLookup
+com/sun/corba/
+META-INF/services/javax.sound.midi.spi.SoundbankReader
+sun/print
+META-INF/services/javax.sound.midi.spi.MidiFileReader
+META-INF/services/sun.java2d.cmm.CMMServiceProvider
+javax/swing
+META-INF/services/javax.sound.sampled.spi.AudioFileReader
+META-INF/services/javax.sound.midi.spi.MidiDeviceProvider
+sun/net
+META-INF/services/javax.sound.sampled.spi.AudioFileWriter
+com/sun/imageio/
+META-INF/services/sun.java2d.pipe.RenderingEngine
+META-INF/mimetypes.default
+META-INF/services/javax.sound.midi.spi.MidiFileWriter
+sun/rmi
+javax/sql
+META-INF/services/com.sun.tools.internal.ws.wscompile.Plugin
+com/sun/rowset/
+META-INF/services/javax.print.StreamPrintServiceFactory
+META-INF/mailcap.default
+java/lang
+sun/text
+javax/xml
+META-INF/services/javax.sound.sampled.spi.MixerProvider
+com/sun/xml/
+META-INF/services/com.sun.tools.internal.xjc.Plugin
+com/sun/java/swing/
+com/sun/jndi/
+com/sun/org/
+META-INF/services/javax.sound.sampled.spi.FormatConversionProvider
+! rt.jar
+com/sun/java/util/jar/pack/
+java/
+org/ietf/
+com/sun/beans/
+com/sun/tracing/
+com/sun/java/browser/
+com/sun/corba/
+com/sun/media/
+com/sun/awt/
+com/sun/management/
+sun/
+com/sun/jmx/
+com/sun/demo/
+com/sun/imageio/
+com/sun/net/
+com/sun/rmi/
+org/w3c/
+com/sun/swing/
+com/sun/activation/
+com/sun/nio/
+com/sun/rowset/
+org/jcp/
+com/sun/istack/
+jdk/
+com/sun/naming/
+org/xml/
+org/omg/
+com/sun/security/
+com/sun/xml/
+com/sun/java/swing/
+com/oracle/
+com/sun/java_cup/
+com/sun/jndi/
+com/sun/accessibility/
+com/sun/org/
+javax/

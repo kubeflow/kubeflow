@@ -1,0 +1,14 @@
+---
+- name: Common tasks for every playbooks
+  import_playbook: boilerplate.yml
+
+- name: Gather facts
+  import_playbook: facts.yml
+
+- name: Download images to ansible host cache via first kube_control_plane node
+  hosts: kube_control_plane[0]
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cis-kubernetes}
+

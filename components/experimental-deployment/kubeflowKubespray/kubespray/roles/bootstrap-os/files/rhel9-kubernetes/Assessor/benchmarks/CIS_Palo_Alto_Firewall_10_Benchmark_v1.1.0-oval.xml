@@ -1,0 +1,995 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 https://oval.cisecurity.org/schemas/validator-oval-definitions-5.11.2.xsd">
+   <generator>
+      <oval:product_name>Center for Internet Security - Optimus</oval:product_name>
+      <oval:schema_version>5.11.2</oval:schema_version>
+      <oval:timestamp>2023-05-16T16:57:33.551Z</oval:timestamp>
+   </generator>
+   <definitions>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408827" version="1">
+         <metadata>
+            <title>Syslog logging should be configured</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.1.1_Syslog_logging_should_be_configured" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.1.1_Syslog_logging_should_be_configured"/>
+            <description>Syslog logging should be configured</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408827"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408828" version="1">
+         <metadata>
+            <title>SNMPv3 traps should be configured</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.1.2_SNMPv3_traps_should_be_configured" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.1.2_SNMPv3_traps_should_be_configured"/>
+            <description>SNMPv3 traps should be configured</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408828"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408829" version="1">
+         <metadata>
+            <title>Ensure 'Login Banner' is set</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.2_Ensure_Login_Banner_is_set" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.2_Ensure_Login_Banner_is_set"/>
+            <description>Ensure 'Login Banner' is set</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408829"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408830" version="1">
+         <metadata>
+            <title>Ensure 'Enable Log on High DP Load' is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.3_Ensure_Enable_Log_on_High_DP_Load_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.3_Ensure_Enable_Log_on_High_DP_Load_is_enabled"/>
+            <description>Ensure 'Enable Log on High DP Load' is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408830"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408833" version="1">
+         <metadata>
+            <title>Ensure HTTP and Telnet options are disabled for the management interface</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.2.3_Ensure_HTTP_and_Telnet_options_are_disabled_for_the_management_interface" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.2.3_Ensure_HTTP_and_Telnet_options_are_disabled_for_the_management_interface"/>
+            <description>Ensure HTTP and Telnet options are disabled for the management interface</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408833"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408835" version="1">
+         <metadata>
+            <title>Ensure HTTP and Telnet options are disabled for the management interface</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.2.3_Ensure_HTTP_and_Telnet_options_are_disabled_for_the_management_interface" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.2.3_Ensure_HTTP_and_Telnet_options_are_disabled_for_the_management_interface"/>
+            <description>Ensure HTTP and Telnet options are disabled for the management interface</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408835"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408836" version="1">
+         <metadata>
+            <title>Ensure HTTP and Telnet options are disabled for all management profiles</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.2.4_Ensure_HTTP_and_Telnet_options_are_disabled_for_all_management_profiles" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.2.4_Ensure_HTTP_and_Telnet_options_are_disabled_for_all_management_profiles"/>
+            <description>Ensure HTTP and Telnet options are disabled for all management profiles</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408836"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408837" version="1">
+         <metadata>
+            <title>Ensure HTTP and Telnet options are disabled for all management profiles</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.2.4_Ensure_HTTP_and_Telnet_options_are_disabled_for_all_management_profiles" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.2.4_Ensure_HTTP_and_Telnet_options_are_disabled_for_all_management_profiles"/>
+            <description>Ensure HTTP and Telnet options are disabled for all management profiles</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408837"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408838" version="1">
+         <metadata>
+            <title>Ensure 'Minimum Password Complexity' is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.1_Ensure_Minimum_Password_Complexity_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.1_Ensure_Minimum_Password_Complexity_is_enabled"/>
+            <description>Ensure 'Minimum Password Complexity' is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408838"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408839" version="1">
+         <metadata>
+            <title>Ensure 'Minimum Length' is greater than or equal to 12</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.2_Ensure_Minimum_Length_is_greater_than_or_equal_to_12" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.2_Ensure_Minimum_Length_is_greater_than_or_equal_to_12"/>
+            <description>Ensure 'Minimum Length' is greater than or equal to 12</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408839"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408841" version="1">
+         <metadata>
+            <title>Ensure 'Minimum Uppercase Letters' is greater than or equal to 1</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.3_Ensure_Minimum_Uppercase_Letters_is_greater_than_or_equal_to_1" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.3_Ensure_Minimum_Uppercase_Letters_is_greater_than_or_equal_to_1"/>
+            <description>Ensure 'Minimum Uppercase Letters' is greater than or equal to 1</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408841"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408844" version="1">
+         <metadata>
+            <title>Ensure 'Minimum Lowercase Letters' is greater than or equal to 1</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.4_Ensure_Minimum_Lowercase_Letters_is_greater_than_or_equal_to_1" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.4_Ensure_Minimum_Lowercase_Letters_is_greater_than_or_equal_to_1"/>
+            <description>Ensure 'Minimum Lowercase Letters' is greater than or equal to 1</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408844"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408848" version="1">
+         <metadata>
+            <title>Ensure 'Minimum Numeric Letters' is greater than or equal to 1</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.5_Ensure_Minimum_Numeric_Letters_is_greater_than_or_equal_to_1" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.5_Ensure_Minimum_Numeric_Letters_is_greater_than_or_equal_to_1"/>
+            <description>Ensure 'Minimum Numeric Letters' is greater than or equal to 1</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408848"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408851" version="1">
+         <metadata>
+            <title>Ensure 'Minimum Special Characters' is greater than or equal to 1</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.6_Ensure_Minimum_Special_Characters_is_greater_than_or_equal_to_1" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.6_Ensure_Minimum_Special_Characters_is_greater_than_or_equal_to_1"/>
+            <description>Ensure 'Minimum Special Characters' is greater than or equal to 1</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408851"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408857" version="1">
+         <metadata>
+            <title>Ensure 'Required Password Change Period' is less than or equal to 90 days</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.7_Ensure_Required_Password_Change_Period_is_less_than_or_equal_to_90_days" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.7_Ensure_Required_Password_Change_Period_is_less_than_or_equal_to_90_days"/>
+            <description>Ensure 'Required Password Change Period' is less than or equal to 90 days</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408857"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408859" version="1">
+         <metadata>
+            <title>Ensure 'New Password Differs By Characters' is greater than or equal to 3</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.8_Ensure_New_Password_Differs_By_Characters_is_greater_than_or_equal_to_3" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.8_Ensure_New_Password_Differs_By_Characters_is_greater_than_or_equal_to_3"/>
+            <description>Ensure 'New Password Differs By Characters' is greater than or equal to 3</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408859"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408861" version="1">
+         <metadata>
+            <title>Ensure 'Prevent Password Reuse Limit' is set to 24 or more passwords</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.3.9_Ensure_Prevent_Password_Reuse_Limit_is_set_to_24_or_more_passwords" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.3.9_Ensure_Prevent_Password_Reuse_Limit_is_set_to_24_or_more_passwords"/>
+            <description>Ensure 'Prevent Password Reuse Limit' is set to 24 or more passwords</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408861"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408862" version="1">
+         <metadata>
+            <title>Ensure 'Idle timeout' is less than or equal to 10 minutes for device management</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.4.1_Ensure_Idle_timeout_is_less_than_or_equal_to_10_minutes_for_device_management" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.4.1_Ensure_Idle_timeout_is_less_than_or_equal_to_10_minutes_for_device_management"/>
+            <description>Ensure 'Idle timeout' is less than or equal to 10 minutes for device management</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408862"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408863" version="1">
+         <metadata>
+            <title>Ensure 'Failed Attempts' and 'Lockout Time' for Authentication Profile are properly configured</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.4.2_Ensure_Failed_Attempts_and_Lockout_Time_for_Authentication_Profile_are_properly_configured" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.4.2_Ensure_Failed_Attempts_and_Lockout_Time_for_Authentication_Profile_are_properly_configured"/>
+            <description>Ensure 'Failed Attempts' and 'Lockout Time' for Authentication Profile are properly configured</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408863"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408864" version="1">
+         <metadata>
+            <title>Ensure 'Failed Attempts' and 'Lockout Time' for Authentication Profile are properly configured</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.4.2_Ensure_Failed_Attempts_and_Lockout_Time_for_Authentication_Profile_are_properly_configured" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.4.2_Ensure_Failed_Attempts_and_Lockout_Time_for_Authentication_Profile_are_properly_configured"/>
+            <description>Ensure 'Failed Attempts' and 'Lockout Time' for Authentication Profile are properly configured</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408864"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408866" version="1">
+         <metadata>
+            <title>Ensure 'V3' is selected for SNMP polling</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.5.1_Ensure_V3_is_selected_for_SNMP_polling" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.5.1_Ensure_V3_is_selected_for_SNMP_polling"/>
+            <description>Ensure 'V3' is selected for SNMP polling</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408866"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408868" version="1">
+         <metadata>
+            <title>Ensure 'Verify Update Server Identity' is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.6.1_Ensure_Verify_Update_Server_Identity_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.6.1_Ensure_Verify_Update_Server_Identity_is_enabled"/>
+            <description>Ensure 'Verify Update Server Identity' is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408868"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408869" version="1">
+         <metadata>
+            <title>Ensure redundant NTP servers are configured appropriately</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.6.2_Ensure_redundant_NTP_servers_are_configured_appropriately" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.6.2_Ensure_redundant_NTP_servers_are_configured_appropriately"/>
+            <description>Ensure redundant NTP servers are configured appropriately</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408869"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408870" version="1">
+         <metadata>
+            <title>Ensure redundant NTP servers are configured appropriately</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.6.2_Ensure_redundant_NTP_servers_are_configured_appropriately" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.6.2_Ensure_redundant_NTP_servers_are_configured_appropriately"/>
+            <description>Ensure redundant NTP servers are configured appropriately</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408870"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408832" version="1">
+         <metadata>
+            <title>Ensure that User-ID is only enabled for internal trusted interfaces</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.3_Ensure_that_User-ID_is_only_enabled_for_internal_trusted_interfaces" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.3_Ensure_that_User-ID_is_only_enabled_for_internal_trusted_interfaces"/>
+            <description>Ensure that User-ID is only enabled for internal trusted interfaces</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408832"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408834" version="1">
+         <metadata>
+            <title>Ensure that 'Include/Exclude Networks' is used if User-ID is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.4_Ensure_that_IncludeExclude_Networks_is_used_if_User-ID_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.4_Ensure_that_IncludeExclude_Networks_is_used_if_User-ID_is_enabled"/>
+            <description>Ensure that 'Include/Exclude Networks' is used if User-ID is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408834"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408840" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408840"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408842" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408842"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408843" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408843"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408845" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408845"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408847" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408847"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408849" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408849"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408850" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408850"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408852" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408852"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408855" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408855"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408858" version="1">
+         <metadata>
+            <title>Ensure that WildFire file size upload limits are maximized</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.1_Ensure_that_WildFire_file_size_upload_limits_are_maximized"/>
+            <description>Ensure that WildFire file size upload limits are maximized</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408858"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408860" version="1">
+         <metadata>
+            <title>Ensure forwarding of decrypted content to WildFire is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.4_Ensure_forwarding_of_decrypted_content_to_WildFire_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.4_Ensure_forwarding_of_decrypted_content_to_WildFire_is_enabled"/>
+            <description>Ensure forwarding of decrypted content to WildFire is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408860"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408853" version="1">
+         <metadata>
+            <title>Ensure a Vulnerability Protection Profile is set to block attacks against critical and high vulnerabilities, and set to default on medium, low, and informational vulnerabilities</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.6_Ensure_a_Vulnerability_Protection_Profile_is_set_to_block_attacks_against_critical_and_high_vulnerabilities_and_set_to_default_on_medium_low_and_informational_vulnerabilities" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.6_Ensure_a_Vulnerability_Protection_Profile_is_set_to_block_attacks_against_critical_and_high_vulnerabilities_and_set_to_default_on_medium_low_and_informational_vulnerabilities"/>
+            <description>Ensure a Vulnerability Protection Profile is set to block attacks against critical and high vulnerabilities, and set to default on medium, low, and informational vulnerabilities</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408853"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408856" version="1">
+         <metadata>
+            <title>Ensure a Vulnerability Protection Profile is set to block attacks against critical and high vulnerabilities, and set to default on medium, low, and informational vulnerabilities</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.6_Ensure_a_Vulnerability_Protection_Profile_is_set_to_block_attacks_against_critical_and_high_vulnerabilities_and_set_to_default_on_medium_low_and_informational_vulnerabilities" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.6_Ensure_a_Vulnerability_Protection_Profile_is_set_to_block_attacks_against_critical_and_high_vulnerabilities_and_set_to_default_on_medium_low_and_informational_vulnerabilities"/>
+            <description>Ensure a Vulnerability Protection Profile is set to block attacks against critical and high vulnerabilities, and set to default on medium, low, and informational vulnerabilities</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408856"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408865" version="1">
+         <metadata>
+            <title>Ensure that a Zone Protection Profile with an enabled SYN Flood Action of SYN Cookies is attached to all untrusted zones</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.15_Ensure_that_a_Zone_Protection_Profile_with_an_enabled_SYN_Flood_Action_of_SYN_Cookies_is_attached_to_all_untrusted_zones" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.15_Ensure_that_a_Zone_Protection_Profile_with_an_enabled_SYN_Flood_Action_of_SYN_Cookies_is_attached_to_all_untrusted_zones"/>
+            <description>Ensure that a Zone Protection Profile with an enabled SYN Flood Action of SYN Cookies is attached to all untrusted zones</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408865"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408867" version="1">
+         <metadata>
+            <title>Ensure that a Zone Protection Profile with tuned Flood Protection settings enabled for all flood types is attached to all untrusted zones</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.16_Ensure_that_a_Zone_Protection_Profile_with_tuned_Flood_Protection_settings_enabled_for_all_flood_types_is_attached_to_all_untrusted_zones" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.16_Ensure_that_a_Zone_Protection_Profile_with_tuned_Flood_Protection_settings_enabled_for_all_flood_types_is_attached_to_all_untrusted_zones"/>
+            <description>Ensure that a Zone Protection Profile with tuned Flood Protection settings enabled for all flood types is attached to all untrusted zones</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408867"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408871" version="1">
+         <metadata>
+            <title>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets"/>
+            <description>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408871"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408872" version="1">
+         <metadata>
+            <title>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets"/>
+            <description>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408872"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408873" version="1">
+         <metadata>
+            <title>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets"/>
+            <description>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408873"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408874" version="1">
+         <metadata>
+            <title>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets"/>
+            <description>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408874"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:def:2408875" version="1">
+         <metadata>
+            <title>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.18_Ensure_all_zones_have_Zone_Protection_Profiles_that_drop_specially_crafted_packets"/>
+            <description>Ensure all zones have Zone Protection Profiles that drop specially crafted packets</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408875"/>
+         </criteria>
+      </definition>
+   </definitions>
+   <tests>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="No Title" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408827" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408827"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408827"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="SNMPv3 traps Entry name" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408828" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408828"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408828"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Login Banner' is set" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408829" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408829"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408829"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Enable Log on High DP Load' is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408830" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408830"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408830"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure HTTP options are disabled for the management interface" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408833" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408833"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408833"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure Telnet options are disabled for the management interface" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408835" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408835"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408835"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure Telnet options are disabled for all management profiles" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408836" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408836"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408836"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure HTTP options are disabled for all management profiles" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408837" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408837"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408837"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure Minimum Password Complexity is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408838" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408838"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408838"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Minimum Length' is greater than or equal to 12" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408839" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408839"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408839"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Minimum Uppercase Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408841" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408841"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408841"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Minimum Lowercase Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408844" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408844"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408844"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Minimum Numeric Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408848" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408848"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408848"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Minimum Special Characters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408851" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408851"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408851"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Required Password Change Period' is less than or equal to 90 days" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408857" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408857"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408857"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'New Password Differs By Characters' is greater than or equal to 3" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408859" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408859"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408859"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Prevent Password Reuse Limit' is set to 24 or more passwords" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408861" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408861"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408861"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Idle timeout' is less than or equal to 10 minutes for device management" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408862" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408862"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408862"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Failed Attempts' for Authentication Profile are properly configured" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408863" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408863"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408863"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Lockout Time' for Authentication Profile are properly configured" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408864" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408864"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408864"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'V3' is selected for SNMP polling" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408866" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408866"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408866"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure 'Verify Update Server Identity' is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408868" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408868"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408868"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Primary NTP" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408869" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408869"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408869"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Secondary NTP server" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408870" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408870"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408870"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that User-ID is only enabled for internal trusted interfaces" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408832" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408832"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408832"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="User ID collector exclude network" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408834" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408834"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408834"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (PE)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408840" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408840"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408840"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (APK)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408842" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408842"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408842"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (PDF)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408843" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408843"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408843"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (MS-Office)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408845" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408845"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408845"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (JAR)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408847" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408847"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408847"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (Flash)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408849" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408849"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408849"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (MACOSX)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408850" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408850"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408850"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (archive)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408852" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408852"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408852"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (Linux)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408855" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408855"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408855"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that WildFire file size upload limits are maximized (script)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408858" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408858"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408858"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="forwarding of decrypted content" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408860" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408860"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408860"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure a Vulnerability Protection Profile is set to block attack (critical)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408853" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408853"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408853"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure a Vulnerability Protection Profile is set to block attack (high)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408856" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408856"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408856"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that a Zone Protection Profile with an enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408865" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408865"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408865"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure that a Zone Protection Profile with tuned Flood Protection settings enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408867" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408867"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408867"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure all zones have Zone Protection Profiles (ip spoof)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408871" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408871"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408871"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure all zones have Zone Protection Profile (strict source)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408872" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408872"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408872"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure all zones have Zone Protection Profile (loose source)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408873" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408873"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408873"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure all zones have Zone Protection Profile (malformed)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408874" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408874"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408874"/>
+      </config_test>
+      <config_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" check="all" check_existence="at_least_one_exists" comment="Ensure all zones have Zone Protection Profile (overlap tcp segment)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:tst:2408875" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408875"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408875"/>
+      </config_test>
+   </tests>
+   <objects>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="No Title" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408827" version="1">
+         <xpath>//syslog/entry/server/entry/@name</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="SNMPv3 traps Entry name" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408828" version="1">
+         <xpath>/config/shared/log-settings/snmptrap/entry/version/v3/server/entry/@name</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Login Banner' is set" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408829" version="1">
+         <xpath>//login-banner</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Enable Log on High DP Load' is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408830" version="1">
+         <xpath>/config/devices/entry/deviceconfig/setting/management/enable-log-high-dp-load</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure HTTP options are disabled for the management interface" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408833" version="1">
+         <xpath>/config/devices/entry/deviceconfig/system/service/disable-http</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure Telnet options are disabled for the management interface" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408835" version="1">
+         <xpath>/config/devices/entry/deviceconfig/system/service/disable-telnet</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure Telnet options are disabled for all management profiles" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408836" version="1">
+         <xpath>/config/devices/entry/deviceconfig/system/service/disable-telnet</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure HTTP options are disabled for all management profiles" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408837" version="1">
+         <xpath>/config/devices/entry/deviceconfig/system/service/disable-http</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure Minimum Password Complexity is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408838" version="1">
+         <xpath>/config/mgt-config/password-complexity/enabled</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Length' is greater than or equal to 12" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408839" version="1">
+         <xpath>//password-complexity/minimum-length</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Uppercase Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408841" version="1">
+         <xpath>/config/mgt-config/password-complexity/minimum-uppercase-letters</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Lowercase Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408844" version="1">
+         <xpath>/config/mgt-config/password-complexity/minimum-lowercase-letters</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Numeric Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408848" version="1">
+         <xpath>/config/mgt-config/password-complexity/minimum-numeric-letters</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Special Characters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408851" version="1">
+         <xpath>//password-complexity/minimum-special-characters</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Required Password Change Period' is less than or equal to 90 days" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408857" version="1">
+         <xpath>//password-complexity/password-change/expiration-period</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'New Password Differs By Characters' is greater than or equal to 3" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408859" version="1">
+         <xpath>/config/mgt-config/password-complexity/new-password-differs-by-characters</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Prevent Password Reuse Limit' is set to 24 or more passwords" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408861" version="1">
+         <xpath>/config/mgt-config/password-complexity/password-history-count</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Idle timeout' is less than or equal to 10 minutes for device management" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408862" version="1">
+         <xpath>/config/devices/entry/deviceconfig/setting/management/idle-timeout</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Failed Attempts' for Authentication Profile are properly configured" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408863" version="1">
+         <xpath>//lockout/failed-attempts</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Lockout Time' for Authentication Profile are properly configured" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408864" version="1">
+         <xpath>//lockout/lockout-time</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'V3' is selected for SNMP polling" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408866" version="1">
+         <xpath>//snmp-setting/access-setting/version/v3/views/entry/@name</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Verify Update Server Identity' is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408868" version="1">
+         <xpath>/config/devices/entry/deviceconfig/system/update-server</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Primary NTP" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408869" version="1">
+         <xpath>//ntp-servers/primary-ntp-server/ntp-server-address</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Secondary NTP server" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408870" version="1">
+         <xpath>//ntp-servers/secondary-ntp-server/ntp-server-address</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that User-ID is only enabled for internal trusted interfaces" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408832" version="1">
+         <xpath>/config/devices/entry/network/profiles/interface-management-profile/entry/userid-service</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="User ID collector exclude network" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408834" version="1">
+         <xpath>/config/devices/entry/vsys/entry/user-id-collector/include-exclude-network</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (PE)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408840" version="1">
+         <xpath>/config[1]/devices[1]/entry[1]/deviceconfig[1]/setting[1]/wildfire[1]/file-size-limit[1]/entry[1]/size-limit</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (APK)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408842" version="1">
+         <xpath>//wildfire[1]/file-size-limit/entry[2]/size-limit</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (PDF)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408843" version="1">
+         <xpath>/config/devices[1]/entry[1]/deviceconfig[1]/setting[1]/wildfire[1]/file-size-limit[1]/entry[2]/size-limit[1]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (MS-Office)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408845" version="1">
+         <xpath>/config/devices[1]/entry[1]/deviceconfig[1]/setting[1]/wildfire[1]/file-size-limit[1]/entry[1]/size-limit[1]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (JAR)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408847" version="1">
+         <xpath>//wildfire[1]/file-size-limit/entry[5]/size-limit</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (Flash)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408849" version="1">
+         <xpath>//wildfire[1]/file-size-limit/entry[6]/size-limit</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (MACOSX)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408850" version="1">
+         <xpath>//wildfire[1]/file-size-limit/entry[7]/size-limit</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (archive)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408852" version="1">
+         <xpath>//wildfire[1]/file-size-limit/entry[8]/size-limit</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (Linux)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408855" version="1">
+         <xpath>/config/devices[1]/entry[1]/deviceconfig[1]/setting[1]/wildfire[1]/file-size-limit[1]/entry[4]/size-limit[1]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (script)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408858" version="1">
+         <xpath>/config/devices[1]/entry[1]/deviceconfig[1]/setting[1]/wildfire[1]/file-size-limit[1]/entry[5]/size-limit[1]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="forwarding of decrypted content" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408860" version="1">
+         <xpath>//allow-forward-decrypted-content</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure a Vulnerability Protection Profile is set to block attack (critical)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408853" version="1">
+         <xpath>/config[1]/devices[1]/entry[1]/vsys[1]/entry[1]/profiles[1]/vulnerability[1]/entry[1]/rules[1]/entry[1]/severity[1]/member[1]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure a Vulnerability Protection Profile is set to block attack (high)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408856" version="1">
+         <xpath>/config[1]/devices[1]/entry[1]/vsys[1]/entry[1]/profiles[1]/vulnerability[1]/entry[1]/rules[1]/entry[1]/severity[1]/member[2]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that a Zone Protection Profile with an enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408865" version="1">
+         <xpath>//zone-protection-profile/entry/flood/tcp-syn/enable</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that a Zone Protection Profile with tuned Flood Protection settings enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408867" version="1">
+         <xpath>/config/devices[1]/entry[1]/network[1]/profiles[1]/zone-protection-profile[1]/entry[1]/flood[1]/tcp-syn[1]/enable[1]</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profiles (ip spoof)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408871" version="1">
+         <xpath>//discard-ip-spoof</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (strict source)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408872" version="1">
+         <xpath>//discard-strict-source-routing</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (loose source)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408873" version="1">
+         <xpath>//discard-loose-source-routing</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (malformed)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408874" version="1">
+         <xpath>//discard-malformed-option</xpath>
+      </config_object>
+      <config_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (overlap tcp segment)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:obj:2408875" version="1">
+         <xpath>//discard-overlapping-tcp-segment-mismatch</xpath>
+      </config_object>
+   </objects>
+   <states>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="No Title" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408827" version="1">
+         <value_of datatype="string" operation="pattern match">^.+$</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="SNMPv3 traps Entry name" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408828" version="1">
+         <value_of datatype="string" operation="pattern match">.+</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Login Banner' is set" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408829" version="1">
+         <value_of datatype="string" operation="pattern match">^.+$</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Enable Log on High DP Load' is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408830" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure HTTP options are disabled for the management interface" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408833" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure Telnet options are disabled for the management interface" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408835" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure Telnet options are disabled for all management profiles" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408836" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure HTTP options are disabled for all management profiles" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408837" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure Minimum Password Complexity is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408838" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Length' is greater than or equal to 12" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408839" version="1">
+         <value_of datatype="int" operation="greater than or equal">12</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Uppercase Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408841" version="1">
+         <value_of datatype="int" operation="greater than or equal">1</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Lowercase Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408844" version="1">
+         <value_of datatype="int" operation="greater than or equal">1</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Numeric Letters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408848" version="1">
+         <value_of datatype="int" operation="greater than or equal">1</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Minimum Special Characters' is greater than or equal to 1" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408851" version="1">
+         <value_of datatype="int" operation="greater than or equal">1</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Required Password Change Period' is less than or equal to 90 days" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408857" version="1">
+         <value_of datatype="int" operation="less than or equal">90</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'New Password Differs By Characters' is greater than or equal to 3" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408859" version="1">
+         <value_of datatype="int" operation="greater than or equal">3</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Prevent Password Reuse Limit' is set to 24 or more passwords" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408861" version="1">
+         <value_of datatype="int" operation="greater than or equal">24</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Idle timeout' is less than or equal to 10 minutes for device management" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408862" version="1">
+         <value_of datatype="int" operation="less than or equal">10</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Failed Attempts' for Authentication Profile are properly configured" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408863" version="1">
+         <value_of datatype="int" operation="greater than or equal">1</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Lockout Time' for Authentication Profile are properly configured" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408864" version="1">
+         <value_of datatype="int" operation="greater than or equal">1</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'V3' is selected for SNMP polling" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408866" version="1">
+         <value_of datatype="string" operation="pattern match">^.+$</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure 'Verify Update Server Identity' is enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408868" version="1">
+         <value_of datatype="string" operation="equals">updates.paloaltonetworks.com</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Primary NTP" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408869" version="1">
+         <value_of datatype="string" operation="pattern match">^.+$</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Secondary NTP server" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408870" version="1">
+         <value_of datatype="string" operation="pattern match">^.+$</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that User-ID is only enabled for internal trusted interfaces" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408832" version="1">
+         <value_of datatype="string" operation="case insensitive equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="User ID collector exclude network" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408834" version="1">
+         <value_of datatype="string" operation="pattern match">.+</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (PE)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408840" version="1">
+         <value_of datatype="int" operation="greater than or equal">16</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (APK)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408842" version="1">
+         <value_of datatype="int" operation="greater than or equal">10</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (PDF)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408843" version="1">
+         <value_of datatype="int" operation="greater than or equal">3072</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (MS-Office)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408845" version="1">
+         <value_of datatype="int" operation="greater than or equal">16384</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (JAR)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408847" version="1">
+         <value_of datatype="int" operation="greater than or equal">5</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (Flash)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408849" version="1">
+         <value_of datatype="int" operation="greater than or equal">5</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (MACOSX)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408850" version="1">
+         <value_of datatype="int" operation="greater than or equal">10</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (archive)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408852" version="1">
+         <value_of datatype="int" operation="greater than or equal">50</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (Linux)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408855" version="1">
+         <value_of datatype="int" operation="greater than or equal">50</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that WildFire file size upload limits are maximized (script)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408858" version="1">
+         <value_of datatype="int" operation="greater than or equal">20</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="forwarding of decrypted content" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408860" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure a Vulnerability Protection Profile is set to block attack (critical)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408853" version="1">
+         <value_of datatype="string" operation="equals">critical</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure a Vulnerability Protection Profile is set to block attack (high)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408856" version="1">
+         <value_of datatype="string" operation="equals">high</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that a Zone Protection Profile with an enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408865" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure that a Zone Protection Profile with tuned Flood Protection settings enabled" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408867" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profiles (ip spoof)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408871" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (strict source)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408872" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (loose source)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408873" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (malformed)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408874" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+      <config_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#panos" comment="Ensure all zones have Zone Protection Profile (overlap tcp segment)" id="oval:org.cisecurity.benchmarks.paloaltonetworks_pan-os_10:ste:2408875" version="1">
+         <value_of datatype="string" operation="equals">yes</value_of>
+      </config_state>
+   </states>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>EBiZphp0AVzF0YFADRgjvs6KB70=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+QOdkxUSUpoR79rQcVuD+a/diXK7nFLxmHpu0MeHnPX9DWj/z/kDGC5F9Mv1vKNUDq0R7Lc5z2wnd
+sQTrP1cFWakUYauiJs9kBeX9CcJhiSNi6iO9S6RpWFOyxbg+Qplz4j+DhfkaSb4RpTYxiON4h2Ik
+QJF8fmciIxxLRGUnzXWSOaGzRyaYpzI8s7FHkeh0ferxs6LpYqlPoyFXeqnu5QrRGADRP4SzhsW+
+b2p6wSU6SR4fcyGqnY40UDA3dJ1V6nu1hhEIfEEAM1vWXjKAasQPsQKZ2OiRuT4xNKAEPGi4foQq
+b57t6+7GmM/lIo59Ln9XSbvnjYkXNYcT7asT9w==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></oval_definitions>

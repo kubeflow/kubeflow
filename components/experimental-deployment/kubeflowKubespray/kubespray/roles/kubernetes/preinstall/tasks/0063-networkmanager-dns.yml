@@ -1,0 +1,37 @@
+---
+- name: NetworkManager | Add nameservers to NM configuration
+  community.general.ini_file:
+    path: /etc/NetworkManager/conf.d/dns.conf
+    section: global-dns-domain-*
+    option: servers
+    value: "{{ nameserverentries }}"
+    mode: '0600'
+    backup: yes
+  when:
+    - nameserverentries != "127.0.0.53" or systemd_resolved_enabled.rc != 0
+  notify: Preinstall | update resolvconf for networkmanager
+
+- name: Set default dns if remove_default_searchdomains is false
+  set_fact:
+    default_searchdomains: ["default.svc.{{ dns_domain }}", "svc.{{ dns_domain }}"]
+  when: not remove_default_searchdomains | default() | bool or (remove_default_searchdomains | default() | bool and searchdomains | default([]) | length==0)
+
+- name: NetworkManager | Add DNS search to NM configuration
+  community.general.ini_file:
+    path: /etc/NetworkManager/conf.d/dns.conf
+    section: global-dns
+    option: searches
+    value: "{{ (default_searchdomains | default([]) + searchdomains | default([])) | join(',') }}"
+    mode: '0600'
+    backup: yes
+  notify: Preinstall | update resolvconf for networkmanager
+
+- name: NetworkManager | Add DNS options to NM configuration
+  community.general.ini_file:
+    path: /etc/NetworkManager/conf.d/dns.conf
+    section: global-dns
+    option: options
+    value: "ndots:{{ ndots }},timeout:{{ dns_timeout | default('2') }},attempts:{{ dns_attempts | default('2') }}"
+    mode: '0600'
+    backup: yes
+  notify: Preinstall | update resolvconf for networkmanager

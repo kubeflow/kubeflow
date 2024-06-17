@@ -1,0 +1,2 @@
+openstacksdk>=0.43.0
+six

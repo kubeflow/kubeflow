@@ -1,0 +1,96 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      addonmanager.kubernetes.io/mode: EnsureExists
+data:
+  Corefile: |
+{% if coredns_external_zones is defined and coredns_external_zones | length > 0 %}
+{%   for block in coredns_external_zones %}
+    {{ block['zones'] | join(' ') }} {
+        log
+        errors {
+{% if coredns_additional_error_config is defined %}
+          {{ coredns_additional_error_config | indent(width=10, first=False) }}
+{% endif %}
+        }
+{% if block['rewrite'] is defined and block['rewrite'] | length > 0 %}
+{% for rewrite_match in block['rewrite'] %}
+        rewrite {{ rewrite_match }}
+{% endfor %}
+{% endif %}
+        forward . {{ block['nameservers'] | join(' ') }}
+        loadbalance
+        cache {{ block['cache'] | default(5) }}
+        reload
+{% if dns_etchosts | default(None) %}
+        hosts /etc/coredns/hosts {
+          fallthrough
+        }
+{% endif %}
+    }
+{%   endfor %}
+{% endif %}
+    .:{{ coredns_port }} {
+{% if coredns_additional_configs is defined %}
+        {{ coredns_additional_configs | indent(width=8, first=False) }}
+{% endif %}
+        errors {
+{% if coredns_additional_error_config is defined %}
+          {{ coredns_additional_error_config | indent(width=10, first=False) }}
+{% endif %}
+        }
+        health {
+            lameduck 5s
+        }
+{% if coredns_rewrite_block is defined %}
+        {{ coredns_rewrite_block | indent(width=8, first=False) }}
+{% endif %}
+{% for old_dns_domain in old_dns_domains %}
+        rewrite name suffix {{ old_dns_domain }} {{ dns_domain }} answer auto
+{% endfor %}
+        ready
+        kubernetes {{ dns_domain }} {% if coredns_kubernetes_extra_domains is defined %}{{ coredns_kubernetes_extra_domains }} {% endif %}{% if enable_coredns_reverse_dns_lookups %}in-addr.arpa ip6.arpa {% endif %}{
+          pods insecure
+{% if enable_coredns_k8s_endpoint_pod_names %}
+          endpoint_pod_names
+{% endif %}
+{% if enable_coredns_reverse_dns_lookups %}
+          fallthrough in-addr.arpa ip6.arpa
+{% endif %}
+{% if coredns_kubernetes_extra_opts is defined %}
+{% for opt in coredns_kubernetes_extra_opts %}
+          {{ opt }}
+{% endfor %}
+{% endif %}
+        }
+        prometheus :9153
+        forward . {{ upstream_dns_servers | join(' ') if upstream_dns_servers is defined and upstream_dns_servers | length > 0 else '/etc/resolv.conf' }} {
+          prefer_udp
+          max_concurrent 1000
+{% if dns_upstream_forward_extra_opts is defined %}
+{% for optname, optvalue in dns_upstream_forward_extra_opts.items() %}
+          {{ optname }} {{ optvalue }}
+{% endfor %}
+{% endif %}
+        }
+{% if enable_coredns_k8s_external %}
+        k8s_external {{ coredns_k8s_external_zone }}
+{% endif %}
+        {{ coredns_default_zone_cache_block | indent(width=8, first=False) }}
+        loop
+        reload
+        loadbalance
+{% if dns_etchosts | default(None) %}
+        hosts /etc/coredns/hosts {
+          fallthrough
+        }
+{% endif %}
+    }
+{% if dns_etchosts | default(None) %}
+  hosts: |
+    {{ dns_etchosts | indent(width=4, first=False) }}
+{% endif %}

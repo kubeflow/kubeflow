@@ -1,0 +1,34 @@
+---
+- name: Check Ansible version
+  hosts: all
+  gather_facts: false
+  become: no
+  run_once: true
+  vars:
+    minimal_ansible_version: 2.15.5  # 2.15 versions before 2.15.5 are known to be buggy for kubespray
+    maximal_ansible_version: 2.17.0
+  tags: always
+  tasks:
+    - name: "Check {{ minimal_ansible_version }} <= Ansible version < {{ maximal_ansible_version }}"
+      assert:
+        msg: "Ansible must be between {{ minimal_ansible_version }} and {{ maximal_ansible_version }} exclusive - you have {{ ansible_version.string }}"
+        that:
+          - ansible_version.string is version(minimal_ansible_version, ">=")
+          - ansible_version.string is version(maximal_ansible_version, "<")
+      tags:
+        - check
+
+    - name: "Check that python netaddr is installed"
+      assert:
+        msg: "Python netaddr is not present"
+        that: "'127.0.0.1' | ansible.utils.ipaddr"
+      tags:
+        - check
+
+    # CentOS 7 provides too old jinja version
+    - name: "Check that jinja is not too old (install via pip)"
+      assert:
+        msg: "Your Jinja version is too old, install via pip"
+        that: "{% set test %}It works{% endset %}{{ test == 'It works' }}"
+      tags:
+        - check

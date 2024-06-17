@@ -1,0 +1,9 @@
+---
+- name: Cilium check
+  import_tasks: check.yml
+
+- name: Cilium install
+  include_tasks: install.yml
+
+- name: Cilium apply
+  include_tasks: apply.yml

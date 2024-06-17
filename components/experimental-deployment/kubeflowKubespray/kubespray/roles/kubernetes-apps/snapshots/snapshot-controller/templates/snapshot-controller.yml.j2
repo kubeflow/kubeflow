@@ -1,0 +1,40 @@
+# This YAML file shows how to deploy the snapshot controller
+
+# The snapshot controller implements the control loop for CSI snapshot functionality.
+# It should be installed as part of the base Kubernetes distribution in an appropriate
+# namespace for components implementing base system functionality. For installing with
+# Vanilla Kubernetes, kube-system makes sense for the namespace.
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: snapshot-controller
+  namespace: {{ snapshot_controller_namespace }}
+spec:
+  replicas: {{ snapshot_controller_replicas }}
+  selector:
+    matchLabels:
+      app: snapshot-controller
+  # the snapshot controller won't be marked as ready if the v1 CRDs are unavailable
+  # in #504 the snapshot-controller will exit after around 7.5 seconds if it
+  # can't find the v1 CRDs so this value should be greater than that
+  minReadySeconds: 15
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: snapshot-controller
+    spec:
+      serviceAccount: snapshot-controller
+      containers:
+        - name: snapshot-controller
+          image: {{ snapshot_controller_image_repo }}:{{ snapshot_controller_image_tag }}
+          args:
+            - "--v=5"
+            - "--leader-election=false"
+          imagePullPolicy: {{ k8s_image_pull_policy }}

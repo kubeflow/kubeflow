@@ -1,0 +1,105 @@
+version = 2
+root = "{{ containerd_storage_dir }}"
+state = "{{ containerd_state_dir }}"
+oom_score = {{ containerd_oom_score }}
+
+[grpc]
+  max_recv_message_size = {{ containerd_grpc_max_recv_message_size }}
+  max_send_message_size = {{ containerd_grpc_max_send_message_size }}
+
+[debug]
+  level = "{{ containerd_debug_level }}"
+
+[metrics]
+  address = "{{ containerd_metrics_address }}"
+  grpc_histogram = {{ containerd_metrics_grpc_histogram | lower }}
+
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri"]
+    sandbox_image = "{{ pod_infra_image_repo }}:{{ pod_infra_image_tag }}"
+    max_container_log_line_size = {{ containerd_max_container_log_line_size }}
+    enable_unprivileged_ports = {{ containerd_enable_unprivileged_ports | lower }}
+    enable_unprivileged_icmp = {{ containerd_enable_unprivileged_icmp | lower }}
+{% if enable_cdi %}
+    enable_cdi = true
+    cdi_spec_dirs = ["/etc/cdi", "/var/run/cdi"]
+{% endif %}
+
+    [plugins."io.containerd.grpc.v1.cri".cni]
+      bin_dir = "/opt/cni/bin"
+      conf_dir = "/etc/cni/net.d"
+      conf_template = ""
+      ip_pref = ""
+      max_conf_num = 1
+
+    [plugins."io.containerd.grpc.v1.cri".containerd]
+      default_runtime_name = "{{ containerd_default_runtime }}"
+      snapshotter = "{{ containerd_snapshotter }}"
+      discard_unpacked_layers = {{ containerd_discard_unpacked_layers | lower }}
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+{% for runtime in [containerd_runc_runtime] + containerd_additional_runtimes %}
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ runtime.name }}]
+          runtime_type = "{{ runtime.type }}"
+          runtime_engine = "{{ runtime.engine }}"
+          runtime_root = "{{ runtime.root }}"
+{% if runtime.base_runtime_spec is defined %}
+          base_runtime_spec = "{{ containerd_cfg_dir }}/{{ runtime.base_runtime_spec }}"
+{% endif %}
+
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ runtime.name }}.options]
+{% for key, value in runtime.options.items() %}
+{% if value | string != "true" and value | string != "false" %}
+            {{ key }} = "{{ value }}"
+{% else %}
+            {{ key }} = {{ value }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% if kata_containers_enabled %}
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata-qemu]
+          runtime_type = "io.containerd.kata-qemu.v2"
+{% endif %}
+{% if gvisor_enabled %}
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]
+          runtime_type = "io.containerd.runsc.v1"
+{% endif %}
+    [plugins."io.containerd.grpc.v1.cri".registry]
+{% if containerd_use_config_path is defined and containerd_use_config_path|bool %}
+      config_path = "{{ containerd_cfg_dir }}/certs.d"
+{% else %}
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+{% set insecure_registries_addr = [] %}
+{% for registry in containerd_registries_mirrors %}
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry.prefix }}"]
+{% set endpoint = [] %}
+{% for mirror in registry.mirrors %}
+{% if endpoint.append(mirror.host) %}{% endif %}
+{% if mirror.skip_verify is defined and mirror.skip_verify|bool %}{% if insecure_registries_addr.append(mirror.host | urlsplit('netloc')) %}{% endif %}{% endif %}
+{% endfor %}
+          endpoint = ["{{ ( endpoint | unique ) | join('","') }}"]
+{% endfor %}
+{% for addr in insecure_registries_addr | unique %}
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ addr }}".tls]
+          insecure_skip_verify = true
+{% endfor %}
+{% endif %}
+{% for registry in containerd_registry_auth if registry['registry'] is defined %}
+{% if (registry['username'] is defined and registry['password'] is defined) or registry['auth'] is defined %}
+      [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['registry'] }}".auth]
+{% if registry['username'] is defined and registry['password'] is defined %}
+        password = "{{ registry['password'] }}"
+        username = "{{ registry['username'] }}"
+{% else %}
+        auth = "{{ registry['auth'] }}"
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{% if nri_enabled and containerd_version is version('1.7.0', '>=') %}
+  [plugins."io.containerd.nri.v1.nri"]
+    disable = false
+{% endif %}
+
+{% if containerd_extra_args is defined %}
+{{ containerd_extra_args }}
+{% endif %}

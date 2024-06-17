@@ -1,0 +1,155 @@
+---
+# Set to true to allow pre-checks to fail and continue deployment
+ignore_assert_errors: false
+
+epel_enabled: false
+# Kubespray sets this to true after clusterDNS is running to apply changes to the host resolv.conf
+dns_late: false
+
+common_required_pkgs:
+  - "{{ (ansible_distribution == 'openSUSE Tumbleweed') | ternary('openssl-1_1', 'openssl') }}"
+  - curl
+  - rsync
+  - socat
+  - unzip
+  - e2fsprogs
+  - xfsprogs
+  - ebtables
+  - bash-completion
+  - tar
+
+# Set to true if your network does not support IPv6
+# This may be necessary for pulling Docker images from
+# GCE docker repository
+disable_ipv6_dns: false
+
+# Remove default cluster search domains (``default.svc.{{ dns_domain }}, svc.{{ dns_domain }}``).
+remove_default_searchdomains: false
+
+kube_owner: kube
+kube_cert_group: kube-cert
+kube_config_dir: /etc/kubernetes
+kube_cert_dir: "{{ kube_config_dir }}/ssl"
+kube_cert_compat_dir: /etc/kubernetes/pki
+kubelet_flexvolumes_plugins_dir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+
+# Flatcar Container Linux by Kinvolk cloud init config file to define /etc/resolv.conf content
+# for hostnet pods and infra needs
+resolveconf_cloud_init_conf: /etc/resolveconf_cloud_init.conf
+
+# All inventory hostnames will be written into each /etc/hosts file.
+populate_inventory_to_hosts_file: true
+# K8S Api FQDN will be written into /etc/hosts file.
+populate_loadbalancer_apiserver_to_hosts_file: true
+# etc_hosts_localhost_entries will be written into /etc/hosts file.
+populate_localhost_entries_to_hosts_file: true
+
+sysctl_file_path: "/etc/sysctl.d/99-sysctl.conf"
+
+etc_hosts_localhost_entries:
+  127.0.0.1:
+    expected:
+      - localhost
+      - localhost.localdomain
+  ::1:
+    expected:
+      - localhost6
+      - localhost6.localdomain
+    unexpected:
+      - localhost
+      - localhost.localdomain
+
+# Minimal memory requirement in MB for safety checks
+minimal_node_memory_mb: 1024
+minimal_master_memory_mb: 1500
+
+yum_repo_dir: /etc/yum.repos.d
+
+# number of times package install task should be retried
+pkg_install_retries: 4
+
+# Check if access_ip responds to ping. Set false if your firewall blocks ICMP.
+ping_access_ip: true
+
+## NTP Settings
+# Start the ntpd or chrony service and enable it at system boot.
+ntp_enabled: false
+# The package to install which provides NTP functionality.
+# The default is ntp for most platforms, or chrony on RHEL/CentOS 7 and later.
+# The ntp_package can be one of ['ntp', 'chrony']
+ntp_package: >-
+      {% if ansible_os_family == "RedHat" -%}
+      chrony
+      {%- else -%}
+      ntp
+      {%- endif -%}
+
+# Manage the NTP configuration file.
+ntp_manage_config: false
+# Specify the NTP servers
+# Only takes effect when ntp_manage_config is true.
+ntp_servers:
+  - "0.pool.ntp.org iburst"
+  - "1.pool.ntp.org iburst"
+  - "2.pool.ntp.org iburst"
+  - "3.pool.ntp.org iburst"
+# Restrict NTP access to these hosts.
+# Only takes effect when ntp_manage_config is true.
+ntp_restrict:
+  - "127.0.0.1"
+  - "::1"
+# The NTP driftfile path
+# Only takes effect when ntp_manage_config is true.
+ntp_driftfile: /var/lib/ntp/ntp.drift
+# Enable tinker panic is useful when running NTP in a VM environment.
+# Only takes effect when ntp_manage_config is true.
+ntp_tinker_panic: false
+
+# Force sync time immediately after the ntp installed, which is useful in a newly installed system.
+ntp_force_sync_immediately: false
+
+# Set the timezone for your server.  eg: "Etc/UTC","Etc/GMT-8". If not set, the timezone will not change.
+ntp_timezone: ""
+
+# Currently known os distributions
+supported_os_distributions:
+  - 'RedHat'
+  - 'CentOS'
+  - 'Fedora'
+  - 'Ubuntu'
+  - 'Debian'
+  - 'Flatcar'
+  - 'Flatcar Container Linux by Kinvolk'
+  - 'Suse'
+  - 'openSUSE Leap'
+  - 'openSUSE Tumbleweed'
+  - 'ClearLinux'
+  - 'OracleLinux'
+  - 'AlmaLinux'
+  - 'Rocky'
+  - 'Amazon'
+  - 'Kylin Linux Advanced Server'
+  - 'UnionTech'
+  - 'UniontechOS'
+  - 'openEuler'
+
+# Extending some distributions into the redhat os family
+redhat_os_family_extensions:
+  - "Kylin Linux Advanced Server"
+  - "openEuler"
+  - "UnionTech"
+  - "UniontechOS"
+
+# Extending some distributions into the debian os family
+debian_os_family_extensions:
+  - "UnionTech OS Server 20"
+
+# Sets DNSStubListener=no, useful if you get "0.0.0.0:53: bind: address already in use"
+systemd_resolved_disable_stub_listener: "{{ ansible_os_family in ['Flatcar', 'Flatcar Container Linux by Kinvolk'] }}"
+
+# Used to disable File Access Policy Daemon service.
+# If service is enabled, the CNI plugin installation will fail
+disable_fapolicyd: true
+
+# Enable 0120-growpart-azure-centos-7 tasks
+growpart_azure_enabled: true

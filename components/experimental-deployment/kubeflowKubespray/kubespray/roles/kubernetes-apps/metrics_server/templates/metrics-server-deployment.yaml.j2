@@ -1,0 +1,118 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: metrics-server
+    addonmanager.kubernetes.io/mode: Reconcile
+    version: {{ metrics_server_version }}
+spec:
+  replicas: {{ metrics_server_replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metrics-server
+      version: {{ metrics_server_version }}
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  template:
+    metadata:
+      name: metrics-server
+      labels:
+        app.kubernetes.io/name: metrics-server
+        version: {{ metrics_server_version }}
+    spec:
+      priorityClassName: system-cluster-critical
+      serviceAccountName: metrics-server
+      hostNetwork: {{ metrics_server_host_network | default(false) }}
+      containers:
+      - name: metrics-server
+        image: {{ metrics_server_image_repo }}:{{ metrics_server_image_tag }}
+        imagePullPolicy: {{ k8s_image_pull_policy }}
+        args:
+        - --cert-dir=/tmp
+        - --secure-port={{ metrics_server_container_port }}
+{% if metrics_server_kubelet_preferred_address_types %}
+        - --kubelet-preferred-address-types={{ metrics_server_kubelet_preferred_address_types }}
+{% endif %}
+        - --kubelet-use-node-status-port
+{% if metrics_server_kubelet_insecure_tls %}
+        - --kubelet-insecure-tls=true
+{% endif %}
+        - --metric-resolution={{ metrics_server_metric_resolution }}
+        ports:
+        - containerPort: {{ metrics_server_container_port }}
+          name: https
+          protocol: TCP
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: https
+            scheme: HTTPS
+          periodSeconds: 10
+          failureThreshold: 3
+          initialDelaySeconds: 40
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: https
+            scheme: HTTPS
+          periodSeconds: 10
+          failureThreshold: 3
+          initialDelaySeconds: 40
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          limits:
+            cpu: {{ metrics_server_limits_cpu }}
+            memory: {{ metrics_server_limits_memory }}
+          requests:
+            cpu: {{ metrics_server_requests_cpu }}
+            memory: {{ metrics_server_requests_memory }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{% if not masters_are_not_tainted or metrics_server_extra_tolerations is defined %}
+      tolerations:
+{% if not masters_are_not_tainted %}
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
+{% endif %}
+{% if metrics_server_extra_tolerations is defined %}
+        {{ metrics_server_extra_tolerations | list | to_nice_yaml(indent=2) | indent(8) }}
+{% endif %}
+{% endif %}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - metrics-server
+              topologyKey: kubernetes.io/hostname
+              namespaces:
+              - kube-system
+{% if metrics_server_extra_affinity is defined %}
+        {{ metrics_server_extra_affinity | to_nice_yaml | indent(width=8) }}
+{% endif %}
+{% if metrics_server_nodeselector is defined %}
+      nodeSelector:
+        {{ metrics_server_nodeselector | to_nice_yaml | indent(width=8) }}
+{% endif %}

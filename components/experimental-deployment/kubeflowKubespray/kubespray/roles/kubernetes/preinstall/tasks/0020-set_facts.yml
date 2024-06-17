@@ -1,0 +1,271 @@
+---
+- name: Force binaries directory for Flatcar Container Linux by Kinvolk
+  set_fact:
+    bin_dir: "/opt/bin"
+  when: ansible_os_family in ["Flatcar", "Flatcar Container Linux by Kinvolk"]
+  tags:
+    - facts
+
+- name: Set os_family fact for other redhat-based operating systems
+  set_fact:
+    ansible_os_family: "RedHat"
+    ansible_distribution_major_version: "8"
+  when: ansible_distribution in redhat_os_family_extensions
+  tags:
+    - facts
+
+- name: Set os_family fact for other debian-based operating systems
+  set_fact:
+    ansible_os_family: "Debian"
+  when: ansible_distribution in debian_os_family_extensions
+  tags:
+    - facts
+
+- name: Check if booted with ostree
+  stat:
+    path: /run/ostree-booted
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: ostree
+
+- name: Set is_fedora_coreos
+  lineinfile:
+    path: /etc/os-release
+    line: "VARIANT_ID=coreos"
+    state: present
+  check_mode: yes
+  register: os_variant_coreos
+  changed_when: false
+
+- name: Set is_fedora_coreos
+  set_fact:
+    is_fedora_coreos: "{{ ostree.stat.exists and os_variant_coreos is not changed }}"
+
+- name: Check resolvconf
+  command: which resolvconf
+  register: resolvconf
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- name: Check existence of /etc/resolvconf/resolv.conf.d
+  stat:
+    path: /etc/resolvconf/resolv.conf.d
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  failed_when: false
+  register: resolvconfd_path
+
+- name: Check status of /etc/resolv.conf
+  stat:
+    path: /etc/resolv.conf
+    follow: no
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  failed_when: false
+  register: resolvconf_stat
+
+- name: Fetch resolconf
+  when: resolvconf_stat.stat.exists is defined and resolvconf_stat.stat.exists
+  block:
+
+    - name: Get content of /etc/resolv.conf
+      slurp:
+        src: /etc/resolv.conf
+      register: resolvconf_slurp
+
+    - name: Get currently configured nameservers
+      set_fact:
+        configured_nameservers: "{{ resolvconf_slurp.content | b64decode | regex_findall('^nameserver\\s*(\\S*)', multiline=True) | ansible.utils.ipaddr }}"
+      when: resolvconf_slurp.content is defined
+
+- name: Stop if /etc/resolv.conf not configured nameservers
+  assert:
+    that: configured_nameservers | length>0
+    fail_msg: "nameserver should not empty in /etc/resolv.conf"
+  when:
+    - not ignore_assert_errors
+    - configured_nameservers is defined
+    - not (upstream_dns_servers is defined and upstream_dns_servers | length > 0)
+    - not (disable_host_nameservers | default(false))
+    - dns_mode in ['coredns', 'coredns_dual']
+
+- name: NetworkManager | Check if host has NetworkManager
+  # noqa command-instead-of-module - Should we use service_facts for this?
+  command: systemctl is-active --quiet NetworkManager.service
+  register: networkmanager_enabled
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Check systemd-resolved
+  # noqa command-instead-of-module - Should we use service_facts for this?
+  command: systemctl is-active systemd-resolved
+  register: systemd_resolved_enabled
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- name: Set default dns if remove_default_searchdomains is false
+  set_fact:
+    default_searchdomains: ["default.svc.{{ dns_domain }}", "svc.{{ dns_domain }}"]
+  when: not remove_default_searchdomains | default() | bool or (remove_default_searchdomains | default() | bool and searchdomains | default([]) | length==0)
+
+- name: Set dns facts
+  set_fact:
+    resolvconf: >-
+      {%- if resolvconf.rc == 0 and resolvconfd_path.stat.isdir is defined and resolvconfd_path.stat.isdir -%}true{%- else -%}false{%- endif -%}
+    bogus_domains: |-
+      {% for d in default_searchdomains | default([]) + searchdomains | default([]) -%}
+      {{ dns_domain }}.{{ d }}./{{ d }}.{{ d }}./com.{{ d }}./
+      {%- endfor %}
+    cloud_resolver: "{{ ['169.254.169.254'] if cloud_provider is defined and cloud_provider == 'gce' else
+                        ['169.254.169.253'] if cloud_provider is defined and cloud_provider == 'aws' else
+                        [] }}"
+
+- name: Check if kubelet is configured
+  stat:
+    path: "{{ kube_config_dir }}/kubelet.env"
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: kubelet_configured
+  changed_when: false
+
+- name: Check if early DNS configuration stage
+  set_fact:
+    dns_early: "{{ not kubelet_configured.stat.exists }}"
+
+- name: Target resolv.conf files
+  set_fact:
+    resolvconffile: /etc/resolv.conf
+    base: >-
+      {%- if resolvconf | bool -%}/etc/resolvconf/resolv.conf.d/base{%- endif -%}
+    head: >-
+      {%- if resolvconf | bool -%}/etc/resolvconf/resolv.conf.d/head{%- endif -%}
+  when: not ansible_os_family in ["Flatcar", "Flatcar Container Linux by Kinvolk"] and not is_fedora_coreos
+
+- name: Target temporary resolvconf cloud init file (Flatcar Container Linux by Kinvolk / Fedora CoreOS)
+  set_fact:
+    resolvconffile: /tmp/resolveconf_cloud_init_conf
+  when: ansible_os_family in ["Flatcar", "Flatcar Container Linux by Kinvolk"] or is_fedora_coreos
+
+- name: Check if /etc/dhclient.conf exists
+  stat:
+    path: /etc/dhclient.conf
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: dhclient_stat
+
+- name: Target dhclient conf file for /etc/dhclient.conf
+  set_fact:
+    dhclientconffile: /etc/dhclient.conf
+  when: dhclient_stat.stat.exists
+
+- name: Check if /etc/dhcp/dhclient.conf exists
+  stat:
+    path: /etc/dhcp/dhclient.conf
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: dhcp_dhclient_stat
+
+- name: Target dhclient conf file for /etc/dhcp/dhclient.conf
+  set_fact:
+    dhclientconffile: /etc/dhcp/dhclient.conf
+  when: dhcp_dhclient_stat.stat.exists
+
+- name: Target dhclient hook file for Red Hat family
+  set_fact:
+    dhclienthookfile: /etc/dhcp/dhclient.d/zdnsupdate.sh
+  when: ansible_os_family == "RedHat"
+
+- name: Target dhclient hook file for Debian family
+  set_fact:
+    dhclienthookfile: /etc/dhcp/dhclient-exit-hooks.d/zdnsupdate
+  when: ansible_os_family == "Debian"
+
+- name: Generate search domains to resolvconf
+  set_fact:
+    searchentries:
+      search {{ (default_searchdomains | default([]) + searchdomains | default([])) | join(' ') }}
+    domainentry:
+      domain {{ dns_domain }}
+    supersede_search:
+      supersede domain-search "{{ (default_searchdomains | default([]) + searchdomains | default([])) | join('", "') }}";
+    supersede_domain:
+      supersede domain-name "{{ dns_domain }}";
+
+- name: Pick coredns cluster IP or default resolver
+  set_fact:
+    coredns_server: |-
+      {%- if dns_mode == 'coredns' and not dns_early | bool -%}
+        {{ [skydns_server] }}
+      {%- elif dns_mode == 'coredns_dual' and not dns_early | bool -%}
+        {{ [skydns_server] + [skydns_server_secondary] }}
+      {%- elif dns_mode == 'manual' and not dns_early | bool -%}
+        {{ (manual_dns_server.split(',') | list) }}
+      {%- elif dns_mode == 'none' and not dns_early | bool -%}
+        []
+      {%- elif dns_early | bool -%}
+        {{ upstream_dns_servers | default([]) }}
+      {%- endif -%}
+
+# This task should only run after cluster/nodelocal DNS is up, otherwise all DNS lookups will timeout
+- name: Generate nameservers for resolvconf, including cluster DNS
+  set_fact:
+    nameserverentries: |-
+      {{ (([nodelocaldns_ip] if enable_nodelocaldns else []) + (coredns_server | d([]) if not enable_nodelocaldns else []) + nameservers | d([]) + cloud_resolver | d([]) + (configured_nameservers | d([]) if not disable_host_nameservers | d() | bool else [])) | unique | join(',') }}
+    supersede_nameserver:
+      supersede domain-name-servers {{ (([nodelocaldns_ip] if enable_nodelocaldns else []) + (coredns_server | d([]) if not enable_nodelocaldns else []) + nameservers | d([]) + cloud_resolver | d([]) + (configured_nameservers | d([]) if not disable_host_nameservers | d() | bool else [])) | unique | join(', ') }};
+  when: not dns_early or dns_late
+
+# This task should run instead of the above task when cluster/nodelocal DNS hasn't
+# been deployed yet (like scale.yml/cluster.yml) or when it's down (reset.yml)
+- name: Generate nameservers for resolvconf, not including cluster DNS
+  set_fact:
+    nameserverentries: |-
+      {{ (nameservers | d([]) + cloud_resolver | d([]) + configured_nameservers | d([])) | unique | join(',') }}
+    supersede_nameserver:
+      supersede domain-name-servers {{ (nameservers | d([]) + cloud_resolver | d([])) | unique | join(', ') }};
+  when: dns_early and not dns_late
+
+- name: Gather os specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower | replace('/', '_') }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower | replace('/', '_') }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+        - defaults.yml
+      paths:
+        - ../vars
+      skip: true
+
+- name: Set etcd vars if using kubeadm mode
+  set_fact:
+    etcd_cert_dir: "{{ kube_cert_dir }}"
+    kube_etcd_cacert_file: "etcd/ca.crt"
+    kube_etcd_cert_file: "apiserver-etcd-client.crt"
+    kube_etcd_key_file: "apiserver-etcd-client.key"
+  when:
+    - etcd_deployment_type == "kubeadm"
+
+- name: Check /usr readonly
+  stat:
+    path: "/usr"
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: usr
+
+- name: Set alternate flexvolume path
+  set_fact:
+    kubelet_flexvolumes_plugins_dir: /var/lib/kubelet/volumeplugins
+  when: not usr.stat.writeable

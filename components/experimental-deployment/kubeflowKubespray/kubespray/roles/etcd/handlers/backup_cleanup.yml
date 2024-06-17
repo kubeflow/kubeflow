@@ -1,0 +1,18 @@
+---
+- name: Find old etcd backups
+  ansible.builtin.find:
+    file_type: directory
+    recurse: false
+    paths: "{{ etcd_backup_prefix }}"
+    patterns: "etcd-*"
+  register: _etcd_backups
+  when: etcd_backup_retention_count >= 0
+  listen: Restart etcd
+
+- name: Remove old etcd backups
+  ansible.builtin.file:
+    state: absent
+    path: "{{ item }}"
+  loop: "{{ (_etcd_backups.files | sort(attribute='ctime', reverse=True))[etcd_backup_retention_count:] | map(attribute='path') }}"
+  when: etcd_backup_retention_count >= 0
+  listen: Restart etcd

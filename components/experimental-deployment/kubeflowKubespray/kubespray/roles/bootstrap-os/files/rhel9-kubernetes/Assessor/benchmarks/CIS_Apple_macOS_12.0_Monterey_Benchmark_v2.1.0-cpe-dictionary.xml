@@ -1,0 +1,7 @@
+<cpe-list xmlns="http://cpe.mitre.org/dictionary/2.0" xmlns:cpe-23="http://scap.nist.gov/schema/cpe-extension/2.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cpe.mitre.org/dictionary/2.0 http://cpe.mitre.org/files/cpe-dictionary_2.1.xsd">
+   <cpe-item name="cpe:/o:apple:mac_os_x:12.0">
+      <title xml:lang="en-US">Apple Mac OS X 12.0 is installed</title>
+      <check href="CIS_Apple_macOS_12.0_Monterey_Benchmark_v2.1.0-cpe-oval.xml" system="http://oval.mitre.org/XMLSchema/oval-definitions-5">oval:org.cisecurity.benchmarks.o_apple_mac_os_x:def:101</check>
+      <cpe-23:cpe23-item name="cpe:2.3:o:apple:mac_os_x:12.0.0:*:*:*:*:*:*:*"/>
+   </cpe-item>
+</cpe-list>

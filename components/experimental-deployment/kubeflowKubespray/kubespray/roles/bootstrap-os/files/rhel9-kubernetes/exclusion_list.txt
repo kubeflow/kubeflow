@@ -1,0 +1,71 @@
+###########################################
+# To exclude a recomendation from being   #
+# Implemented by the CIS Linux Build Kit  #
+# Please enter the recomendation number   #
+# of the recomendation you wish to        #
+# exclude on it's own line bellow         #
+###########################################
+
+# Example:
+# 2.2.2 # Exclude recommendation 2.2.2 - Ensure X Window System is not installed
+
+#keeping /tmp dir same partition
+1.1.2.1
+
+#keeping /var dir same partition
+1.1.3.1
+
+#keeping /var/tmp same partition
+1.1.4.1
+
+#keeping /var/log same partition
+1.1.5.1
+
+#keeping /var/log/audit same partition
+1.1.6.1
+
+#keeping /home same parittion
+1.1.7.1
+
+#keeping /dev/shm same partition
+1.1.8.1
+
+#login & remote banner being set by dombuild seems cis benchmarks check fail
+1.7.2
+1.7.3
+
+#Selinux enforcing
+1.6.1.5
+
+#Selinux unconfined
+1.6.1.6
+
+#FIXME EPEL internal repo, need to disable global repogpg check until then
+1.2.4
+
+#Network
+#Kubernetes needs to route/forward ip
+3.2.1
+3.4.1.2
+3.4.2.1
+3.4.2.4
+3.4.2.5
+3.4.2.6
+3.4.2.7
+
+#rsyslog
+#4.2.1.6
+#4.2.1.7
+#4.2.1.3
+
+#journald
+4.2.2.1.1
+4.2.2.1.2
+4.2.2.1.3
+
+#default don't receive rsyslogs
+#4.2.2.1.4
+
+#Don't use authselect if part of AD via SSSD
+5.4.1
+5.4.2

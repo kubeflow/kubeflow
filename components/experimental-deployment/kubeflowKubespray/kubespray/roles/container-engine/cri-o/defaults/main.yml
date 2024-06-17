@@ -1,0 +1,91 @@
+---
+
+crio_cgroup_manager: "{{ kubelet_cgroup_driver | default('systemd') }}"
+crio_conmon: "{{ bin_dir }}/conmon"
+crio_enable_metrics: false
+crio_log_level: "info"
+crio_metrics_port: "9090"
+crio_pause_image: "{{ pod_infra_image_repo }}:{{ pod_infra_version }}"
+
+# Registries defined within cri-o.
+# By default unqualified images are not allowed for security reasons
+crio_registries: []
+#  - prefix: docker.io
+#    insecure: false
+#    blocked: false
+#    location: registry-1.docker.io ## REQUIRED
+#    unqualified: false
+#    mirrors:
+#      - location: 172.20.100.52:5000
+#        insecure: true
+#      - location: mirror.gcr.io
+#        insecure: false
+
+crio_registry_auth: []
+#  - registry: 10.0.0.2:5000
+#    username: user
+#    password: pass
+
+crio_seccomp_profile: ""
+crio_selinux: "{{ (preinstall_selinux_state == 'enforcing') | lower }}"
+crio_signature_policy: "{% if ansible_os_family == 'ClearLinux' %}/usr/share/defaults/crio/policy.json{% endif %}"
+
+# Override system default for storage driver
+# crio_storage_driver: "overlay"
+
+crio_stream_port: "10010"
+
+crio_required_version: "{{ kube_version | regex_replace('^v(?P<major>\\d+).(?P<minor>\\d+).(?P<patch>\\d+)$', '\\g<major>.\\g<minor>') }}"
+
+# The crio_runtimes variable defines a list of OCI compatible runtimes.
+crio_runtimes:
+  - name: runc
+    path: "{{ bin_dir }}/runc"
+    type: oci
+    root: /run/runc
+
+# Kata Containers is an OCI runtime, where containers are run inside lightweight
+# VMs. Kata provides additional isolation towards the host, minimizing the host attack
+# surface and mitigating the consequences of containers breakout.
+kata_runtimes:
+  # Kata Containers with the default configured VMM
+  - name: kata-qemu
+    path: /usr/local/bin/containerd-shim-kata-qemu-v2
+    type: vm
+    root: /run/kata-containers
+    privileged_without_host_devices: true
+
+# crun is a fast and low-memory footprint OCI Container Runtime fully written in C.
+crun_runtime:
+  name: crun
+  path: "{{ bin_dir }}/crun"
+  type: oci
+  root: /run/crun
+
+# youki is an implementation of the OCI runtime-spec in Rust, similar to runc.
+youki_runtime:
+  name: youki
+  path: "{{ youki_bin_dir }}/youki"
+  type: oci
+  root: /run/youki
+
+# Reserve 16M uids and gids for user namespaces (256 pods * 65536 uids/gids)
+# at the end of the uid/gid space
+crio_remap_enable: false
+crio_remap_user: containers
+crio_subuid_start: 2130706432
+crio_subuid_length: 16777216
+crio_subgid_start: 2130706432
+crio_subgid_length: 16777216
+
+# cri-o manual files
+crio_man_files:
+  5:
+    - crio.conf
+    - crio.conf.d
+  8:
+    - crio
+    - crio-status
+
+# If set to true, it will enable the CRIU support in cri-o
+crio_criu_support_enabled: false

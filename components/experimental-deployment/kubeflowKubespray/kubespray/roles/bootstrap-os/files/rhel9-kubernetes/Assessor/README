@@ -1,0 +1,28 @@
+CIS-CAT Pro Assessor v4 README
+==============================
+
+Welcome to CIS-CAT Pro Assessor v4.  All user documentation, configuration guidance, change notes, and platform coverage information can be found at http://ccpa-docs.readthedocs.io/en/latest/
+
+Community feedback and suggestions for enhancements or new features may be entered in the CIS-CAT Discussion Community located at https://workbench.cisecurity.org/communities/30
+Member support requests can be made by creating a CIS Product Technical Support ticket at https://www.cisecurity.org/support/.
+
+Thank you for using CIS-CAT Pro Assessor v4!
+
+Security:
+
+The following third-party dependent libraries may appear on vulnerability reports. CIS-CAT implements a vulnerability scanning process during all build implementations. In some cases, it is necessary to suppress false positives or vulnerabilities caused by libraries pending updates by third parties.
+
+---------------------------------------------------------------------------
+jackson-databind 2.14.1
+---------------------------------------------------------------------------
+Currently suppressed and may appear on vulnerability reports. https://nvd.nist.gov/vuln/detail/CVE-2022-35116
+
+---------------------------------------------------------------------------
+okhttp-4.9.3.jar
+---------------------------------------------------------------------------
+Currently suppressed and may appear on vulnerability reports. This a medium severity vulnerability with no current fix available
+
+---------------------------------------------------------------------------
+okio-jvm-2.8.0.jar
+---------------------------------------------------------------------------
+Currently suppressed and may appear on vulnerability reports. This a high severity vulnerability with no current fix available

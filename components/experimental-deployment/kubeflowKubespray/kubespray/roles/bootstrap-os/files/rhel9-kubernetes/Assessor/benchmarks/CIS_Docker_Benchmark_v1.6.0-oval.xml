@@ -1,0 +1,932 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 https://oval.cisecurity.org/schemas/validator-oval-definitions-5.11.2.xsd">
+   <generator>
+      <oval:product_name>Center for Internet Security - Optimus</oval:product_name>
+      <oval:schema_version>5.11.2</oval:schema_version>
+      <oval:timestamp>2023-06-19T18:14:32.231Z</oval:timestamp>
+   </generator>
+   <definitions>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4087808" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for the Docker daemon</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.3_Ensure_auditing_is_configured_for_the_Docker_daemon" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.3_Ensure_auditing_is_configured_for_the_Docker_daemon"/>
+            <description>Ensure auditing is configured for the Docker daemon</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4087808"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061524" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /var/lib/docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.5_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_varlibdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.5_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_varlibdocker"/>
+            <description>Ensure auditing is configured for Docker files and directories - /var/lib/docker</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061524"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068835" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.6_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.6_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdocker"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/docker</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068835"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068836" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - docker.service</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.7_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.service" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.7_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.service"/>
+            <description>Ensure auditing is configured for Docker files and directories - docker.service</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068836"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068837" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - docker.service</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.7_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.service" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.7_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.service"/>
+            <description>Ensure auditing is configured for Docker files and directories - docker.service</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068837"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068838" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - containerd.sock</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.8_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_containerd.sock" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.8_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_containerd.sock"/>
+            <description>Ensure auditing is configured for Docker files and directories - containerd.sock</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068838"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068839" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - containerd.sock</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.8_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_containerd.sock" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.8_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_containerd.sock"/>
+            <description>Ensure auditing is configured for Docker files and directories - containerd.sock</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068839"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068840" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - docker.sock</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.9_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.sock" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.9_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.sock"/>
+            <description>Ensure auditing is configured for Docker files and directories - docker.sock</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068840"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068841" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - docker.sock</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.9_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.sock" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.9_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_docker.sock"/>
+            <description>Ensure auditing is configured for Docker files and directories - docker.sock</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068841"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4063024" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/default/docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.10_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdefaultdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.10_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdefaultdocker"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/default/docker</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4063024"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068842" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/default/docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.10_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdefaultdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.10_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdefaultdocker"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/default/docker</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068842"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068843" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.11_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdockerdaemon.json" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.11_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdockerdaemon.json"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068843"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068844" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.11_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdockerdaemon.json" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.11_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcdockerdaemon.json"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068844"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068845" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.12_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etccontainerdconfig.toml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.12_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etccontainerdconfig.toml"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068845"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068846" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.12_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etccontainerdconfig.toml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.12_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etccontainerdconfig.toml"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068846"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068847" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.13_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcsysconfigdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.13_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcsysconfigdocker"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068847"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4068848" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.13_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcsysconfigdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.13_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_etcsysconfigdocker"/>
+            <description>Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068848"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4063400" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.14_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.14_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4063400"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4087809" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.14_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.14_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4087809"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075400" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.15_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.15_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075400"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075401" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.15_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.15_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075401"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061363" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v1</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.16_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim-runc-v1" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.16_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim-runc-v1"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v1</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061363"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075876" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.17_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim-runc-v2" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.17_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim-runc-v2"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075876"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075877" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.17_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim-runc-v2" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.17_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbincontainerd-shim-runc-v2"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075877"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075878" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/runc</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.18_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbinrunc" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.18_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbinrunc"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/runc</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075878"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075879" version="1">
+         <metadata>
+            <title>Ensure auditing is configured for Docker files and directories - /usr/bin/runc</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.18_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbinrunc" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.18_Ensure_auditing_is_configured_for_Docker_files_and_directories_-_usrbinrunc"/>
+            <description>Ensure auditing is configured for Docker files and directories - /usr/bin/runc</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075879"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4062098" version="1">
+         <metadata>
+            <title>Ensure that the /etc/docker directory ownership is set to root:root</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.5_Ensure_that_the_etcdocker_directory_ownership_is_set_to_rootroot" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.5_Ensure_that_the_etcdocker_directory_ownership_is_set_to_rootroot"/>
+            <description>Ensure that the /etc/docker directory ownership is set to root:root</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4062098"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4062099" version="1">
+         <metadata>
+            <title>Ensure that /etc/docker directory permissions are set to 755 or more restrictively</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.6_Ensure_that_etcdocker_directory_permissions_are_set_to_755_or_more_restrictively" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.6_Ensure_that_etcdocker_directory_permissions_are_set_to_755_or_more_restrictively"/>
+            <description>Ensure that /etc/docker directory permissions are set to 755 or more restrictively</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4062099"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4075880" version="1">
+         <metadata>
+            <title>Ensure that the Docker socket file ownership is set to root:docker</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.15_Ensure_that_the_Docker_socket_file_ownership_is_set_to_rootdocker" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.15_Ensure_that_the_Docker_socket_file_ownership_is_set_to_rootdocker"/>
+            <description>Ensure that the Docker socket file ownership is set to root:docker</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075880"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061364" version="1">
+         <metadata>
+            <title>Ensure that the docker.service file ownership is set to root:root</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.1_Ensure_that_the_docker.service_file_ownership_is_set_to_rootroot" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.1_Ensure_that_the_docker.service_file_ownership_is_set_to_rootroot"/>
+            <description>Ensure that the docker.service file ownership is set to root:root</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061364"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061365" version="1">
+         <metadata>
+            <title>Ensure that docker.service file permissions are appropriately set</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.2_Ensure_that_docker.service_file_permissions_are_appropriately_set" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.2_Ensure_that_docker.service_file_permissions_are_appropriately_set"/>
+            <description>Ensure that docker.service file permissions are appropriately set</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061365"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061366" version="1">
+         <metadata>
+            <title>Ensure that docker.socket file ownership is set to root:root</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.3_Ensure_that_docker.socket_file_ownership_is_set_to_rootroot" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.3_Ensure_that_docker.socket_file_ownership_is_set_to_rootroot"/>
+            <description>Ensure that docker.socket file ownership is set to root:root</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061366"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061367" version="1">
+         <metadata>
+            <title>Ensure that docker.socket file permissions are set to 644 or more restrictive</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.4_Ensure_that_docker.socket_file_permissions_are_set_to_644_or_more_restrictive" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.4_Ensure_that_docker.socket_file_permissions_are_set_to_644_or_more_restrictive"/>
+            <description>Ensure that docker.socket file permissions are set to 644 or more restrictive</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061367"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061371" version="1">
+         <metadata>
+            <title>Ensure that the Docker socket file permissions are set to 660 or more restrictively</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.16_Ensure_that_the_Docker_socket_file_permissions_are_set_to_660_or_more_restrictively" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.16_Ensure_that_the_Docker_socket_file_permissions_are_set_to_660_or_more_restrictively"/>
+            <description>Ensure that the Docker socket file permissions are set to 660 or more restrictively</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061371"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061372" version="1">
+         <metadata>
+            <title>Ensure that the Containerd socket file ownership is set to root:root</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.23_Ensure_that_the_Containerd_socket_file_ownership_is_set_to_rootroot" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.23_Ensure_that_the_Containerd_socket_file_ownership_is_set_to_rootroot"/>
+            <description>Ensure that the Containerd socket file ownership is set to root:root</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061372"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061373" version="1">
+         <metadata>
+            <title>Ensure that the Containerd socket file permissions are set to 660 or more restrictively</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.24_Ensure_that_the_Containerd_socket_file_permissions_are_set_to_660_or_more_restrictively" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.24_Ensure_that_the_Containerd_socket_file_permissions_are_set_to_660_or_more_restrictively"/>
+            <description>Ensure that the Containerd socket file permissions are set to 660 or more restrictively</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061373"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061368" version="1">
+         <metadata>
+            <title>Ensure that the /etc/docker directory ownership is set to root:root</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.5_Ensure_that_the_etcdocker_directory_ownership_is_set_to_rootroot" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.5_Ensure_that_the_etcdocker_directory_ownership_is_set_to_rootroot"/>
+            <description>Ensure that the /etc/docker directory ownership is set to root:root</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061368"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:def:4061369" version="1">
+         <metadata>
+            <title>Ensure that /etc/docker directory permissions are set to 755 or more restrictively</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.6_Ensure_that_etcdocker_directory_permissions_are_set_to_755_or_more_restrictively" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.6_Ensure_that_etcdocker_directory_permissions_are_set_to_755_or_more_restrictively"/>
+            <description>Ensure that /etc/docker directory permissions are set to 755 or more restrictively</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061369"/>
+         </criteria>
+      </definition>
+   </definitions>
+   <tests>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure 'auditctl -l | grep /usr/bin/dockerd' output Pattern Match '\/usr\/bin\/dockerd' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4087808" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4087808"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4087808"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure 'auditctl -l | grep /var/lib/docker' output Pattern Match '\/var\/lib\/docker' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061524" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061524"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061524"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /etc/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068835" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068835"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068835"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - docker.service" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068836" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068836"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068836"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure docker.service exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068837" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068837"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068837"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - containerd.sock" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068838" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068838"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068838"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure containerd.sock exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068839" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068839"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068839"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - docker.socket" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068840" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068840"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068840"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure docker.socket exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068841" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068841"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068841"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /etc/default/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4063024" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4063024"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4063024"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Check if /etc/default/docker applicable" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068842" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068842"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068842"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068843" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068843"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068843"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Check existence of /etc/docker/daemon.json" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068844" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068844"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068844"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068845" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068845"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068845"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Check applicability of" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068846" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068846"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068846"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068847" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068847"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068847"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Check existence of /etc/sysconfig/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4068848" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068848"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068848"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Check existence of /usr/bin/containerd" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4063400" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4063400"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4063400"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure 'auditctl -l | grep /usr/bin/containerd' output Pattern Match '\/usr\/bin\/containerd' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4087809" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4087809"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4087809"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075400" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075400"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075400"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Verify /usr/bin/containerd-shim exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075401" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075401"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075401"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure 'auditctl -l | grep /usr/bin/containerd-shim-runc-v1' output Pattern Match '\/usr\/bin\/containerd-shim-runc-v1' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061363" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061363"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061363"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075876" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075876"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075876"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Audit `/usr/bin/containerd-shim-runc-v2` if applicable." id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075877" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075877"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075877"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/runc" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075878" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075878"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075878"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Audit `/usr/bin/runc` if applicable" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075879" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075879"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075879"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure that the /etc/docker directory ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4062098" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4062098"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4062098"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure that /etc/docker directory permissions are set to 755 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4062099" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4062099"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4062099"/>
+      </shellcommand_test>
+      <shellcommand_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" check="all" check_existence="at_least_one_exists" comment="Ensure that the Docker socket file ownership is set to root:docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4075880" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075880"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075880"/>
+      </shellcommand_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Ensure that the docker.service file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061364" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061364"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061364"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Ensure that docker.service file permissions are appropriately set" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061365" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061365"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061365"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Ensure that docker.socket file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061366" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061366"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061366"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="only one" check_existence="at_least_one_exists" comment="Ensure that docker.socket file permissions are set to 644 or more restrictive" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061367" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061367"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061367"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Ensure that the Docker socket file permissions are set to 660 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061371" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061371"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061371"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Ensure that the Containerd socket file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061372" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061372"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061372"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Ensure that the Containerd socket file permissions are set to 660 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061373" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061373"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061373"/>
+      </file_test>
+      <process58_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Ensure that the /etc/docker directory ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061368" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061368"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061368"/>
+      </process58_test>
+      <process58_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Ensure that /etc/docker directory permissions are set to 755 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:tst:4061369" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061369"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061369"/>
+      </process58_test>
+   </tests>
+   <objects>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /usr/bin/dockerd' output Pattern Match '\/usr\/bin\/dockerd' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4087808" version="1">
+         <command>auditctl -l | grep /usr/bin/dockerd</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /var/lib/docker' output Pattern Match '\/var\/lib\/docker' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061524" version="1">
+         <command>auditctl -l | grep /var/lib/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068835" version="1">
+         <command>auditctl -l | grep /etc/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - docker.service" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068836" version="1">
+         <command>auditctl -l | grep docker.service</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure docker.service exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068837" version="1">
+         <command>systemctl show -p FragmentPath docker.service</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - containerd.sock" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068838" version="1">
+         <command>auditctl -l | grep containerd.sock</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure containerd.sock exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068839" version="1">
+         <command>grep 'containerd.sock' /etc/containerd/config.toml</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - docker.socket" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068840" version="1">
+         <command>auditctl -l | grep docker.sock</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure docker.socket exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068841" version="1">
+         <command>systemctl show -p FragmentPath docker.socket</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/default/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4063024" version="1">
+         <command>auditctl -l | grep /etc/default/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check if /etc/default/docker applicable" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068842" version="1">
+         <command>ls /etc/default/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068843" version="1">
+         <command>auditctl -l | grep /etc/docker/daemon.json</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check existence of /etc/docker/daemon.json" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068844" version="1">
+         <command>ls /etc/docker/daemon.json</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068845" version="1">
+         <command>auditctl -l | grep /etc/containerd/config.toml</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check applicability of" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068846" version="1">
+         <command>ls /etc/containerd/config.toml</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068847" version="1">
+         <command>auditctl -l | grep /etc/sysconfig/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check existence of /etc/sysconfig/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4068848" version="1">
+         <command>ls -R /etc/sysconfig/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check existence of /usr/bin/containerd" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4063400" version="1">
+         <command>ls -R /usr/bin/containerd</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /usr/bin/containerd' output Pattern Match '\/usr\/bin\/containerd' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4087809" version="1">
+         <command>auditctl -l | grep /usr/bin/containerd</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075400" version="1">
+         <command>auditctl -l | grep /usr/bin/containerd-shim</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Verify /usr/bin/containerd-shim exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075401" version="1">
+         <command>ls -R /usr/bin/containerd-shim</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /usr/bin/containerd-shim-runc-v1' output Pattern Match '\/usr\/bin\/containerd-shim-runc-v1' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061363" version="1">
+         <command>auditctl -l | grep /usr/bin/containerd-shim-runc-v1</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075876" version="1">
+         <command>auditctl -l | grep /usr/bin/containerd-shim-runc-v2</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Audit `/usr/bin/containerd-shim-runc-v2` if applicable." id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075877" version="1">
+         <command>ls -R /usr/bin/containerd-shim-runc-v2</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/runc" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075878" version="1">
+         <command>auditctl -l | grep /usr/bin/runc</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Audit `/usr/bin/runc` if applicable" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075879" version="1">
+         <command>ls -R /usr/bin/runc</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure that the /etc/docker directory ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4062098" version="1">
+         <command>stat -c %U:%G /etc/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure that /etc/docker directory permissions are set to 755 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4062099" version="1">
+         <command>stat -c %a /etc/docker</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <shellcommand_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure that the Docker socket file ownership is set to root:docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4075880" version="1">
+         <command>stat -c %U:%G /var/run/docker.sock</command>
+         <line_selection operation="pattern match">.+</line_selection>
+      </shellcommand_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the docker.service file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061364" version="1">
+         <filepath>/usr/lib/systemd/system/docker.service</filepath>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that docker.service file permissions are appropriately set" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061365" version="1">
+         <filepath>/usr/lib/systemd/system/docker.service</filepath>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that docker.socket file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061366" version="1">
+         <filepath>/usr/lib/systemd/system/docker.socket</filepath>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that docker.socket file permissions are set to 644 or more restrictive" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061367" version="1">
+         <filepath>/usr/lib/systemd/system/docker.socket</filepath>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the Docker socket file permissions are set to 660 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061371" version="1">
+         <filepath>/var/run/docker.sock</filepath>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the Containerd socket file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061372" version="1">
+         <filepath>/run/containerd/containerd.sock</filepath>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the Containerd socket file permissions are set to 660 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061373" version="1">
+         <filepath>/run/containerd/containerd.sock</filepath>
+      </file_object>
+      <process58_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the /etc/docker directory ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061368" version="1">
+         <command_line operation="pattern match">stat -c %U:%G /etc/docker</command_line>
+         <pid datatype="int" operation="greater than">0</pid>
+      </process58_object>
+      <process58_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that /etc/docker directory permissions are set to 755 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:obj:4061369" version="1">
+         <command_line operation="pattern match">stat -c %a /etc/docker</command_line>
+         <pid datatype="int" operation="greater than">0</pid>
+      </process58_object>
+   </objects>
+   <states>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /usr/bin/dockerd' output Pattern Match '\/usr\/bin\/dockerd' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4087808" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4087808"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /var/lib/docker' output Pattern Match '\/var\/lib\/docker' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061524" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4061524"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068835" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068835"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - docker.service" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068836" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068836"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure docker.service exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068837" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068837"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - containerd.sock" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068838" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068838"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure containerd.sock exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068839" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068839"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - docker.socket" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068840" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068840"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure docker.socket exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068841" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068841"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/default/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4063024" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4063024"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check if /etc/default/docker applicable" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068842" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068842"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068843" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068843"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check existence of /etc/docker/daemon.json" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068844" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068844"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068845" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068845"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check applicability of" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068846" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068846"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068847" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068847"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check existence of /etc/sysconfig/docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4068848" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068848"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Check existence of /usr/bin/containerd" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4063400" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4063400"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /usr/bin/containerd' output Pattern Match '\/usr\/bin\/containerd' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4087809" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4087809"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075400" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075400"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Verify /usr/bin/containerd-shim exists" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075401" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075401"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure 'auditctl -l | grep /usr/bin/containerd-shim-runc-v1' output Pattern Match '\/usr\/bin\/containerd-shim-runc-v1' (string)" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061363" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4061363"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075876" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075876"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Audit `/usr/bin/containerd-shim-runc-v2` if applicable." id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075877" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075877"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure auditing is configured for Docker files and directories - /usr/bin/runc" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075878" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075878"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Audit `/usr/bin/runc` if applicable" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075879" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075879"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure that the /etc/docker directory ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4062098" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4062098"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure that /etc/docker directory permissions are set to 755 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4062099" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4062099"/>
+      </shellcommand_state>
+      <shellcommand_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" comment="Ensure that the Docker socket file ownership is set to root:docker" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4075880" version="1">
+         <stdout_line entity_check="at least one" operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075880"/>
+      </shellcommand_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the docker.service file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061364" version="1">
+         <group_id datatype="int">0</group_id>
+         <user_id datatype="int">0</user_id>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that docker.service file permissions are appropriately set" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061365" version="1">
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">true</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">true</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that docker.socket file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061366" version="1">
+         <group_id datatype="int">0</group_id>
+         <user_id datatype="int">0</user_id>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that docker.socket file permissions are set to 644 or more restrictive" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061367" version="1">
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">true</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">true</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the Docker socket file permissions are set to 660 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061371" version="1">
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">true</gread>
+         <gwrite datatype="boolean">true</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the Containerd socket file ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061372" version="1">
+         <group_id datatype="int">0</group_id>
+         <user_id datatype="int">0</user_id>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the Containerd socket file permissions are set to 660 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061373" version="1">
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">true</gread>
+         <gwrite datatype="boolean">true</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <process58_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that the /etc/docker directory ownership is set to root:root" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061368" version="1">
+         <command_line datatype="string" operation="pattern match">root:root</command_line>
+      </process58_state>
+      <process58_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure that /etc/docker directory permissions are set to 755 or more restrictively" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:ste:4061369" version="1">
+         <command_line datatype="string" operation="pattern match">755</command_line>
+      </process58_state>
+   </states>
+   <variables>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for the Docker daemon" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4087808" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /var/lib/docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4061524" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068835" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - docker.service" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068836" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - docker.service" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068837" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - containerd.sock" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068838" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - containerd.sock" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068839" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - docker.sock" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068840" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - docker.sock" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068841" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/default/docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4063024" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/default/docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068842" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068843" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068844" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068845" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068846" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068847" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4068848" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4063400" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4087809" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075400" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075401" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v1" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4061363" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075876" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075877" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/runc" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075878" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure auditing is configured for Docker files and directories - /usr/bin/runc" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075879" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure that the /etc/docker directory ownership is set to root:root" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4062098" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure that /etc/docker directory permissions are set to 755 or more restrictively" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4062099" version="1"/>
+      <external_variable comment="This value is used in Rule: Ensure that the Docker socket file ownership is set to root:docker" datatype="string" id="oval:org.cisecurity.benchmarks.kubernetes_kubernetes_1:var:4075880" version="1"/>
+   </variables>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>7jZZ3AFzn7f06SIQEAWoKF6g1R0=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+ApJ+2j375Qw9XZc7n6k0VUEd5wXSlcNZi5Z/MfdXf5lgWYd4CqDNlNJXbZhpbgl5bPYppMMNfYil
+5vZ0SzrlbOlSQCbXHRxT3xbg8+etsX2x9LhqRrktfAqfQsxje8EDTNxToEgm5a/0jtWvcQhZO1n6
+H5sH1ow3dXgPDHQW3TtWT12gJdqM68SB4yG9Dk4Kj3qDSbc/AR/MSD9MuOeKr/DVRz3MbyCvDp5j
+5kvNmGTVhJblevnsrpIDlzTWFe4RV5sEtZgVfiek/C6wEKiAlX9s63Ya6SKDV2x7Nb+klS6kfbbD
+8onkbCtf+QCWi5fR5cP3wyx3kOA8KqIB27okcA==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></oval_definitions>

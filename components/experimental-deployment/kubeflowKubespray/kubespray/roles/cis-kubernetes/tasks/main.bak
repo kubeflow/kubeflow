@@ -1,0 +1,46 @@
+- name: Set permissions to 600 for etcd.yaml
+  ansible.builtin.file:
+    path: /etc/kubernetes/manifests/etcd.yaml
+    mode: "0600"
+  ignore_errors: yes
+
+- name: Change ownership of etcd.yaml
+  ansible.builtin.file:
+    path: /etc/kubernetes/manifests/etcd.yaml
+    owner: root
+    group: root
+  ignore_errors: yes
+
+- name: Set permissions to 700 for /var/lib/etcd
+  ansible.builtin.file:
+    path: /var/lib/etcd
+    mode: "0700"
+  ignore_errors: yes
+
+- name: Change ownership of /var/lib/etcd
+  ansible.builtin.file:
+    path: /var/lib/etcd
+    owner: etcd
+    group: etcd
+  ignore_errors: yes
+
+
+      #- name: Replace --anonymous-auth=True with --anonymous-auth=False
+      #  ansible.builtin.replace:
+      # path: /etc/kubernetes/manifests/kube-apiserver.yaml
+      #regexp: '--anonymous-auth=True'
+      #replace: '--anonymous-auth=False'
+
+- name: Change bind Address for scheduler
+  replace:
+    path: /etc/kubernetes/manifests/kube-scheduler.yaml
+    regexp: '--bind-address=0.0.0.0'
+    replace: '--bind-address=127.0.0.1'
+  ignore_errors: yes
+
+- name: Change bind Address for scheduler
+  replace:
+    path: /etc/kubernetes/manifests/kube-controller-manager.yaml
+    regexp: '--bind-address=0.0.0.0'
+    replace: '--bind-address=127.0.0.1'
+  ignore_errors: yes

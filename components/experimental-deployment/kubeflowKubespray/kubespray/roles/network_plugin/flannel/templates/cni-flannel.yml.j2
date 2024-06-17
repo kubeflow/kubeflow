@@ -1,0 +1,170 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kube-flannel-cfg
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+data:
+  cni-conf.json: |
+    {
+      "name": "cbr0",
+      "cniVersion": "0.3.1",
+      "plugins": [
+        {
+          "type": "flannel",
+          "delegate": {
+            "hairpinMode": true,
+            "isDefaultGateway": true
+          }
+        },
+        {
+          "type": "portmap",
+          "capabilities": {
+            "portMappings": true
+          }
+        }
+      ]
+    }
+  net-conf.json: |
+    {
+      "Network": "{{ kube_pods_subnet }}",
+      "EnableIPv4": true,
+{%   if enable_dual_stack_networks %}
+      "EnableIPv6": true,
+      "IPv6Network": "{{ kube_pods_subnet_ipv6 }}",
+{%   endif %}
+      "Backend": {
+        "Type": "{{ flannel_backend_type }}"{% if flannel_backend_type == "vxlan" %},
+        "VNI": {{ flannel_vxlan_vni }},
+        "Port": {{ flannel_vxlan_port }},
+        "DirectRouting": {{ flannel_vxlan_direct_routing | to_json }}
+{% endif %}
+      }
+    }
+{% for arch in ['amd64', 'arm64', 'arm', 'ppc64le', 's390x'] %}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+{% if arch == 'amd64' %}
+  name: kube-flannel
+{% else %}
+  name: kube-flannel-ds-{{ arch }}
+{% endif %}
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccountName: flannel
+      containers:
+      - name: kube-flannel
+        image: {{ flannel_image_repo }}:{{ flannel_image_tag }}
+        imagePullPolicy: {{ k8s_image_pull_policy }}
+        resources:
+          limits:
+            cpu: {{ flannel_cpu_limit }}
+            memory: {{ flannel_memory_limit }}
+          requests:
+            cpu: {{ flannel_cpu_requests }}
+            memory: {{ flannel_memory_requests }}
+        command: [ "/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr"{% if flannel_interface is defined %}, "--iface={{ flannel_interface }}"{% endif %}{% if flannel_interface_regexp is defined %}, "--iface-regex={{ flannel_interface_regexp }}"{% endif %} ]
+        securityContext:
+          privileged: false
+          capabilities:
+            add: ["NET_ADMIN", "NET_RAW"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: EVENT_QUEUE_DEPTH
+          value: "5000"
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+        - name: xtables-lock
+          mountPath: /run/xtables.lock
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - {{ arch }}
+      initContainers:
+      - name: install-cni-plugin
+        image: {{ flannel_init_image_repo }}:{{ flannel_init_image_tag }}
+        command:
+        - cp
+        args:
+        - -f
+        - /flannel
+        - /opt/cni/bin/flannel
+        volumeMounts:
+        - name: cni-plugin
+          mountPath: /opt/cni/bin
+      - name: install-cni
+        image: {{ flannel_image_repo }}:{{ flannel_image_tag }}
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+      - operator: Exists
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+        - name: xtables-lock
+          hostPath:
+            path: /run/xtables.lock
+            type: FileOrCreate
+        - name: cni-plugin
+          hostPath:
+            path: /opt/cni/bin
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: {{ serial | default('20%') }}
+    type: RollingUpdate
+{% endfor %}

@@ -1,0 +1,128 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:ind="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" xmlns:macos="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:unix="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/oval-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-common-5 https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/oval-common-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#macos https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/macos-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#unix https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/unix-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#independent https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/independent-definitions-schema.xsd">
+   <generator>
+      <oval:product_name>Center for Internet Security</oval:product_name>
+      <oval:schema_version>5.11.2</oval:schema_version>
+      <oval:timestamp>2019-05-19T20:43:54+00:00</oval:timestamp>
+   </generator>
+   <definitions>
+      <definition class="inventory" id="oval:org.cisecurity.benchmarks.o_apple_mac_os_x:def:101" version="42">
+         <metadata>
+            <title>Apple Mac OS X 12.0 is installed</title>
+            <affected family="macos">
+               <platform>Apple Mac OS X</platform>
+            </affected>
+            <reference ref_id="cpe:/o:apple:mac_os_x:12.0" source="CPE"/>
+            <description>The operating system installed on the system is Apple Mac OS X 12.0.</description>
+            <oval_repository>
+               <dates>
+                  <submitted date="2011-02-03T13:00:00">
+                     <contributor organization="The MITRE Corporation">Dan Haynes</contributor>
+                  </submitted>
+                  <status_change date="2011-02-15T14:24:54.776-05:00">DRAFT</status_change>
+                  <status_change date="2011-03-07T04:00:10.291-05:00">INTERIM</status_change>
+                  <status_change date="2011-03-28T04:00:08.823-04:00">ACCEPTED</status_change>
+                  <modified comment="EDITED oval:org.mitre.oval:def:12551 - Modifications vary from minor OVAL title/description changes to suggesting an alternative CPE name to use." date="2011-09-28T11:29:00.976-04:00">
+                     <contributor organization="The MITRE Corporation">David Rothenberg</contributor>
+                  </modified>
+                  <status_change date="2011-09-28T11:33:32.218-04:00">INTERIM</status_change>
+                  <status_change date="2011-10-17T04:00:10.456-04:00">ACCEPTED</status_change>
+               </dates>
+               <status>ACCEPTED</status>
+               <min_schema_version>5.3</min_schema_version>
+            </oval_repository>
+         </metadata>
+         <criteria operator="AND">
+            <criterion comment="The Installed Operating System is Part of the Mac OS Family" test_ref="oval:org.mitre.oval:tst:424761"/>
+            <criterion comment="Apple Mac OS X version is less than 10.16.0" test_ref="oval:org.mitre.oval:tst:42476"/>
+         </criteria>
+      </definition>
+   </definitions>
+   <tests>
+      <plist_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" check="all" check_existence="only_one_exists" comment="The Installed Operating System is Part of the Mac OS Family" id="oval:org.mitre.oval:tst:424761" version="2">
+         <object object_ref="oval:org.mitre.oval:obj:155161"/>
+         <state state_ref="oval:org.mitre.oval:ste:116321"/>
+      </plist_test>
+      <plist_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" check="all" check_existence="only_one_exists" comment="Apple Mac OS X version is less than 10.16.0" id="oval:org.mitre.oval:tst:42476" version="2">
+         <object object_ref="oval:org.mitre.oval:obj:15516"/>
+         <state state_ref="oval:org.mitre.oval:ste:11632"/>
+      </plist_test>
+   </tests>
+   <objects>
+      <plist_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" comment="The OSX product version plist object." id="oval:org.mitre.oval:obj:155161" version="1">
+         <key>ProductName</key>
+         <filepath>/System/Library/CoreServices/SystemVersion.plist</filepath>
+      </plist_object>
+      <plist_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" comment="The OSX product version plist object." id="oval:org.mitre.oval:obj:15516" version="1">
+         <key>ProductVersion</key>
+         <filepath>/System/Library/CoreServices/SystemVersion.plist</filepath>
+      </plist_object>
+   </objects>
+   <states>
+      <plist_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" comment="The value is less than '11.1.0'." id="oval:org.mitre.oval:ste:116321" version="1">
+         <value datatype="string" operation="equals">macOS</value>
+      </plist_state>
+      <plist_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#macos" comment="The value is less than '11.1.0'." id="oval:org.mitre.oval:ste:11632" version="1">
+         <value datatype="version" operation="less than">13.0.0</value>
+      </plist_state>
+   </states>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>jvzGtXZhywxPUK/eRUsc1duMhgY=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+nNY+dkxm2OOb/XYdRs6wtv6Qq4BvdHzYncD3hMwfcdDZ4RUVl1YLslYpsUv0xVuPxAB9hc2Pjn4+
+cPgo48ICkXN82MCqtS9FlrNtoK+f+Q2SCSZKpl7U/olduvrFbkE/KdKg9Qofz8Tux0mv7jzhjqCj
+iNoT9VEhqJGZMzgEAeQTpif+BGmMICQSVR5rb8r+S8tu8FLuX34PGoNzJAgKlWBjTHJdUbrMf4Wq
+CGYk/jBuDM9ZEPYsnInY7J4hg6T9pWazjL6NdPDxLGae1wah6wdcnbB41d9WSnEF6A7hc2lP8QD+
+XEvZ9B7wwFMyKzm/t90+FTtFOB2rWv17sLVNDg==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></oval_definitions>

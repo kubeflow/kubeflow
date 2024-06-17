@@ -1,0 +1,23 @@
+---
+role_name_check: 1
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+platforms:
+  - name: adduser-01
+    box: generic/ubuntu2004
+    cpus: 1
+    memory: 512
+    provider_options:
+      driver: kvm
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: profile_tasks
+      timeout: 120
+verifier:
+  name: testinfra

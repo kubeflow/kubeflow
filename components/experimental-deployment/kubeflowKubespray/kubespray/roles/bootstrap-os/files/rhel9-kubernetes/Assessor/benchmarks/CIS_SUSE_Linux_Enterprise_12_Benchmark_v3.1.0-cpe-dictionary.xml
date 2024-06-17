@@ -1,0 +1,7 @@
+<cpe-list xmlns="http://cpe.mitre.org/dictionary/2.0" xmlns:cpe-23="http://scap.nist.gov/schema/cpe-extension/2.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cpe.mitre.org/dictionary/2.0 http://cpe.mitre.org/files/cpe-dictionary_2.1.xsd">
+  <cpe-item name="cpe:/o:suse:suse_linux_enterprise_server:12">
+    <title xml:lang="en-US">SUSE Linux Enterprise 12 is installed</title>
+    <check href="CIS_SUSE_Linux_Enterprise_12_Benchmark_v3.1.0-cpe-oval.xml" system="http://oval.mitre.org/XMLSchema/oval-definitions-5">oval:org.cisecurity.benchmarks.o_suse_suse_linux_enterprise_server:def:101</check>
+    <cpe-23:cpe23-item name="cpe:2.3:o:suse:suse_linux_enterprise_server:12*:*:*:*:*:*:*:*"/>
+  </cpe-item>
+</cpe-list>

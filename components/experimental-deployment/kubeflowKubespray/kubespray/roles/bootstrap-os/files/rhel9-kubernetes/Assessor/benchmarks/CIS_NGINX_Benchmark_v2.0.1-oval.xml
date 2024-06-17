@@ -1,0 +1,898 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 https://oval.cisecurity.org/schemas/validator-oval-definitions-5.11.2.xsd">
+   <generator>
+      <oval:product_name>Center for Internet Security - Optimus</oval:product_name>
+      <oval:schema_version>5.11.2</oval:schema_version>
+      <oval:timestamp>2023-06-15T20:18:45.693Z</oval:timestamp>
+   </generator>
+   <definitions>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072439" version="1">
+         <metadata>
+            <title>Ensure NGINX is installed</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_1.1.1_Ensure_NGINX_is_installed" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_1.1.1_Ensure_NGINX_is_installed"/>
+            <description>Ensure NGINX is installed</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072439"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072445" version="1">
+         <metadata>
+            <title>Ensure the autoindex module is disabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.1.4_Ensure_the_autoindex_module_is_disabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.1.4_Ensure_the_autoindex_module_is_disabled"/>
+            <description>Ensure the autoindex module is disabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072445"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072446" version="1">
+         <metadata>
+            <title>Ensure the autoindex module is disabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.1.4_Ensure_the_autoindex_module_is_disabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.1.4_Ensure_the_autoindex_module_is_disabled"/>
+            <description>Ensure the autoindex module is disabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072446"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072457" version="1">
+         <metadata>
+            <title>Ensure access to NGINX directories and files is restricted</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.3.2_Ensure_access_to_NGINX_directories_and_files_is_restricted" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.3.2_Ensure_access_to_NGINX_directories_and_files_is_restricted"/>
+            <description>Ensure access to NGINX directories and files is restricted</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072457"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072466" version="1">
+         <metadata>
+            <title>Ensure requests for unknown host names are rejected</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.4.2_Ensure_requests_for_unknown_host_names_are_rejected" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.4.2_Ensure_requests_for_unknown_host_names_are_rejected"/>
+            <description>Ensure requests for unknown host names are rejected</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072466"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072470" version="1">
+         <metadata>
+            <title>Ensure keepalive_timeout is 10 seconds or less, but not 0</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.4.3_Ensure_keepalive_timeout_is_10_seconds_or_less_but_not_0" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.4.3_Ensure_keepalive_timeout_is_10_seconds_or_less_but_not_0"/>
+            <description>Ensure keepalive_timeout is 10 seconds or less, but not 0</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072470"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072471" version="1">
+         <metadata>
+            <title>Ensure send_timeout is set to 10 seconds or less, but not 0</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.4.4_Ensure_send_timeout_is_set_to_10_seconds_or_less_but_not_0" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.4.4_Ensure_send_timeout_is_set_to_10_seconds_or_less_but_not_0"/>
+            <description>Ensure send_timeout is set to 10 seconds or less, but not 0</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072471"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072436" version="1">
+         <metadata>
+            <title>Ensure access logging is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.2_Ensure_access_logging_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.2_Ensure_access_logging_is_enabled"/>
+            <description>Ensure access logging is enabled</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072436"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072437" version="1">
+         <metadata>
+            <title>Ensure error logging is enabled and set to the info logging level</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.3_Ensure_error_logging_is_enabled_and_set_to_the_info_logging_level" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.3_Ensure_error_logging_is_enabled_and_set_to_the_info_logging_level"/>
+            <description>Ensure error logging is enabled and set to the info logging level</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072437"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072444" version="1">
+         <metadata>
+            <title>Ensure private key permissions are restricted</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.3_Ensure_private_key_permissions_are_restricted" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.3_Ensure_private_key_permissions_are_restricted"/>
+            <description>Ensure private key permissions are restricted</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072444"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072447" version="1">
+         <metadata>
+            <title>Ensure only modern TLS protocols are used</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.4_Ensure_only_modern_TLS_protocols_are_used" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.4_Ensure_only_modern_TLS_protocols_are_used"/>
+            <description>Ensure only modern TLS protocols are used</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072447"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072449" version="1">
+         <metadata>
+            <title>Ensure only modern TLS protocols are used</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.4_Ensure_only_modern_TLS_protocols_are_used" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.4_Ensure_only_modern_TLS_protocols_are_used"/>
+            <description>Ensure only modern TLS protocols are used</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072449"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072452" version="1">
+         <metadata>
+            <title>Ensure custom Diffie-Hellman parameters are used</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.6_Ensure_custom_Diffie-Hellman_parameters_are_used" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.6_Ensure_custom_Diffie-Hellman_parameters_are_used"/>
+            <description>Ensure custom Diffie-Hellman parameters are used</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072452"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072455" version="1">
+         <metadata>
+            <title>Ensure Online Certificate Status Protocol (OCSP) stapling is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.7_Ensure_Online_Certificate_Status_Protocol_OCSP_stapling_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.7_Ensure_Online_Certificate_Status_Protocol_OCSP_stapling_is_enabled"/>
+            <description>Ensure Online Certificate Status Protocol (OCSP) stapling is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072455"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072456" version="1">
+         <metadata>
+            <title>Ensure Online Certificate Status Protocol (OCSP) stapling is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.7_Ensure_Online_Certificate_Status_Protocol_OCSP_stapling_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.7_Ensure_Online_Certificate_Status_Protocol_OCSP_stapling_is_enabled"/>
+            <description>Ensure Online Certificate Status Protocol (OCSP) stapling is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072456"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072458" version="1">
+         <metadata>
+            <title>Ensure HTTP Strict Transport Security (HSTS) is enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.8_Ensure_HTTP_Strict_Transport_Security_HSTS_is_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.8_Ensure_HTTP_Strict_Transport_Security_HSTS_is_enabled"/>
+            <description>Ensure HTTP Strict Transport Security (HSTS) is enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072458"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072459" version="1">
+         <metadata>
+            <title>Ensure upstream server traffic is authenticated with a client certificate</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.9_Ensure_upstream_server_traffic_is_authenticated_with_a_client_certificate" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.9_Ensure_upstream_server_traffic_is_authenticated_with_a_client_certificate"/>
+            <description>Ensure upstream server traffic is authenticated with a client certificate</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072459"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072461" version="1">
+         <metadata>
+            <title>Ensure upstream server traffic is authenticated with a client certificate</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.9_Ensure_upstream_server_traffic_is_authenticated_with_a_client_certificate" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.9_Ensure_upstream_server_traffic_is_authenticated_with_a_client_certificate"/>
+            <description>Ensure upstream server traffic is authenticated with a client certificate</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072461"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072462" version="1">
+         <metadata>
+            <title>Ensure the upstream traffic server certificate is trusted</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.10_Ensure_the_upstream_traffic_server_certificate_is_trusted" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.10_Ensure_the_upstream_traffic_server_certificate_is_trusted"/>
+            <description>Ensure the upstream traffic server certificate is trusted</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072462"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072464" version="1">
+         <metadata>
+            <title>Ensure the upstream traffic server certificate is trusted</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.10_Ensure_the_upstream_traffic_server_certificate_is_trusted" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.10_Ensure_the_upstream_traffic_server_certificate_is_trusted"/>
+            <description>Ensure the upstream traffic server certificate is trusted</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072464"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072465" version="1">
+         <metadata>
+            <title>Ensure session resumption is disabled to enable perfect forward security</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.12_Ensure_session_resumption_is_disabled_to_enable_perfect_forward_security" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.12_Ensure_session_resumption_is_disabled_to_enable_perfect_forward_security"/>
+            <description>Ensure session resumption is disabled to enable perfect forward security</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072465"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072469" version="1">
+         <metadata>
+            <title>Ensure HTTP/2.0 is used</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.13_Ensure_HTTP2.0_is_used" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.13_Ensure_HTTP2.0_is_used"/>
+            <description>Ensure HTTP/2.0 is used</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072469"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072467" version="1">
+         <metadata>
+            <title>Ensure timeout values for reading the client header and body are set correctly</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.2.1_Ensure_timeout_values_for_reading_the_client_header_and_body_are_set_correctly" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.2.1_Ensure_timeout_values_for_reading_the_client_header_and_body_are_set_correctly"/>
+            <description>Ensure timeout values for reading the client header and body are set correctly</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072467"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072468" version="1">
+         <metadata>
+            <title>Ensure timeout values for reading the client header and body are set correctly</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.2.1_Ensure_timeout_values_for_reading_the_client_header_and_body_are_set_correctly" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.2.1_Ensure_timeout_values_for_reading_the_client_header_and_body_are_set_correctly"/>
+            <description>Ensure timeout values for reading the client header and body are set correctly</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072468"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072472" version="1">
+         <metadata>
+            <title>Ensure the maximum request body size is set correctly</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.2.2_Ensure_the_maximum_request_body_size_is_set_correctly" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.2.2_Ensure_the_maximum_request_body_size_is_set_correctly"/>
+            <description>Ensure the maximum request body size is set correctly</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072472"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072474" version="1">
+         <metadata>
+            <title>Ensure the maximum buffer size for URIs is defined</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.2.3_Ensure_the_maximum_buffer_size_for_URIs_is_defined" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.2.3_Ensure_the_maximum_buffer_size_for_URIs_is_defined"/>
+            <description>Ensure the maximum buffer size for URIs is defined</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072474"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072477" version="1">
+         <metadata>
+            <title>Ensure X-Frame-Options header is configured and enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.3.1_Ensure_X-Frame-Options_header_is_configured_and_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.3.1_Ensure_X-Frame-Options_header_is_configured_and_enabled"/>
+            <description>Ensure X-Frame-Options header is configured and enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072477"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072479" version="1">
+         <metadata>
+            <title>Ensure X-Content-Type-Options header is configured and enabled</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_5.3.2_Ensure_X-Content-Type-Options_header_is_configured_and_enabled" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_5.3.2_Ensure_X-Content-Type-Options_header_is_configured_and_enabled"/>
+            <description>Ensure X-Content-Type-Options header is configured and enabled</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072479"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072451" version="1">
+         <metadata>
+            <title>Ensure the NGINX service account has an invalid shell</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.2.3_Ensure_the_NGINX_service_account_has_an_invalid_shell" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.2.3_Ensure_the_NGINX_service_account_has_an_invalid_shell"/>
+            <description>Ensure the NGINX service account has an invalid shell</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072451"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072453" version="1">
+         <metadata>
+            <title>Ensure the NGINX service account has an invalid shell</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.2.3_Ensure_the_NGINX_service_account_has_an_invalid_shell" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.2.3_Ensure_the_NGINX_service_account_has_an_invalid_shell"/>
+            <description>Ensure the NGINX service account has an invalid shell</description>
+         </metadata>
+         <criteria negate="true" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072453"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072454" version="1">
+         <metadata>
+            <title>Ensure NGINX directories and files are owned by root</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.3.1_Ensure_NGINX_directories_and_files_are_owned_by_root" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.3.1_Ensure_NGINX_directories_and_files_are_owned_by_root"/>
+            <description>Ensure NGINX directories and files are owned by root</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072454"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072460" version="1">
+         <metadata>
+            <title>Ensure access to NGINX directories and files is restricted</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.3.2_Ensure_access_to_NGINX_directories_and_files_is_restricted" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.3.2_Ensure_access_to_NGINX_directories_and_files_is_restricted"/>
+            <description>Ensure access to NGINX directories and files is restricted</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072460"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072463" version="1">
+         <metadata>
+            <title>Ensure the NGINX process ID (PID) file is secured</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.3.3_Ensure_the_NGINX_process_ID_PID_file_is_secured" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.3.3_Ensure_the_NGINX_process_ID_PID_file_is_secured"/>
+            <description>Ensure the NGINX process ID (PID) file is secured</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072463"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072473" version="1">
+         <metadata>
+            <title>Ensure server_tokens directive is set to `off`</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.5.1_Ensure_server_tokens_directive_is_set_to_off" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.5.1_Ensure_server_tokens_directive_is_set_to_off"/>
+            <description>Ensure server_tokens directive is set to `off`</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072473"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072475" version="1">
+         <metadata>
+            <title>Ensure default error and index.html pages do not reference NGINX</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.5.2_Ensure_default_error_and_index.html_pages_do_not_reference_NGINX" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.5.2_Ensure_default_error_and_index.html_pages_do_not_reference_NGINX"/>
+            <description>Ensure default error and index.html pages do not reference NGINX</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072475"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072476" version="1">
+         <metadata>
+            <title>Ensure default error and index.html pages do not reference NGINX</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.5.2_Ensure_default_error_and_index.html_pages_do_not_reference_NGINX" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.5.2_Ensure_default_error_and_index.html_pages_do_not_reference_NGINX"/>
+            <description>Ensure default error and index.html pages do not reference NGINX</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072476"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072478" version="1">
+         <metadata>
+            <title>Ensure the NGINX reverse proxy does not enable information disclosure</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.5.4_Ensure_the_NGINX_reverse_proxy_does_not_enable_information_disclosure" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.5.4_Ensure_the_NGINX_reverse_proxy_does_not_enable_information_disclosure"/>
+            <description>Ensure the NGINX reverse proxy does not enable information disclosure</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072478"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072480" version="1">
+         <metadata>
+            <title>Ensure the NGINX reverse proxy does not enable information disclosure</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.5.4_Ensure_the_NGINX_reverse_proxy_does_not_enable_information_disclosure" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.5.4_Ensure_the_NGINX_reverse_proxy_does_not_enable_information_disclosure"/>
+            <description>Ensure the NGINX reverse proxy does not enable information disclosure</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072480"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072438" version="1">
+         <metadata>
+            <title>Ensure log files are rotated</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.4_Ensure_log_files_are_rotated" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.4_Ensure_log_files_are_rotated"/>
+            <description>Ensure log files are rotated</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072438"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072440" version="1">
+         <metadata>
+            <title>Ensure log files are rotated</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.4_Ensure_log_files_are_rotated" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.4_Ensure_log_files_are_rotated"/>
+            <description>Ensure log files are rotated</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072440"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:def:4072442" version="1">
+         <metadata>
+            <title>Ensure a trusted certificate and trust chain is installed</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1.2_Ensure_a_trusted_certificate_and_trust_chain_is_installed" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1.2_Ensure_a_trusted_certificate_and_trust_chain_is_installed"/>
+            <description>Ensure a trusted certificate and trust chain is installed</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072442"/>
+         </criteria>
+      </definition>
+   </definitions>
+   <tests>
+      <rpminfo_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux" check="all" check_existence="at_least_one_exists" comment="Ensure package name equals 'nginx' is installed" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072439" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072439"/>
+      </rpminfo_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*autoindex\h+off\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072445" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072445"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="none_exist" comment="Ensure no file(s) named .+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*autoindex\+on;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072446" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072446"/>
+      </textfilecontent54_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="any_exist" comment="Ensure any file(s) named ^.*$ in /etc/nginx/ exists and does not have permissions --x--xrwx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072457" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072457"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072457"/>
+      </file_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*server\s+\{\s*return\h+4\d{2}\h*;.*\s*\}.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072466" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072466"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="any_exist" comment="Ensure any file(s) named ^(?i)\S+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\s*keepalive_timeout\s+(10|[1-9])\;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072470" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072470"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^(?i)\S+\.conf$ in /etc/nginx exists and matches pattern (?I)^\h*send_timeout\h+(10|[1-9])\;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072471" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072471"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.*$ in /etc/nginx exists and does not match pattern (?i)^\h*access_log\\b" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072436" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072436"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*error_log\h+\/([^#\n\r]+\h+)+info\b(\h*#.*)?$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072437" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072437"/>
+      </textfilecontent54_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="any_exist" comment="Ensure any file(s) named ^.+\.key$ in /etc/nginx/ exists and is owned by group 0 and does not have permissions -wxrwxrwx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072444" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072444"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072444"/>
+      </file_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.*$ in /etc/nginx/ exists and matches pattern (?i)^\h*(ssl_protocols|proxy_ssl_protocols)\h+([^#\n\r;]+\h+)?(TLSv1\.[23])\b.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072447" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072447"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="none_exist" comment="Ensure no file(s) named ^.*$ in /etc/nginx/ exists and matches pattern (?i)^\h*(ssl_protocols|proxy_ssl_protocols)\h+([^#\n\r;]+\h+)?(SSLv2|SSLv3|TLSv1\.[01])\b.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072449" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072449"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_dhparam\h+\/\H+\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072452" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072452"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_stapling\h+on\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072455" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072455"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_stapling_verify\h+on\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072456" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072456"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*add_header\h+Strict-Transport-Security\h+[\&quot;']?max-age\h*=\h*([1-9][0-9]{8,}|[1-9][5-6][7-9][6-9][8-9][0-9][0-9][0-9]|[2-9][0-9]{7,}|[1-9][6-9][0-9]{6,}|[1-9][5-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072458" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072458"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_certificate\h+\/\H+\.pem\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072459" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072459"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_certificate_key\h+\/\H+\.key\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072461" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072461"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_trusted_certificate\h+\/\H+\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072462" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072462"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_verify\h+on\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072464" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072464"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_session_tickets\h+off\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072465" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072465"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*server\s*\{\s*([\s\S]+)?\blisten\h+\d{1,5}\h+ssl\h+http2\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072469" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072469"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*client_body_timeout\h+(10|[1-9])\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072467" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072467"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*client_header_timeout\h+(10|[1-9])\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072468" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072468"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*client_max_body_size\h+(100|[1-9][0-9]|[1-9])k\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072472" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072472"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*large_client_header_buffers\h+([1-9]|[1-9][0-9]{1,2})\h+([1-9]|[1-9][0-9]{1,2})k\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072474" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072474"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*add_header\h+X-Frame-Options\h+[\'\&quot;]SAMEORIGIN[\'\&quot;]\h+always\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072477" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072477"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*add_header\h+X-Content-Type-Options\h+(\&quot;|\')nosniff(\&quot;|\')(\h+[^#\n\r]+\h*)?;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072479" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072479"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/passwd exists and matches pattern ^.*nginx\:(\/sbin\/nologin|\/bin\/false)$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072451" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072451"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/passwd exists and does not match pattern ^nginx\:.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072453" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072453"/>
+      </textfilecontent54_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/nginx/ exists and is owned by 0:0 and does not have permissions ----w--w-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072454" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072454"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072454"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/nginx/ exists and does not have permissions ----w--w-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072460" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072460"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072460"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /var/run/nginx.pid exists and is owned by 0:0 and does not have permissions --x-wx-wx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072463" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072463"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072463"/>
+      </file_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern ^.*server_tokens.*off;$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072473" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072473"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="none_exist" comment="Ensure no file named /usr/share/nginx/html/index.html exists and matches pattern ((?i)(\bNGINX\b))" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072475" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072475"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="none_exist" comment="Ensure no file named /usr/share/nginx/html/50x.html exists and matches pattern ((?i)(\bNGINX\b))" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072476" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072476"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern (?i)\h*proxy_hide_header\h+x-powered-by;[a-z\h*]*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072478" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072478"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern (?i)^\h*proxy_hide_header\h+server;[a-z\h*]*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072480" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072480"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/logrotate.d/nginx exists and matches pattern ^\h*weekly\b" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072438" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072438"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/logrotate.d/nginx exists and matches pattern ^\h*rotate\s+([1-9]|[1-2][0-9]|13)\b" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072440" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072440"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern ^\s*ssl_certificate_key\s+\/\S+;[a-z\s]*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:tst:4072442" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072442"/>
+      </textfilecontent54_test>
+   </tests>
+   <objects>
+      <rpminfo_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux" comment="Ensure package name equals 'nginx' is installed" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072439" version="1">
+         <name operation="equals">nginx</name>
+      </rpminfo_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*autoindex\h+off\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072445" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*autoindex\h+off\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure no file(s) named .+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*autoindex\+on;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072446" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*autoindex\+on;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure any file(s) named ^.*$ in /etc/nginx/ exists and does not have permissions --x--xrwx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072457" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.*$</filename>
+      </file_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*server\s+\{\s*return\h+4\d{2}\h*;.*\s*\}.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072466" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*server\s+\{\s*return\h+4\d{2}\h*;.*\s*\}.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure any file(s) named ^(?i)\S+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\s*keepalive_timeout\s+(10|[1-9])\;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072470" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^(?i)\S+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\s*keepalive_timeout\s+(10|[1-9])\;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^(?i)\S+\.conf$ in /etc/nginx exists and matches pattern (?I)^\h*send_timeout\h+(10|[1-9])\;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072471" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx</path>
+         <filename operation="pattern match">^(?i)\S+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*send_timeout\h+(10|[1-9])\;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.*$ in /etc/nginx exists and does not match pattern (?i)^\h*access_log\\b" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072436" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx</path>
+         <filename operation="pattern match">^.*$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*access_log\\b</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*error_log\h+\/([^#\n\r]+\h+)+info\b(\h*#.*)?$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072437" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*error_log\h+\/([^#\n\r]+\h+)+info\h*;(\h*#.*)?$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure any file(s) named ^.+\.key$ in /etc/nginx/ exists and is owned by group 0 and does not have permissions -wxrwxrwx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072444" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.key$</filename>
+      </file_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.*$ in /etc/nginx/ exists and matches pattern (?i)^\h*(ssl_protocols|proxy_ssl_protocols)\h+([^#\n\r;]+\h+)?(TLSv1\.[23])\b.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072447" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.*$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*(ssl_protocols|proxy_ssl_protocols)\h+([^#\n\r;]+\h+)?(TLSv1\.[23])\b.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure no file(s) named ^.*$ in /etc/nginx/ exists and matches pattern (?i)^\h*(ssl_protocols|proxy_ssl_protocols)\h+([^#\n\r;]+\h+)?(SSLv2|SSLv3|TLSv1\.[01])\b.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072449" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.*$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*(ssl_protocols|proxy_ssl_protocols)\h+([^#\n\r;]+\h+)?(SSLv2|SSLv3|TLSv1\.[01])\b.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_dhparam\h+\/\H+\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072452" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*ssl_dhparam\h+\/\H+\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_stapling\h+on\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072455" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*ssl_stapling\h+on\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_stapling_verify\h+on\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072456" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*ssl_stapling_verify\h+on\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*add_header\h+Strict-Transport-Security\h+[\&quot;']?max-age\h*=\h*([1-9][0-9]{8,}|[1-9][5-6][7-9][6-9][8-9][0-9][0-9][0-9]|[2-9][0-9]{7,}|[1-9][6-9][0-9]{6,}|[1-9][5-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072458" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*add_header\h+Strict-Transport-Security\h+[\"']?max-age\h*=\h*([1-9][0-9]{8,}|[1-9][5-6][7-9][6-9][8-9][0-9][0-9][0-9]|[2-9][0-9]{7,}|[1-9][6-9][0-9]{6,}|[1-9][5-9][8-9][0-9]{5,}|[1-9][5-9][7-9][7-9]{4,}|[1-9][5-9][7-9][6-6][8-9][0-9]{3,})['\"]?\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_certificate\h+\/\H+\.pem\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072459" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*proxy_ssl_certificate\h+\/\H+\.pem\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_certificate_key\h+\/\H+\.key\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072461" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*proxy_ssl_certificate_key\h+\/\H+\.key\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_trusted_certificate\h+\/\H+\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072462" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*proxy_ssl_trusted_certificate\h+\/\H+\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*proxy_ssl_verify\h+on\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072464" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*proxy_ssl_verify\h+on\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*ssl_session_tickets\h+off\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072465" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*ssl_session_tickets\h+off\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*server\s*\{\s*([\s\S]+)?\blisten\h+\d{1,5}\h+ssl\h+http2\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072469" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*server\s*\{\s*([\s\S]+)?\blisten\h+\d{1,5}\h+ssl\h+http2\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*client_body_timeout\h+(10|[1-9])\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072467" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*client_body_timeout\h+(10|[1-9])\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*client_header_timeout\h+(10|[1-9])\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072468" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*client_header_timeout\h+(10|[1-9])\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*client_max_body_size\h+(100|[1-9][0-9]|[1-9])k\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072472" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*client_max_body_size\h+(100|[1-9][0-9]|[1-9])k\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*large_client_header_buffers\h+([1-9]|[1-9][0-9]{1,2})\h+([1-9]|[1-9][0-9]{1,2})k\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072474" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*large_client_header_buffers\h+([1-9]|[1-9][0-9]{1,2})\h+([1-9]|[1-9][0-9]{1,2})k\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*add_header\h+X-Frame-Options\h+[\'\&quot;]SAMEORIGIN[\'\&quot;]\h+always\h*;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072477" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*add_header\h+X-Frame-Options\h+[\'\"]SAMEORIGIN[\'\"]\h+always\h*;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file(s) named ^.+\.conf$ in /etc/nginx/ exists and matches pattern (?i)^\h*add_header\h+X-Content-Type-Options\h+(\&quot;|\')nosniff(\&quot;|\')(\h+[^#\n\r]+\h*)?;.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072479" version="1">
+         <behaviors max_depth="-1" recurse_direction="down" recurse_file_system="local"/>
+         <path>/etc/nginx/</path>
+         <filename operation="pattern match">^.+\.conf$</filename>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*add_header\h+X-Content-Type-Options\h+(\"|\')nosniff(\"|\')(\h+[^#\n\r]+\h*)?;.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/passwd exists and matches pattern ^.*nginx\:(\/sbin\/nologin|\/bin\/false)$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072451" version="1">
+         <filepath>/etc/passwd</filepath>
+         <pattern datatype="string" operation="pattern match">^.*nginx\:(\/sbin\/nologin|\/bin\/false)$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/passwd exists and does not match pattern ^nginx\:.*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072453" version="1">
+         <filepath>/etc/passwd</filepath>
+         <pattern datatype="string" operation="pattern match">^nginx\:.*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure at least one file named /etc/nginx/ exists and is owned by 0:0 and does not have permissions ----w--w-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072454" version="1">
+         <path>/etc/nginx</path>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure at least one file named /etc/nginx/ exists and does not have permissions ----w--w-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072460" version="1">
+         <path>/etc/nginx</path>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure at least one file named /var/run/nginx.pid exists and is owned by 0:0 and does not have permissions --x-wx-wx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072463" version="1">
+         <filepath>/var/run/nginx.pid</filepath>
+      </file_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern ^.*server_tokens.*off;$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072473" version="1">
+         <filepath>/etc/nginx/nginx.conf</filepath>
+         <pattern datatype="string" operation="pattern match">^.*server_tokens.*off;$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure no file named /usr/share/nginx/html/index.html exists and matches pattern ((?i)(\bNGINX\b))" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072475" version="1">
+         <filepath>/usr/share/nginx/html/index.html</filepath>
+         <pattern datatype="string" operation="pattern match">((?i)(\bNGINX\b))</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure no file named /usr/share/nginx/html/50x.html exists and matches pattern ((?i)(\bNGINX\b))" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072476" version="1">
+         <filepath>/usr/share/nginx/html/50x.html</filepath>
+         <pattern datatype="string" operation="pattern match">((?i)(\bNGINX\b))</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern (?i)\h*proxy_hide_header\h+x-powered-by;[a-z\h*]*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072478" version="1">
+         <filepath>/etc/nginx/nginx.conf</filepath>
+         <pattern datatype="string" operation="pattern match">(?i)\h*proxy_hide_header\h+x-powered-by;[a-z\h*]*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern (?i)^\h*proxy_hide_header\h+server;[a-z\h*]*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072480" version="1">
+         <filepath>/etc/nginx/nginx.conf</filepath>
+         <pattern datatype="string" operation="pattern match">(?i)^\h*proxy_hide_header\h+server;[a-z\h*]*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/logrotate.d/nginx exists and matches pattern ^\h*weekly\b" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072438" version="1">
+         <filepath>/etc/logrotate.d/nginx</filepath>
+         <pattern datatype="string" operation="pattern match">^\h*weekly\b</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/logrotate.d/nginx exists and matches pattern ^\h*rotate\s+([1-9]|[1-2][0-9]|13)\b" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072440" version="1">
+         <filepath>/etc/logrotate.d/nginx</filepath>
+         <pattern datatype="string" operation="pattern match">^\h*rotate\s+([1-9]|[1-2][0-9]|13)\b</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure at least one file named /etc/nginx/nginx.conf exists and matches pattern ^\s*ssl_certificate_key\s+\/\S+;[a-z\s]*$" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:obj:4072442" version="1">
+         <filepath>/etc/nginx/nginx.conf</filepath>
+         <pattern datatype="string" operation="pattern match">^\s*ssl_certificate_key\s+\/\S+;[a-z\s]*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+   </objects>
+   <states>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure any file(s) named ^.*$ in /etc/nginx/ exists and does not have permissions --x--xrwx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072457" version="1">
+         <uexec datatype="boolean">false</uexec>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure any file(s) named ^.+\.key$ in /etc/nginx/ exists and is owned by group 0 and does not have permissions -wxrwxrwx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072444" version="1">
+         <uwrite datatype="boolean">false</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure at least one file named /etc/nginx/ exists and is owned by 0:0 and does not have permissions ----w--w-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072454" version="1">
+         <group_id datatype="int">0</group_id>
+         <user_id datatype="int">0</user_id>
+         <gwrite datatype="boolean">false</gwrite>
+         <owrite datatype="boolean">false</owrite>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure at least one file named /etc/nginx/ exists and does not have permissions ----w--w-" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072460" version="1">
+         <gwrite datatype="boolean">false</gwrite>
+         <owrite datatype="boolean">false</owrite>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Ensure at least one file named /var/run/nginx.pid exists and is owned by 0:0 and does not have permissions --x-wx-wx" id="oval:org.cisecurity.benchmarks.nginx_nginx_1:ste:4072463" version="1">
+         <group_id datatype="int">0</group_id>
+         <user_id datatype="int">0</user_id>
+         <uexec datatype="boolean">false</uexec>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+   </states>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>nX07Y31ztTmSC74w3wu/LM5PuXw=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+PghntTkXhoPr94CWx516FlderKxu+thp8mRYiBVtztXjoGanvE67X7uFW9mVQq1lOVBieNcY+W6s
+/mhha2TXO6fpXSmiWePPOg96H9270moPVSTefs6muBT/SpILA2WOmBNYaJgLIzPhqRkhyKcqsa+3
+KG8mOuo8me1JCx5l21x1VILamOhpBLqZHzA8czSKVPnS0v/knanGlppFqv682jBE0dK6cJAthon0
+zJllPkkFLodWdI/54fc3Q6bo+T/Li+3a0ZIX6iQdjrlu9B5iE9nUclhrjyfwM9RPH2IcZsLhEDx/
+2BQO3vZykZZqPcpBh5yZavj7X/s7Cy8zQtRyrw==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></oval_definitions>

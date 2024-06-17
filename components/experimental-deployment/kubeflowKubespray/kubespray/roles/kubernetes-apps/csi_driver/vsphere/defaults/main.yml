@@ -1,0 +1,54 @@
+---
+external_vsphere_vcenter_port: "443"
+external_vsphere_insecure: "true"
+external_vsphere_kubernetes_cluster_id: "kubernetes-cluster-id"
+external_vsphere_version: "7.0u1"
+
+vsphere_syncer_image_tag: "v3.1.0"
+vsphere_csi_attacher_image_tag: "v4.3.0"
+vsphere_csi_controller: "v3.1.0"
+vsphere_csi_liveness_probe_image_tag: "v2.10.0"
+vsphere_csi_provisioner_image_tag: "v3.5.0"
+vsphere_csi_snapshotter_image_tag: "v6.2.2"
+vsphere_csi_node_driver_registrar_image_tag: "v2.8.0"
+vsphere_csi_driver_image_tag: "v3.1.0"
+vsphere_csi_resizer_tag: "v1.8.0"
+
+# Set to kube-system for backward compatibility, should be change to vmware-system-csi on the long run
+vsphere_csi_namespace: "kube-system"
+
+vsphere_csi_controller_replicas: 1
+
+csi_endpoint: '{% if external_vsphere_version >= "7.0u1" %}/csi{% else %}/var/lib/csi/sockets/pluginproxy{% endif %}'
+
+vsphere_csi_aggressive_node_drain: False
+vsphere_csi_aggressive_node_unreachable_timeout: 300
+vsphere_csi_aggressive_node_not_ready_timeout: 300
+
+vsphere_csi_node_affinity: {}
+
+# If this is true, debug information will be displayed but
+# may contain some private data, so it is recommended to set it to false
+# in the production environment.
+unsafe_show_logs: false
+
+# https://github.com/kubernetes-sigs/vsphere-csi-driver/blob/master/docs/book/features/volume_snapshot.md#how-to-enable-volume-snapshot--restore-feature-in-vsphere-csi-
+# according to the above link , we can controler the block-volume-snapshot parameter
+vsphere_csi_block_volume_snapshot: false
+
+external_vsphere_user: "{{ lookup('env', 'VSPHERE_USER') }}"
+external_vsphere_password: "{{ lookup('env', 'VSPHERE_PASSWORD') }}"
+
+# Controller resources
+vsphere_csi_snapshotter_resources: {}
+vsphere_csi_provisioner_resources: {}
+vsphere_syncer_resources: {}
+vsphere_csi_liveness_probe_controller_resources: {}
+vsphere_csi_resources: {}
+vsphere_csi_resizer_resources: {}
+vsphere_csi_attacher_resources: {}
+
+# DaemonSet node resources
+vsphere_csi_node_driver_registrar_resources: {}
+vsphere_csi_driver_resources: {}
+vsphere_csi_liveness_probe_ds_resources: {}

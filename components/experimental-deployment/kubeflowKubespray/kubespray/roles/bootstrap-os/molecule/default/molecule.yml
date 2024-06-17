@@ -1,0 +1,53 @@
+---
+role_name_check: 1
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+platforms:
+  - name: ubuntu20
+    box: generic/ubuntu2004
+    cpus: 1
+    memory: 512
+    provider_options:
+      driver: kvm
+  - name: ubuntu22
+    box: generic/ubuntu2204
+    cpus: 1
+    memory: 1024
+    provider_options:
+      driver: kvm
+  - name: centos7
+    box: centos/7
+    cpus: 1
+    memory: 512
+    provider_options:
+      driver: kvm
+  - name: almalinux8
+    box: almalinux/8
+    cpus: 1
+    memory: 512
+    provider_options:
+      driver: kvm
+  - name: debian10
+    box: generic/debian10
+    cpus: 1
+    memory: 512
+    provider_options:
+      driver: kvm
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: profile_tasks
+      timeout: 120
+  inventory:
+    group_vars:
+      all:
+        user:
+          name: foo
+          comment: My test comment
+verifier:
+  name: testinfra

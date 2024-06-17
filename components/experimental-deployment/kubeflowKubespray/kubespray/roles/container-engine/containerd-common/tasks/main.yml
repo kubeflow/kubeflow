@@ -1,0 +1,31 @@
+---
+- name: Containerd-common | check if fedora coreos
+  stat:
+    path: /run/ostree-booted
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: ostree
+
+- name: Containerd-common | set is_ostree
+  set_fact:
+    is_ostree: "{{ ostree.stat.exists }}"
+
+- name: Containerd-common | gather os specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower | replace('/', '_') }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}-{{ host_architecture }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower | replace('/', '_') }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ host_architecture }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ host_architecture }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+        - defaults.yml
+      paths:
+        - ../vars
+      skip: true
+  tags:
+    - facts

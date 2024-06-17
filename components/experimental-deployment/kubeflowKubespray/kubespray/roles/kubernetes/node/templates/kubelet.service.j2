@@ -1,0 +1,52 @@
+[Unit]
+Description=Kubernetes Kubelet Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After={{ container_manager }}.service
+{% if container_manager == 'docker' %}
+Wants=docker.socket
+{% else %}
+Wants={{ container_manager }}.service
+{% endif %}
+
+[Service]
+EnvironmentFile=-{{ kube_config_dir }}/kubelet.env
+{% if system_reserved|bool %}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpu/{{ system_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpuacct/{{ system_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpuset/{{ system_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/hugetlb/{{ system_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/memory/{{ system_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/pids/{{ system_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/systemd/{{ system_reserved_cgroups_for_service_slice }}
+{% endif %}
+{% if kube_reserved|bool %}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpu/{{ kube_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpuacct/{{ kube_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpuset/{{ kube_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/hugetlb/{{ kube_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/memory/{{ kube_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/pids/{{ kube_reserved_cgroups_for_service_slice }}
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/systemd/{{ kube_reserved_cgroups_for_service_slice }}
+{% endif %}
+ExecStart={{ bin_dir }}/kubelet \
+		$KUBE_LOGTOSTDERR \
+		$KUBE_LOG_LEVEL \
+		$KUBELET_API_SERVER \
+		$KUBELET_ADDRESS \
+		$KUBELET_PORT \
+		$KUBELET_HOSTNAME \
+		$KUBELET_ARGS \
+		$DOCKER_SOCKET \
+		$KUBELET_NETWORK_PLUGIN \
+		$KUBELET_VOLUME_PLUGIN \
+		$KUBELET_CLOUDPROVIDER
+Restart=always
+RestartSec=10s
+{% if kubelet_systemd_hardening %}
+# Hardening setup
+IPAddressDeny=any
+IPAddressAllow={{ kubelet_secure_addresses }}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

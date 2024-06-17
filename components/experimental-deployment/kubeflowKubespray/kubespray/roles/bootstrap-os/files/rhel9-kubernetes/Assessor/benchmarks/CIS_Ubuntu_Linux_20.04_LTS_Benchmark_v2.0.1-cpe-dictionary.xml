@@ -1,0 +1,7 @@
+<cpe-list xmlns="http://cpe.mitre.org/dictionary/2.0" xmlns:cpe-23="http://scap.nist.gov/schema/cpe-extension/2.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cpe.mitre.org/dictionary/2.0 http://cpe.mitre.org/files/cpe-dictionary_2.1.xsd">
+   <cpe-item name="cpe:/o:canonical:ubuntu_linux:20.04">
+      <title xml:lang="en-US">[BENCHMARK_TITLE] is installed on CISCAT Host</title>
+      <check href="CIS_Ubuntu_Linux_20.04_LTS_Benchmark_v2.0.1-cpe-oval.xml" system="http://oval.mitre.org/XMLSchema/oval-definitions-5">oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:def:101</check>
+      <cpe-23:cpe23-item name="cpe:2.3:o:canonical:ubuntu_linux:20.04:*:*:*:lts:*:*:*"/>
+   </cpe-item>
+</cpe-list>

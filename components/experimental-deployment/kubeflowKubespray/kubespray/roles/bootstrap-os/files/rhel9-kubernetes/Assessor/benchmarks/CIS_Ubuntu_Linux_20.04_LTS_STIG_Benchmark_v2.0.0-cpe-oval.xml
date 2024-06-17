@@ -1,0 +1,117 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:ind="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" xmlns:linux="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:shell="http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd" xmlns:unix="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 http://oval.mitre.org/language/version5.11/ovaldefinition/complete/oval-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-common-5 http://oval.mitre.org/language/version5.11/ovaldefinition/complete/oval-common-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#cmd x-shellcommand-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#linux http://oval.mitre.org/language/version5.11/ovaldefinition/complete/linux-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#independent http://oval.mitre.org/language/version5.11/ovaldefinition/complete/independent-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#unix http://oval.mitre.org/language/version5.10/ovaldefinition/complete/unix-definitions-schema.xsd">
+   <generator>
+      <oval:product_name>Center for Internet Security</oval:product_name>
+      <oval:schema_version>5.11.2</oval:schema_version>
+      <oval:timestamp>2018-08-13T18:01:59+00:00</oval:timestamp>
+   </generator>
+   <definitions>
+      <definition class="inventory" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:def:101" version="1">
+         <metadata>
+            <title>Ensure Ubuntu 20.04 is installed</title>
+            <affected family="unix">
+               <product>Ubuntu 20.04</product>
+            </affected>
+            <description>Ensure Ubuntu 20.04 is installed</description>
+            <reference ref_id="(true|false)" source="cis.assessor.lite.allowed"/>
+            <reference ref_id="[BENCHMARK_TITLE]" ref_url="[BENCHMARK_NAME]-xccdf.xml" source="cis.benchmark.xml"/>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_profile_Level_1_-_Server" source="cis.benchmark.l1"/>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_profile_Level_2_-_Server" source="cis.benchmark.l2"/>
+         </metadata>
+         <criteria operator="AND">
+            <criterion negate="false" test_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:tst:101"/>
+            <criterion negate="false" test_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:tst:102"/>
+            <criterion negate="false" test_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:tst:103"/>
+         </criteria>
+      </definition>
+   </definitions>
+   <tests>
+      <ind:family_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="only one" check_existence="at_least_one_exists" comment="installed operating system is part of the Unix family" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:tst:101" version="1">
+         <ind:object object_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:obj:101"/>
+         <ind:state state_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:ste:101"/>
+      </ind:family_test>
+      <ind:textfilecontent54_test check="all" check_existence="at_least_one_exists" comment="distribution ID equal to Ubuntu" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:tst:102" version="1">
+         <ind:object object_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:obj:102"/>
+      </ind:textfilecontent54_test>
+      <ind:textfilecontent54_test check="all" check_existence="at_least_one_exists" comment="distribution release is equal to 20.04" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:tst:103" version="1">
+         <ind:object object_ref="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:obj:103"/>
+      </ind:textfilecontent54_test>
+   </tests>
+   <objects>
+      <ind:textfilecontent54_object comment="distribution ID equal to Ubuntu" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:obj:102" version="1">
+         <ind:filepath>/etc/lsb-release</ind:filepath>
+         <ind:pattern operation="pattern match">^\s*DISTRIB_ID\s*=\s*Ubuntu\s*(#.*)?$</ind:pattern>
+         <ind:instance datatype="int" operation="equals">1</ind:instance>
+      </ind:textfilecontent54_object>
+      <ind:textfilecontent54_object comment="distribution release is equal to 20.04" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:obj:103" version="1">
+         <ind:filepath>/etc/lsb-release</ind:filepath>
+         <ind:pattern operation="pattern match">^\s*DISTRIB_RELEASE\s*=\s*20.04\s*(#.*)?$</ind:pattern>
+         <ind:instance datatype="int" operation="equals">1</ind:instance>
+      </ind:textfilecontent54_object>
+      <ind:family_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:obj:101" version="1"/>
+   </objects>
+   <states>
+      <ind:family_state id="oval:org.cisecurity.benchmarks.o_canonical_ubuntu_linux_2004:ste:101" version="1">
+         <ind:family>unix</ind:family>
+      </ind:family_state>
+   </states>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>EaKfRh2MhpEkItFw/2gvkPqmZPM=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+YmqXXb/5r5g/f6FNAZoc1gwJWTIw0M5CJgFQK3ZMT4K2hScwewJwcWarKWVSaWuDHcgDnqus1ytS
+NJbT4aAw854p0AOgrfCcCuoPM8taqqnDfsHxcfXNN0yo1xWH54Qcz55aqu8W0DJ7n8ZRUdXFAe3D
+L9AlbLoz2GOQKbLNzRIieCjX3SELKTnquTTmrHuW0zw9JdUYeIfhXbbdsLU/Va13oQDoRcznK4X6
+gto0uJV9kvqB3qsc8UElllbp0JB2nnsLm/e5eYCCbwYwDOp3OXqM/oNPqw1euBCNDOuH1ukAxtNY
+Q2sHC8EfJ8C6oYbopdkvKsMFheN7Irx8LIrQCA==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></oval_definitions>

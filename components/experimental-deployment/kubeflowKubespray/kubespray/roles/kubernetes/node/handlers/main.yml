@@ -1,0 +1,11 @@
+---
+- name: Kubelet | reload systemd
+  systemd:
+    daemon_reload: true
+  listen: Node | restart kubelet
+
+- name: Kubelet | restart kubelet
+  service:
+    name: kubelet
+    state: restarted
+  listen: Node | restart kubelet

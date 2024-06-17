@@ -1,0 +1,17 @@
+[Match]
+Name=mac0
+
+[Network]
+Address={{ node_pod_cidr|ansible.utils.ipaddr('net')|ansible.utils.ipaddr(1)|ansible.utils.ipaddr('address') }}/{{ node_pod_cidr|ansible.utils.ipaddr('prefix') }}
+
+{% for host in groups['kube_node'] %}
+{% if hostvars[host]['access_ip'] is defined  %}
+{% if hostvars[host]['node_pod_cidr'] != node_pod_cidr  %}
+[Route]
+Gateway={{ hostvars[host]['access_ip'] }}
+Destination={{ hostvars[host]['node_pod_cidr'] }}
+GatewayOnlink=yes
+
+{% endif %}
+{% endif %}
+{% endfor %}

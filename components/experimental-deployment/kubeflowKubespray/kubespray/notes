@@ -1,0 +1,5 @@
+ansible-playbook upgrade-cluster.yml -b -i inventory/mycluster/hosts.yml -e cilium_version=v1.14.6
+
+#need ansible as sudoers no password prompt
+#need to add ansible ssh key
+ssh -i ~/.ssh/ansible <ip>

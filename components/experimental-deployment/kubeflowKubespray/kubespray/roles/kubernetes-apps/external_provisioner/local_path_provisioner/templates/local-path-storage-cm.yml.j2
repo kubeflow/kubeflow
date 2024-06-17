@@ -1,0 +1,35 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: local-path-config
+  namespace: {{ local_path_provisioner_namespace }}
+data:
+  config.json: |-
+    {
+            "nodePathMap":[
+            {
+                    "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                    "paths":["{{ local_path_provisioner_claim_root }}"]
+            }
+            ]
+    }
+  setup: |-
+    #!/bin/sh
+    set -eu
+    mkdir -m 0777 -p "$VOL_DIR"
+  teardown: |-
+    #!/bin/sh
+    set -eu
+    rm -rf "$VOL_DIR"
+  helperPod.yaml: |-
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: helper-pod
+    spec:
+      containers:
+      - name: helper-pod
+        image: "{{ local_path_provisioner_helper_image_repo }}:{{ local_path_provisioner_helper_image_tag }}"
+        imagePullPolicy: IfNotPresent
+

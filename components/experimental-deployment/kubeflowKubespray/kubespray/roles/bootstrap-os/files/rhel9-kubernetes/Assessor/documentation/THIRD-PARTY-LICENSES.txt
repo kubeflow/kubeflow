@@ -1,0 +1,2255 @@
+
+Project: CIS-CAT Assessor
+Dependency License Report
+Generated: 2023-08-25 16:36:58 UTC
+
+
+Apache 2.0
+==========
+
+1 Group: com.google.errorprone  Name: error_prone_annotations Version: 2.18.0 
+  - POM License:
+    - Apache 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+Apache License 2.0
+==================
+
+2 Group: com.hierynomus  Name: smbj Version: 0.8.0 
+  - POM Project URL:
+    - https://github.com/hierynomus/smbj
+  - POM License:
+    - Apache License 2.0
+      - http://opensource.org/licenses/Apache-2.0
+
+
+Apache License, Version 2.0
+===========================
+
+3 Group: com.fasterxml.jackson.core  Name: jackson-core Version: 2.14.1 
+  - Project URL:
+    - https://github.com/FasterXML/jackson-core
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - jackson-core-2.14.1.jar/META-INF/LICENSE 
+    - jackson-core-2.14.1.jar/META-INF/NOTICE
+
+
+4 Group: com.fasterxml.jackson.core  Name: jackson-databind Version: 2.14.1 
+  - Project URL:
+    - https://github.com/FasterXML/jackson
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - jackson-databind-2.14.1.jar/META-INF/LICENSE 
+    - jackson-databind-2.14.1.jar/META-INF/NOTICE
+
+
+5 Group: com.github.javaparser  Name: javaparser-core Version: 3.24.2 
+  - Manifest Project URL:
+    - https://github.com/javaparser/javaparser-core
+  - Manifest License:
+    - "GNU Lesser General Public License";link="http://www.gnu.org/licenses/lgpl-3.0.html","Apache License, Version 2.0";link="http://www.apache.org/licenses/LICENSE-2.0.txt";description="A business-friendly OSS license" (Not Packaged)
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - GNU Lesser General Public License
+      - http://www.gnu.org/licenses/lgpl-3.0.html
+
+
+
+6 Group: com.google.guava  Name: guava Version: 32.1.2-jre 
+  - Manifest Project URL:
+    - https://github.com/google/guava/
+  - POM Project URL:
+    - https://github.com/google/guava
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - guava-32.1.2-jre.jar/META-INF/LICENSE
+
+
+7 Group: com.profesorfalken  Name: jPowerShell Version: 3.1.1 
+  - POM Project URL:
+    - https://github.com/profesorfalken/jPowerShell
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+8 Group: commons-cli  Name: commons-cli Version: 1.3.1 
+  - Project URL:
+    - http://commons.apache.org/proper/commons-cli/
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-cli-1.3.1.jar/META-INF/LICENSE.txt 
+    - commons-cli-1.3.1.jar/META-INF/NOTICE.txt
+
+
+9 Group: commons-cli  Name: commons-cli Version: 1.4 
+  - Project URL:
+    - http://commons.apache.org/proper/commons-cli/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-cli-1.4.jar/META-INF/LICENSE.txt 
+    - commons-cli-1.4.jar/META-INF/NOTICE.txt
+
+
+10 Group: commons-codec  Name: commons-codec Version: 1.11 
+  - Project URL:
+    - http://commons.apache.org/proper/commons-codec/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-codec-1.11.jar/META-INF/LICENSE.txt 
+    - commons-codec-1.11.jar/META-INF/NOTICE.txt
+
+
+11 Group: commons-io  Name: commons-io Version: 2.7 
+  - Project URL:
+    - https://commons.apache.org/proper/commons-io/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-io-2.7.jar/META-INF/LICENSE.txt 
+    - commons-io-2.7.jar/META-INF/NOTICE.txt
+
+
+12 Group: io.jsonwebtoken  Name: jjwt-api Version: 0.11.2 
+  - Manifest Project URL:
+    - https://github.com/jwtk/jjwt
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0
+
+
+
+13 Group: io.jsonwebtoken  Name: jjwt-impl Version: 0.11.2 
+  - Manifest Project URL:
+    - https://github.com/jwtk/jjwt
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0
+
+
+
+14 Group: io.jsonwebtoken  Name: jjwt-jackson Version: 0.11.2 
+  - Manifest Project URL:
+    - https://github.com/jwtk/jjwt
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0
+
+
+
+15 Group: org.apache.commons  Name: commons-compress Version: 1.21 
+  - Project URL:
+    - https://commons.apache.org/proper/commons-compress/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-compress-1.21.jar/META-INF/LICENSE.txt 
+    - commons-compress-1.21.jar/META-INF/NOTICE.txt
+
+
+16 Group: org.apache.commons  Name: commons-lang3 Version: 3.12.0 
+  - Project URL:
+    - https://commons.apache.org/proper/commons-lang/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-lang3-3.12.0.jar/META-INF/LICENSE.txt 
+    - commons-lang3-3.12.0.jar/META-INF/NOTICE.txt
+
+
+17 Group: org.apache.commons  Name: commons-lang3 Version: 3.8.1 
+  - Project URL:
+    - http://commons.apache.org/proper/commons-lang/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-lang3-3.8.1.jar/META-INF/LICENSE.txt 
+    - commons-lang3-3.8.1.jar/META-INF/NOTICE.txt
+
+
+18 Group: org.apache.cxf  Name: cxf-core Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-core-3.5.5.jar/META-INF/LICENSE 
+    - cxf-core-3.5.5.jar/META-INF/NOTICE
+
+
+19 Group: org.apache.cxf  Name: cxf-rt-bindings-soap Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-bindings-soap-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-bindings-soap-3.5.5.jar/META-INF/NOTICE
+
+
+20 Group: org.apache.cxf  Name: cxf-rt-bindings-xml Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-bindings-xml-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-bindings-xml-3.5.5.jar/META-INF/NOTICE
+
+
+21 Group: org.apache.cxf  Name: cxf-rt-databinding-jaxb Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-databinding-jaxb-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-databinding-jaxb-3.5.5.jar/META-INF/NOTICE
+
+
+22 Group: org.apache.cxf  Name: cxf-rt-frontend-jaxws Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-frontend-jaxws-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-frontend-jaxws-3.5.5.jar/META-INF/NOTICE
+
+
+23 Group: org.apache.cxf  Name: cxf-rt-frontend-simple Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-frontend-simple-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-frontend-simple-3.5.5.jar/META-INF/NOTICE
+
+
+24 Group: org.apache.cxf  Name: cxf-rt-transports-http Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-transports-http-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-transports-http-3.5.5.jar/META-INF/NOTICE
+
+
+25 Group: org.apache.cxf  Name: cxf-rt-transports-http-hc Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-transports-http-hc-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-transports-http-hc-3.5.5.jar/META-INF/NOTICE
+
+
+26 Group: org.apache.cxf  Name: cxf-rt-ws-addr Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-ws-addr-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-ws-addr-3.5.5.jar/META-INF/NOTICE
+
+
+27 Group: org.apache.cxf  Name: cxf-rt-ws-policy Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-ws-policy-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-ws-policy-3.5.5.jar/META-INF/NOTICE
+
+
+28 Group: org.apache.cxf  Name: cxf-rt-wsdl Version: 3.5.5 
+  - Manifest Project URL:
+    - http://cxf.apache.org
+  - POM Project URL:
+    - https://cxf.apache.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - cxf-rt-wsdl-3.5.5.jar/META-INF/LICENSE 
+    - cxf-rt-wsdl-3.5.5.jar/META-INF/NOTICE
+
+
+29 Group: org.apache.httpcomponents  Name: httpasyncclient Version: 4.1.5 
+  - POM Project URL:
+    - http://hc.apache.org/httpcomponents-asyncclient
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - httpasyncclient-4.1.5.jar/META-INF/LICENSE 
+    - httpasyncclient-4.1.5.jar/META-INF/NOTICE
+
+
+30 Group: org.apache.httpcomponents  Name: httpclient Version: 4.5.13 
+  - POM Project URL:
+    - http://hc.apache.org/httpcomponents-client
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - httpclient-4.5.13.jar/META-INF/LICENSE 
+    - httpclient-4.5.13.jar/META-INF/NOTICE
+
+
+31 Group: org.apache.httpcomponents  Name: httpclient Version: 4.5.14 
+  - POM Project URL:
+    - http://hc.apache.org/httpcomponents-client-ga
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - httpclient-4.5.14.jar/META-INF/LICENSE 
+    - httpclient-4.5.14.jar/META-INF/NOTICE
+
+
+32 Group: org.apache.httpcomponents  Name: httpcore Version: 4.4.15 
+  - POM Project URL:
+    - http://hc.apache.org/httpcomponents-core-ga
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - httpcore-4.4.15.jar/META-INF/LICENSE 
+    - httpcore-4.4.15.jar/META-INF/NOTICE
+
+
+33 Group: org.apache.httpcomponents  Name: httpcore Version: 4.4.16 
+  - POM Project URL:
+    - http://hc.apache.org/httpcomponents-core-ga
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - httpcore-4.4.16.jar/META-INF/LICENSE 
+    - httpcore-4.4.16.jar/META-INF/NOTICE
+
+
+34 Group: org.apache.httpcomponents  Name: httpcore-nio Version: 4.4.15 
+  - POM Project URL:
+    - http://hc.apache.org/httpcomponents-core-ga
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - httpcore-nio-4.4.15.jar/META-INF/LICENSE 
+    - httpcore-nio-4.4.15.jar/META-INF/NOTICE
+
+
+35 Group: org.apache.neethi  Name: neethi Version: 3.2.0 
+  - Manifest Project URL:
+    - https://www.apache.org/
+  - POM Project URL:
+    - https://ws.apache.org/neethi/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - neethi-3.2.0.jar/META-INF/LICENSE 
+    - neethi-3.2.0.jar/META-INF/NOTICE
+
+
+36 Group: org.apache.ws.xmlschema  Name: xmlschema-core Version: 2.3.0 
+  - Manifest Project URL:
+    - http://ws.apache.org/xmlschema/
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - xmlschema-core-2.3.0.jar/META-INF/LICENSE 
+    - xmlschema-core-2.3.0.jar/META-INF/NOTICE
+
+
+37 Group: org.slf4j  Name: jcl-over-slf4j Version: 1.7.36 
+  - POM Project URL:
+    - http://www.slf4j.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - MIT License
+      - http://www.opensource.org/licenses/mit-license.php
+
+
+
+38 Group: org.yaml  Name: snakeyaml Version: 2.0 
+  - POM Project URL:
+    - https://bitbucket.org/snakeyaml/snakeyaml
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+BSD-2-Clause
+============
+
+39 Group: org.postgresql  Name: postgresql Version: 42.5.1 
+  - Manifest Project URL:
+    - https://jdbc.postgresql.org/
+  - Manifest License:
+    - BSD-2-Clause (Not Packaged)
+  - POM Project URL:
+    - https://jdbc.postgresql.org
+  - POM License:
+    - BSD-2-Clause
+      - https://jdbc.postgresql.org/about/license.html
+  - Embedded license files: 
+    - postgresql-42.5.1.jar/META-INF/LICENSE 
+    - postgresql-42.5.1.jar/META-INF/licenses/com.ongres.scram/client-2.1/LICENSE 
+    - postgresql-42.5.1.jar/META-INF/licenses/com.ongres.scram/common-2.1/LICENSE 
+    - postgresql-42.5.1.jar/META-INF/licenses/com.ongres.stringprep/saslprep-1.1/LICENSE 
+    - postgresql-42.5.1.jar/META-INF/licenses/com.ongres.stringprep/stringprep-1.1/LICENSE
+
+BSD-3-Clause
+============
+
+40 Group: org.ow2.asm  Name: asm Version: 9.4 
+  - Manifest Project URL:
+    - http://asm.ow2.org
+  - Manifest License:
+    - BSD-3-Clause;link=https://asm.ow2.io/LICENSE.txt (Not Packaged)
+  - POM Project URL:
+    - http://asm.ow2.io/
+  - POM License:
+    - BSD-3-Clause
+      - https://asm.ow2.io/license.html
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+Bouncy Castle Licence
+=====================
+
+41 Group: org.bouncycastle  Name: bcpkix-jdk18on Version: 1.72 
+  - POM Project URL:
+    - https://www.bouncycastle.org/java.html
+  - POM License:
+    - Bouncy Castle Licence
+      - https://www.bouncycastle.org/licence.html
+
+
+
+42 Group: org.bouncycastle  Name: bcprov-jdk15on Version: 1.69 
+  - POM Project URL:
+    - https://www.bouncycastle.org/java.html
+  - POM License:
+    - Bouncy Castle Licence
+      - https://www.bouncycastle.org/licence.html
+
+
+
+43 Group: org.bouncycastle  Name: bcprov-jdk18on Version: 1.72 
+  - POM Project URL:
+    - https://www.bouncycastle.org/java.html
+  - POM License:
+    - Bouncy Castle Licence
+      - https://www.bouncycastle.org/licence.html
+
+
+
+44 Group: org.bouncycastle  Name: bcutil-jdk18on Version: 1.72 
+  - POM Project URL:
+    - https://www.bouncycastle.org/java.html
+  - POM License:
+    - Bouncy Castle Licence
+      - https://www.bouncycastle.org/licence.html
+
+
+CDDL + GPLv2 with classpath exception
+=====================================
+
+45 Group: javax.annotation  Name: javax.annotation-api Version: 1.3.2 
+  - Manifest Project URL:
+    - https://javaee.github.io/glassfish
+  - POM Project URL:
+    - http://jcp.org/en/jsr/detail?id=250
+  - POM License:
+    - CDDL + GPLv2 with classpath exception
+      - https://github.com/javaee/javax.annotation/blob/master/LICENSE
+  - Embedded license files: 
+    - javax.annotation-api-1.3.2.jar/META-INF/LICENSE.txt
+
+
+46 Group: javax.jws  Name: javax.jws-api Version: 1.1 
+  - Manifest Project URL:
+    - https://glassfish.java.net
+  - POM Project URL:
+    - http://glassfish.java.net
+  - POM License:
+    - CDDL + GPLv2 with classpath exception
+      - https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+  - Embedded license files: 
+    - javax.jws-api-1.1.jar/META-INF/LICENSE.txt
+
+
+47 Group: javax.xml.soap  Name: javax.xml.soap-api Version: 1.4.0 
+  - Manifest Project URL:
+    - http://www.oracle.com
+  - POM Project URL:
+    - https://javaee.github.io/javaee-spec/
+  - POM License:
+    - CDDL + GPLv2 with classpath exception
+      - https://github.com/javaee/javax.xml.soap/blob/master/LICENSE
+  - Embedded license files: 
+    - javax.xml.soap-api-1.4.0.jar/META-INF/LICENSE.txt
+
+
+48 Group: javax.xml.ws  Name: jaxws-api Version: 2.3.1 
+  - Manifest Project URL:
+    - http://www.oracle.com
+  - POM Project URL:
+    - https://github.com/javaee/jax-ws-spec
+  - POM License:
+    - CDDL + GPLv2 with classpath exception
+      - https://github.com/javaee/jax-ws-spec/blob/master/LICENSE.md
+
+
+CDDL 1.1
+========
+
+49 Group: javax.xml.bind  Name: jaxb-api Version: 2.3.1 
+  - Manifest Project URL:
+    - http://www.oracle.com/
+  - POM License:
+    - CDDL 1.1
+      - https://oss.oracle.com/licenses/CDDL+GPL-1.1
+  - POM License:
+    - GPL2 w/ CPE
+      - https://oss.oracle.com/licenses/CDDL+GPL-1.1
+  - Embedded license files: 
+    - jaxb-api-2.3.1.jar/META-INF/LICENSE.txt
+
+CDDL+GPL License
+================
+
+50 Group: com.sun.xml.bind  Name: jaxb-impl Version: 2.4.0-b180830.0438 
+  - Manifest Project URL:
+    - http://www.oracle.com/
+  - POM License:
+    - CDDL+GPL License
+      - http://glassfish.java.net/public/CDDL+GPL_1_1.html
+
+
+CDDL/GPLv2+CE
+=============
+
+51 Group: com.sun.activation  Name: javax.activation Version: 1.2.0 
+  - Manifest Project URL:
+    - http://www.oracle.com
+  - POM License:
+    - CDDL/GPLv2+CE
+      - https://github.com/javaee/activation/blob/master/LICENSE.txt
+  - Embedded license files: 
+    - javax.activation-1.2.0.jar/META-INF/LICENSE.txt
+
+
+52 Group: javax.activation  Name: javax.activation-api Version: 1.2.0 
+  - Manifest Project URL:
+    - http://www.oracle.com
+  - POM License:
+    - CDDL/GPLv2+CE
+      - https://github.com/javaee/activation/blob/master/LICENSE.txt
+  - Embedded license files: 
+    - javax.activation-api-1.2.0.jar/META-INF/LICENSE.txt
+
+CPL
+===
+
+53 Group: wsdl4j  Name: wsdl4j Version: 1.6.3 
+  - POM Project URL:
+    - http://sf.net/projects/wsdl4j
+  - POM License:
+    - CPL
+      - http://www.opensource.org/licenses/cpl1.0.txt
+
+
+Common Public 1.0
+=================
+
+54 Group: org.whitesource  Name: pecoff4j Version: 0.0.2.1 
+  - POM Project URL:
+    - https://github.com/whitesource/pecoff4j-maven
+  - POM License:
+    - Common Public 1.0
+      - https://github.com/kichik/pecoff4j/blob/master/cpl-v10.html
+
+
+EDL 1.0
+=======
+
+55 Group: com.sun.activation  Name: jakarta.activation Version: 1.2.2 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - EDL 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.activation-1.2.2.jar/META-INF/LICENSE.md 
+    - jakarta.activation-1.2.2.jar/META-INF/NOTICE.md
+
+
+56 Group: jakarta.activation  Name: jakarta.activation-api Version: 1.2.2 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - EDL 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.activation-api-1.2.2.jar/META-INF/LICENSE.md 
+    - jakarta.activation-api-1.2.2.jar/META-INF/NOTICE.md
+
+Eclipse Distribution License - v 1.0
+====================================
+
+57 Group: com.sun.istack  Name: istack-commons-runtime Version: 3.0.12 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - istack-commons-runtime-3.0.12.jar/META-INF/LICENSE.md 
+    - istack-commons-runtime-3.0.12.jar/META-INF/NOTICE.md
+
+
+58 Group: com.sun.xml.messaging.saaj  Name: saaj-impl Version: 1.5.1 
+  - Manifest Project URL:
+    - http://www.oracle.com/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - saaj-impl-1.5.1.jar/META-INF/LICENSE.md 
+    - saaj-impl-1.5.1.jar/META-INF/NOTICE.md
+
+
+59 Group: com.sun.xml.ws  Name: jaxws-rt Version: 2.3.2 
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+60 Group: jakarta.xml.bind  Name: jakarta.xml.bind-api Version: 2.3.3 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.xml.bind-api-2.3.3.jar/META-INF/LICENSE.md 
+    - jakarta.xml.bind-api-2.3.3.jar/META-INF/NOTICE.md
+
+
+61 Group: jakarta.xml.soap  Name: jakarta.xml.soap-api Version: 1.4.1 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://projects.eclipse.org/proposals/eclipse-project-jax-ws
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.xml.soap-api-1.4.1.jar/META-INF/LICENSE.md 
+    - jakarta.xml.soap-api-1.4.1.jar/META-INF/NOTICE.md
+
+
+62 Group: org.eclipse.collections  Name: eclipse-collections Version: 12.0.0.M2 
+  - Manifest Project URL:
+    - https://github.com/eclipse/eclipse-collections/eclipse-collections
+  - Manifest License:
+    - "Eclipse Public License - v 1.0";link="https://www.eclipse.org/legal/epl-v10.html","Eclipse Distribution License - v 1.0";link="https://www.eclipse.org/licenses/edl-v10.html" (Not Packaged)
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - https://www.eclipse.org/licenses/edl-v10.html
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - https://www.eclipse.org/legal/epl-v10.html
+
+
+
+63 Group: org.eclipse.collections  Name: eclipse-collections-api Version: 12.0.0.M2 
+  - Manifest Project URL:
+    - https://github.com/eclipse/eclipse-collections/eclipse-collections-api
+  - Manifest License:
+    - "Eclipse Public License - v 1.0";link="https://www.eclipse.org/legal/epl-v10.html","Eclipse Distribution License - v 1.0";link="https://www.eclipse.org/licenses/edl-v10.html" (Not Packaged)
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - https://www.eclipse.org/licenses/edl-v10.html
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - https://www.eclipse.org/legal/epl-v10.html
+
+
+
+64 Group: org.eclipse.collections  Name: eclipse-collections-forkjoin Version: 12.0.0.M2 
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - https://www.eclipse.org/licenses/edl-v10.html
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - https://www.eclipse.org/legal/epl-v10.html
+
+
+
+65 Group: org.glassfish.jaxb  Name: jaxb-runtime Version: 2.3.5 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://eclipse-ee4j.github.io/jaxb-ri/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jaxb-runtime-2.3.5.jar/META-INF/LICENSE.md 
+    - jaxb-runtime-2.3.5.jar/META-INF/NOTICE.md
+
+
+66 Group: org.glassfish.jaxb  Name: txw2 Version: 2.3.5 
+  - POM Project URL:
+    - https://eclipse-ee4j.github.io/jaxb-ri/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - txw2-2.3.5.jar/META-INF/LICENSE.md 
+    - txw2-2.3.5.jar/META-INF/NOTICE.md
+
+
+67 Group: org.jvnet.mimepull  Name: mimepull Version: 1.9.11 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://github.com/eclipse-ee4j/metro-mimepull
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - mimepull-1.9.11.jar/META-INF/LICENSE.md 
+    - mimepull-1.9.11.jar/META-INF/NOTICE.md
+
+
+68 Group: org.jvnet.staxex  Name: stax-ex Version: 1.8.1 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - stax-ex-1.8.1.jar/META-INF/LICENSE.md 
+    - stax-ex-1.8.1.jar/META-INF/NOTICE.md
+
+Eclipse Public License - v 1.0
+==============================
+
+69 Group: ch.qos.logback  Name: logback-classic Version: 1.2.10 
+  - Manifest Project URL:
+    - http://www.qos.ch
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - http://www.eclipse.org/legal/epl-v10.html
+  - POM License:
+    - GNU Lesser General Public License
+      - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+
+
+70 Group: ch.qos.logback  Name: logback-core Version: 1.2.10 
+  - Manifest Project URL:
+    - http://www.qos.ch
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - http://www.eclipse.org/legal/epl-v10.html
+  - POM License:
+    - GNU Lesser General Public License
+      - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+
+
+71 Group: org.eclipse.collections  Name: eclipse-collections Version: 12.0.0.M2 
+  - Manifest Project URL:
+    - https://github.com/eclipse/eclipse-collections/eclipse-collections
+  - Manifest License:
+    - "Eclipse Public License - v 1.0";link="https://www.eclipse.org/legal/epl-v10.html","Eclipse Distribution License - v 1.0";link="https://www.eclipse.org/licenses/edl-v10.html" (Not Packaged)
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - https://www.eclipse.org/licenses/edl-v10.html
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - https://www.eclipse.org/legal/epl-v10.html
+
+
+
+72 Group: org.eclipse.collections  Name: eclipse-collections-api Version: 12.0.0.M2 
+  - Manifest Project URL:
+    - https://github.com/eclipse/eclipse-collections/eclipse-collections-api
+  - Manifest License:
+    - "Eclipse Public License - v 1.0";link="https://www.eclipse.org/legal/epl-v10.html","Eclipse Distribution License - v 1.0";link="https://www.eclipse.org/licenses/edl-v10.html" (Not Packaged)
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - https://www.eclipse.org/licenses/edl-v10.html
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - https://www.eclipse.org/legal/epl-v10.html
+
+
+
+73 Group: org.eclipse.collections  Name: eclipse-collections-forkjoin Version: 12.0.0.M2 
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - https://www.eclipse.org/licenses/edl-v10.html
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - https://www.eclipse.org/legal/epl-v10.html
+
+
+Eclipse Public License 1.0
+==========================
+
+74 Group: junit  Name: junit Version: 4.13.2 
+  - POM Project URL:
+    - http://junit.org
+  - POM License:
+    - Eclipse Public License 1.0
+      - http://www.eclipse.org/legal/epl-v10.html
+
+
+Eclipse Public License v. 2.0
+=============================
+
+75 Group: com.sun.activation  Name: jakarta.activation Version: 1.2.2 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - EDL 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.activation-1.2.2.jar/META-INF/LICENSE.md 
+    - jakarta.activation-1.2.2.jar/META-INF/NOTICE.md
+
+
+76 Group: com.sun.istack  Name: istack-commons-runtime Version: 3.0.12 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - istack-commons-runtime-3.0.12.jar/META-INF/LICENSE.md 
+    - istack-commons-runtime-3.0.12.jar/META-INF/NOTICE.md
+
+
+77 Group: com.sun.xml.messaging.saaj  Name: saaj-impl Version: 1.5.1 
+  - Manifest Project URL:
+    - http://www.oracle.com/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - saaj-impl-1.5.1.jar/META-INF/LICENSE.md 
+    - saaj-impl-1.5.1.jar/META-INF/NOTICE.md
+
+
+78 Group: com.sun.xml.ws  Name: jaxws-rt Version: 2.3.2 
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+79 Group: jakarta.activation  Name: jakarta.activation-api Version: 1.2.2 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - EDL 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.activation-api-1.2.2.jar/META-INF/LICENSE.md 
+    - jakarta.activation-api-1.2.2.jar/META-INF/NOTICE.md
+
+
+80 Group: jakarta.xml.bind  Name: jakarta.xml.bind-api Version: 2.3.3 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.xml.bind-api-2.3.3.jar/META-INF/LICENSE.md 
+    - jakarta.xml.bind-api-2.3.3.jar/META-INF/NOTICE.md
+
+
+81 Group: jakarta.xml.soap  Name: jakarta.xml.soap-api Version: 1.4.1 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://projects.eclipse.org/proposals/eclipse-project-jax-ws
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.xml.soap-api-1.4.1.jar/META-INF/LICENSE.md 
+    - jakarta.xml.soap-api-1.4.1.jar/META-INF/NOTICE.md
+
+
+82 Group: org.glassfish.jaxb  Name: jaxb-runtime Version: 2.3.5 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://eclipse-ee4j.github.io/jaxb-ri/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jaxb-runtime-2.3.5.jar/META-INF/LICENSE.md 
+    - jaxb-runtime-2.3.5.jar/META-INF/NOTICE.md
+
+
+83 Group: org.glassfish.jaxb  Name: txw2 Version: 2.3.5 
+  - POM Project URL:
+    - https://eclipse-ee4j.github.io/jaxb-ri/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - txw2-2.3.5.jar/META-INF/LICENSE.md 
+    - txw2-2.3.5.jar/META-INF/NOTICE.md
+
+
+84 Group: org.jvnet.mimepull  Name: mimepull Version: 1.9.11 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://github.com/eclipse-ee4j/metro-mimepull
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - mimepull-1.9.11.jar/META-INF/LICENSE.md 
+    - mimepull-1.9.11.jar/META-INF/NOTICE.md
+
+
+85 Group: org.jvnet.staxex  Name: stax-ex Version: 1.8.1 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - stax-ex-1.8.1.jar/META-INF/LICENSE.md 
+    - stax-ex-1.8.1.jar/META-INF/NOTICE.md
+
+Eclipse Public License v2.0
+===========================
+
+86 Group: org.junit.jupiter  Name: junit-jupiter-api Version: 5.9.1 
+  - POM Project URL:
+    - https://junit.org/junit5/
+  - POM License:
+    - Eclipse Public License v2.0
+      - https://www.eclipse.org/legal/epl-v20.html
+  - Embedded license files: 
+    - junit-jupiter-api-5.9.1.jar/META-INF/LICENSE.md
+
+
+87 Group: org.junit.jupiter  Name: junit-jupiter-engine Version: 5.9.1 
+  - POM Project URL:
+    - https://junit.org/junit5/
+  - POM License:
+    - Eclipse Public License v2.0
+      - https://www.eclipse.org/legal/epl-v20.html
+  - Embedded license files: 
+    - junit-jupiter-engine-5.9.1.jar/META-INF/LICENSE.md
+
+
+88 Group: org.junit.platform  Name: junit-platform-commons Version: 1.9.1 
+  - POM Project URL:
+    - https://junit.org/junit5/
+  - POM License:
+    - Eclipse Public License v2.0
+      - https://www.eclipse.org/legal/epl-v20.html
+  - Embedded license files: 
+    - junit-platform-commons-1.9.1.jar/META-INF/LICENSE.md
+
+
+89 Group: org.junit.platform  Name: junit-platform-engine Version: 1.9.1 
+  - POM Project URL:
+    - https://junit.org/junit5/
+  - POM License:
+    - Eclipse Public License v2.0
+      - https://www.eclipse.org/legal/epl-v20.html
+  - Embedded license files: 
+    - junit-platform-engine-1.9.1.jar/META-INF/LICENSE.md
+
+
+90 Group: org.junit.platform  Name: junit-platform-launcher Version: 1.9.1 
+  - POM Project URL:
+    - https://junit.org/junit5/
+  - POM License:
+    - Eclipse Public License v2.0
+      - https://www.eclipse.org/legal/epl-v20.html
+  - Embedded license files: 
+    - junit-platform-launcher-1.9.1.jar/META-INF/LICENSE.md
+
+Embedded
+========
+
+91 Group: com.unboundid  Name: unboundid-ldapsdk Version: 6.0.0 
+  - Project URL:
+    - https://github.com/pingidentity/ldapsdk
+  - Embedded license files: 
+    - unboundid-ldapsdk-6.0.0.jar/LICENSE.txt
+
+GNU General Public License, version 2 with the GNU Classpath Exception
+======================================================================
+
+92 Group: com.sun.activation  Name: jakarta.activation Version: 1.2.2 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - EDL 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.activation-1.2.2.jar/META-INF/LICENSE.md 
+    - jakarta.activation-1.2.2.jar/META-INF/NOTICE.md
+
+
+93 Group: com.sun.istack  Name: istack-commons-runtime Version: 3.0.12 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - istack-commons-runtime-3.0.12.jar/META-INF/LICENSE.md 
+    - istack-commons-runtime-3.0.12.jar/META-INF/NOTICE.md
+
+
+94 Group: com.sun.xml.messaging.saaj  Name: saaj-impl Version: 1.5.1 
+  - Manifest Project URL:
+    - http://www.oracle.com/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - saaj-impl-1.5.1.jar/META-INF/LICENSE.md 
+    - saaj-impl-1.5.1.jar/META-INF/NOTICE.md
+
+
+95 Group: com.sun.xml.ws  Name: jaxws-rt Version: 2.3.2 
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+96 Group: jakarta.activation  Name: jakarta.activation-api Version: 1.2.2 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - EDL 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.activation-api-1.2.2.jar/META-INF/LICENSE.md 
+    - jakarta.activation-api-1.2.2.jar/META-INF/NOTICE.md
+
+
+97 Group: jakarta.xml.bind  Name: jakarta.xml.bind-api Version: 2.3.3 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.xml.bind-api-2.3.3.jar/META-INF/LICENSE.md 
+    - jakarta.xml.bind-api-2.3.3.jar/META-INF/NOTICE.md
+
+
+98 Group: jakarta.xml.soap  Name: jakarta.xml.soap-api Version: 1.4.1 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://projects.eclipse.org/proposals/eclipse-project-jax-ws
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jakarta.xml.soap-api-1.4.1.jar/META-INF/LICENSE.md 
+    - jakarta.xml.soap-api-1.4.1.jar/META-INF/NOTICE.md
+
+
+99 Group: org.glassfish.jaxb  Name: jaxb-runtime Version: 2.3.5 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://eclipse-ee4j.github.io/jaxb-ri/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - jaxb-runtime-2.3.5.jar/META-INF/LICENSE.md 
+    - jaxb-runtime-2.3.5.jar/META-INF/NOTICE.md
+
+
+100 Group: org.glassfish.jaxb  Name: txw2 Version: 2.3.5 
+  - POM Project URL:
+    - https://eclipse-ee4j.github.io/jaxb-ri/
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - txw2-2.3.5.jar/META-INF/LICENSE.md 
+    - txw2-2.3.5.jar/META-INF/NOTICE.md
+
+
+101 Group: org.jvnet.mimepull  Name: mimepull Version: 1.9.11 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM Project URL:
+    - https://github.com/eclipse-ee4j/metro-mimepull
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - mimepull-1.9.11.jar/META-INF/LICENSE.md 
+    - mimepull-1.9.11.jar/META-INF/NOTICE.md
+
+
+102 Group: org.jvnet.staxex  Name: stax-ex Version: 1.8.1 
+  - Manifest Project URL:
+    - https://www.eclipse.org
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - Embedded license files: 
+    - stax-ex-1.8.1.jar/META-INF/LICENSE.md 
+    - stax-ex-1.8.1.jar/META-INF/NOTICE.md
+
+GNU Lesser General Public License
+=================================
+
+103 Group: ch.qos.logback  Name: logback-classic Version: 1.2.10 
+  - Manifest Project URL:
+    - http://www.qos.ch
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - http://www.eclipse.org/legal/epl-v10.html
+  - POM License:
+    - GNU Lesser General Public License
+      - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+
+
+104 Group: ch.qos.logback  Name: logback-core Version: 1.2.10 
+  - Manifest Project URL:
+    - http://www.qos.ch
+  - POM License:
+    - Eclipse Public License - v 1.0
+      - http://www.eclipse.org/legal/epl-v10.html
+  - POM License:
+    - GNU Lesser General Public License
+      - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+
+
+105 Group: com.github.javaparser  Name: javaparser-core Version: 3.24.2 
+  - Manifest Project URL:
+    - https://github.com/javaparser/javaparser-core
+  - Manifest License:
+    - "GNU Lesser General Public License";link="http://www.gnu.org/licenses/lgpl-3.0.html","Apache License, Version 2.0";link="http://www.apache.org/licenses/LICENSE-2.0.txt";description="A business-friendly OSS license" (Not Packaged)
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - GNU Lesser General Public License
+      - http://www.gnu.org/licenses/lgpl-3.0.html
+
+
+GPL2 w/ CPE
+===========
+
+106 Group: javax.xml.bind  Name: jaxb-api Version: 2.3.1 
+  - Manifest Project URL:
+    - http://www.oracle.com/
+  - POM License:
+    - CDDL 1.1
+      - https://oss.oracle.com/licenses/CDDL+GPL-1.1
+  - POM License:
+    - GPL2 w/ CPE
+      - https://oss.oracle.com/licenses/CDDL+GPL-1.1
+  - Embedded license files: 
+    - jaxb-api-2.3.1.jar/META-INF/LICENSE.txt
+
+LGPL-2.1
+========
+
+107 Group: org.mariadb.jdbc  Name: mariadb-java-client Version: 2.7.2 
+  - POM Project URL:
+    - https://mariadb.com/kb/en/mariadb/about-mariadb-connector-j/
+  - POM License:
+    - LGPL-2.1
+
+
+MIT License
+===========
+
+108 Group: com.microsoft.sqlserver  Name: mssql-jdbc Version: 9.2.0.jre8 
+  - POM Project URL:
+    - https://github.com/Microsoft/mssql-jdbc
+  - POM License:
+    - MIT License
+      - http://www.opensource.org/licenses/mit-license.php
+
+
+
+109 Group: org.slf4j  Name: jcl-over-slf4j Version: 1.7.36 
+  - POM Project URL:
+    - http://www.slf4j.org
+  - POM License:
+    - Apache License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - MIT License
+      - http://www.opensource.org/licenses/mit-license.php
+
+
+
+110 Group: org.slf4j  Name: slf4j-api Version: 1.7.32 
+  - POM Project URL:
+    - http://www.slf4j.org
+  - POM License:
+    - MIT License
+      - http://www.opensource.org/licenses/mit-license.php
+
+
+
+111 Group: org.slf4j  Name: slf4j-api Version: 1.7.36 
+  - POM Project URL:
+    - http://www.slf4j.org
+  - POM License:
+    - MIT License
+      - http://www.opensource.org/licenses/mit-license.php
+
+
+MIT license
+===========
+
+112 Group: net.engio  Name: mbassador Version: 1.3.0 
+  - POM Project URL:
+    - https://github.com/bennidi/mbassador
+  - POM License:
+    - MIT license
+      - http://www.opensource.org/licenses/mit-license.php
+
+
+Mozilla Public License Version 2.0
+==================================
+
+113 Group: net.sf.saxon  Name: Saxon-HE Version: 9.9.0-2 
+  - POM Project URL:
+    - http://www.saxonica.com/
+  - POM License:
+    - Mozilla Public License Version 2.0
+      - http://www.mozilla.org/MPL/2.0/
+
+
+New BSD License
+===============
+
+114 Group: org.hamcrest  Name: hamcrest-core Version: 1.3 
+  - POM License:
+    - New BSD License
+      - http://www.opensource.org/licenses/bsd-license.php
+  - Embedded license files: 
+    - hamcrest-core-1.3.jar/LICENSE.txt
+
+Oracle Free Use Terms and Conditions (FUTC)
+===========================================
+
+115 Group: com.oracle.database.jdbc  Name: ojdbc8 Version: 21.1.0.0 
+  - POM Project URL:
+    - https://www.oracle.com/database/technologies/maven-central-guide.html
+  - POM License:
+    - Oracle Free Use Terms and Conditions (FUTC)
+      - https://www.oracle.com/downloads/licenses/oracle-free-license.html
+  - Embedded license files: 
+    - ojdbc8-21.1.0.0.jar/META-INF/license.txt
+
+Revised BSD
+===========
+
+116 Group: com.github.mwiede  Name: jsch Version: 0.1.72 
+  - POM Project URL:
+    - https://github.com/mwiede/jsch
+  - POM License:
+    - Revised BSD
+      - https://github.com/mwiede/jsch/blob/master/LICENSE.txt
+
+
+The Apache License, Version 2.0
+===============================
+
+117 Group: com.fasterxml.woodstox  Name: woodstox-core Version: 6.4.0 
+  - Project URL:
+    - https://github.com/FasterXML/woodstox
+  - POM License:
+    - The Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - woodstox-core-6.4.0.jar/META-INF/LICENSE
+
+
+118 Group: io.github.rburgst  Name: okhttp-digest Version: 2.7 
+  - POM Project URL:
+    - https://github.com/rburgst/okhttp-digest
+  - POM License:
+    - The Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+119 Group: org.jetbrains.kotlin  Name: kotlin-stdlib Version: 1.8.22 
+  - POM Project URL:
+    - https://kotlinlang.org/
+  - POM License:
+    - The Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+120 Group: org.jetbrains.kotlin  Name: kotlin-stdlib-common Version: 1.8.22 
+  - POM Project URL:
+    - https://kotlinlang.org/
+  - POM License:
+    - The Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+121 Group: org.opentest4j  Name: opentest4j Version: 1.2.0 
+  - Manifest License:
+    - The Apache License, Version 2.0 (Not Packaged)
+  - POM Project URL:
+    - https://github.com/ota4j-team/opentest4j
+  - POM License:
+    - The Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+The Apache Software License, Version 2.0
+========================================
+
+122 Group: com.fasterxml.jackson.core  Name: jackson-annotations Version: 2.14.1 
+  - Project URL:
+    - https://github.com/FasterXML/jackson
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - jackson-annotations-2.14.1.jar/META-INF/LICENSE
+
+
+123 Group: com.fasterxml.jackson.core  Name: jackson-core Version: 2.14.1 
+  - Project URL:
+    - https://github.com/FasterXML/jackson-core
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - jackson-core-2.14.1.jar/META-INF/LICENSE 
+    - jackson-core-2.14.1.jar/META-INF/NOTICE
+
+
+124 Group: com.fasterxml.jackson.core  Name: jackson-databind Version: 2.14.1 
+  - Project URL:
+    - https://github.com/FasterXML/jackson
+  - POM License:
+    - Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - jackson-databind-2.14.1.jar/META-INF/LICENSE 
+    - jackson-databind-2.14.1.jar/META-INF/NOTICE
+
+
+125 Group: com.fasterxml.woodstox  Name: woodstox-core Version: 6.4.0 
+  - Project URL:
+    - https://github.com/FasterXML/woodstox
+  - POM License:
+    - The Apache License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - woodstox-core-6.4.0.jar/META-INF/LICENSE
+
+
+126 Group: com.google.code.findbugs  Name: jsr305 Version: 3.0.2 
+  - POM Project URL:
+    - http://findbugs.sourceforge.net/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+127 Group: com.google.guava  Name: failureaccess Version: 1.0.1 
+  - Manifest Project URL:
+    - https://github.com/google/guava/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+128 Group: com.google.guava  Name: listenablefuture Version: 9999.0-empty-to-avoid-conflict-with-guava 
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+129 Group: com.squareup.okhttp3  Name: okhttp Version: 4.9.3 
+  - POM Project URL:
+    - https://square.github.io/okhttp/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - okhttp-4.9.3.jar/okhttp3/internal/publicsuffix/NOTICE
+
+
+130 Group: com.squareup.okio  Name: okio Version: 2.8.0 
+  - POM Project URL:
+    - https://github.com/square/okio/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+131 Group: com.sun.xml.ws  Name: jaxws-rt Version: 2.3.2 
+  - POM License:
+    - Eclipse Distribution License - v 1.0
+      - http://www.eclipse.org/org/documents/edl-v10.php
+  - POM License:
+    - Eclipse Public License v. 2.0
+      - https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+  - POM License:
+    - GNU General Public License, version 2 with the GNU Classpath Exception
+      - https://www.gnu.org/software/classpath/license.html
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+132 Group: com.thoughtworks.qdox  Name: qdox Version: 1.12.1 
+  - POM Project URL:
+    - http://qdox.codehaus.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+133 Group: commons-logging  Name: commons-logging Version: 1.2 
+  - Project URL:
+    - http://commons.apache.org/proper/commons-logging/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - commons-logging-1.2.jar/META-INF/LICENSE.txt 
+    - commons-logging-1.2.jar/META-INF/NOTICE.txt
+
+
+134 Group: io.cloudsoft.windows  Name: winrm4j Version: 0.12.3 
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+135 Group: io.cloudsoft.windows  Name: winrm4j-client Version: 0.12.3 
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+136 Group: io.github.http-builder-ng  Name: http-builder-ng-core Version: 1.0.4 
+  - POM Project URL:
+    - https://http-builder-ng.github.io/http-builder-ng/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+137 Group: io.github.http-builder-ng  Name: http-builder-ng-okhttp Version: 1.0.4 
+  - POM Project URL:
+    - https://http-builder-ng.github.io/http-builder-ng/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+138 Group: net.jpountz.lz4  Name: lz4 Version: 1.3.0 
+  - POM Project URL:
+    - https://github.com/jpountz/lz4-java
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+139 Group: org.apache.ant  Name: ant Version: 1.10.12 
+  - POM Project URL:
+    - https://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-1.10.12.jar/META-INF/LICENSE.txt 
+    - ant-1.10.12.jar/META-INF/NOTICE.txt
+
+
+140 Group: org.apache.ant  Name: ant Version: 1.9.16 
+  - POM Project URL:
+    - http://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-1.9.16.jar/META-INF/LICENSE.txt 
+    - ant-1.9.16.jar/META-INF/NOTICE.txt
+
+
+141 Group: org.apache.ant  Name: ant-antlr Version: 1.10.12 
+  - POM Project URL:
+    - https://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-antlr-1.10.12.jar/META-INF/LICENSE.txt 
+    - ant-antlr-1.10.12.jar/META-INF/NOTICE.txt
+
+
+142 Group: org.apache.ant  Name: ant-antlr Version: 1.9.16 
+  - POM Project URL:
+    - http://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-antlr-1.9.16.jar/META-INF/LICENSE.txt 
+    - ant-antlr-1.9.16.jar/META-INF/NOTICE.txt
+
+
+143 Group: org.apache.ant  Name: ant-junit Version: 1.10.12 
+  - POM Project URL:
+    - https://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-junit-1.10.12.jar/META-INF/LICENSE.txt 
+    - ant-junit-1.10.12.jar/META-INF/NOTICE.txt
+
+
+144 Group: org.apache.ant  Name: ant-launcher Version: 1.10.12 
+  - POM Project URL:
+    - https://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - https://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-launcher-1.10.12.jar/META-INF/LICENSE.txt 
+    - ant-launcher-1.10.12.jar/META-INF/NOTICE.txt
+
+
+145 Group: org.apache.ant  Name: ant-launcher Version: 1.9.16 
+  - POM Project URL:
+    - http://ant.apache.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - ant-launcher-1.9.16.jar/META-INF/LICENSE.txt 
+    - ant-launcher-1.9.16.jar/META-INF/NOTICE.txt
+
+
+146 Group: org.codehaus.gpars  Name: gpars Version: 1.2.1 
+  - Project URL:
+    - http://gpars.codehaus.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - gpars-1.2.1.jar/META-INF/LICENSE.txt 
+    - gpars-1.2.1.jar/META-INF/NOTICE.txt 
+    - gpars-1.2.1.jar/META-INF/README
+
+
+147 Group: org.codehaus.groovy  Name: groovy Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - Embedded license files: 
+    - groovy-3.0.14.jar/META-INF/LICENSE 
+    - groovy-3.0.14.jar/META-INF/NOTICE
+
+
+148 Group: org.codehaus.groovy  Name: groovy-ant Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+149 Group: org.codehaus.groovy  Name: groovy-astbuilder Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+150 Group: org.codehaus.groovy  Name: groovy-cli-commons Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+151 Group: org.codehaus.groovy  Name: groovy-cli-picocli Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+152 Group: org.codehaus.groovy  Name: groovy-console Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+153 Group: org.codehaus.groovy  Name: groovy-datetime Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+154 Group: org.codehaus.groovy  Name: groovy-dateutil Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+155 Group: org.codehaus.groovy  Name: groovy-docgenerator Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+156 Group: org.codehaus.groovy  Name: groovy-groovydoc Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+157 Group: org.codehaus.groovy  Name: groovy-groovysh Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+158 Group: org.codehaus.groovy  Name: groovy-jaxb Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+159 Group: org.codehaus.groovy  Name: groovy-jmx Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+160 Group: org.codehaus.groovy  Name: groovy-json Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+161 Group: org.codehaus.groovy  Name: groovy-jsr223 Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+162 Group: org.codehaus.groovy  Name: groovy-macro Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+163 Group: org.codehaus.groovy  Name: groovy-nio Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+164 Group: org.codehaus.groovy  Name: groovy-servlet Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+165 Group: org.codehaus.groovy  Name: groovy-sql Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+166 Group: org.codehaus.groovy  Name: groovy-swing Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+167 Group: org.codehaus.groovy  Name: groovy-templates Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+168 Group: org.codehaus.groovy  Name: groovy-test Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+169 Group: org.codehaus.groovy  Name: groovy-test-junit5 Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+170 Group: org.codehaus.groovy  Name: groovy-xml Version: 3.0.14 
+  - POM Project URL:
+    - https://groovy-lang.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+171 Group: org.codehaus.woodstox  Name: stax2-api Version: 4.2.1 
+  - Project URL:
+    - http://github.com/FasterXML/stax2-api
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The BSD License
+      - http://www.opensource.org/licenses/bsd-license.php
+  - Embedded license files: 
+    - stax2-api-4.2.1.jar/META-INF/LICENSE
+
+
+172 Group: org.jetbrains  Name: annotations Version: 13.0 
+  - POM Project URL:
+    - http://www.jetbrains.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+173 Group: org.mapdb  Name: elsa Version: 3.0.0-M5 
+  - POM Project URL:
+    - http://www.mapdb.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+174 Group: org.mapdb  Name: mapdb Version: 3.0.8 
+  - POM Project URL:
+    - http://www.mapdb.org
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+175 Group: org.ow2.asm  Name: asm Version: 9.4 
+  - Manifest Project URL:
+    - http://asm.ow2.org
+  - Manifest License:
+    - BSD-3-Clause;link=https://asm.ow2.io/LICENSE.txt (Not Packaged)
+  - POM Project URL:
+    - http://asm.ow2.io/
+  - POM License:
+    - BSD-3-Clause
+      - https://asm.ow2.io/license.html
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+176 Group: org.xmlunit  Name: xmlunit-core Version: 2.3.0 
+  - Project URL:
+    - http://www.xmlunit.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+177 Group: org.xmlunit  Name: xmlunit-matchers Version: 2.3.0 
+  - Project URL:
+    - http://www.xmlunit.org/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+
+178 Group: xml-resolver  Name: xml-resolver Version: 1.2 
+  - POM Project URL:
+    - http://xml.apache.org/commons/components/resolver/
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+The Apache Software License, version 2.0
+========================================
+
+179 Group: info.picocli  Name: picocli Version: 4.6.3 
+  - POM Project URL:
+    - http://picocli.info
+  - POM License:
+    - The Apache Software License, version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+The BSD License
+===============
+
+180 Group: jline  Name: jline Version: 2.14.6 
+  - POM License:
+    - The BSD License
+      - http://www.opensource.org/licenses/bsd-license.php
+
+
+
+181 Group: org.codehaus.woodstox  Name: stax2-api Version: 4.2.1 
+  - Project URL:
+    - http://github.com/FasterXML/stax2-api
+  - POM License:
+    - The Apache Software License, Version 2.0
+      - http://www.apache.org/licenses/LICENSE-2.0.txt
+  - POM License:
+    - The BSD License
+      - http://www.opensource.org/licenses/bsd-license.php
+  - Embedded license files: 
+    - stax2-api-4.2.1.jar/META-INF/LICENSE
+
+The MIT License
+===============
+
+182 Group: org.checkerframework  Name: checker-qual Version: 3.33.0 
+  - Manifest License:
+    - MIT (Not Packaged)
+  - POM Project URL:
+    - https://checkerframework.org/
+  - POM License:
+    - The MIT License
+      - http://opensource.org/licenses/MIT
+  - Embedded license files: 
+    - checker-qual-3.33.0.jar/META-INF/LICENSE.txt
+
+Unknown
+=======
+
+183 Group: com.fasterxml.jackson  Name: jackson-bom Version: 2.14.1 
+
+
+
+184 Group: com.google.guava  Name: guava-parent Version: 32.1.2-jre 
+
+
+
+185 Group: org.codehaus.groovy  Name: groovy-all Version: 3.0.14 
+
+
+
+186 Group: org.codehaus.jsr166-mirror  Name: jsr166y Version: 1.7.0 
+  - Manifest Project URL:
+    - http://jsr166.codehaus.org
+
+
+
+187 Group: org.junit  Name: junit-bom Version: 5.9.1 
+
+
+
+188 Group: org.multiverse  Name: multiverse-core Version: 0.7.0 
+
+

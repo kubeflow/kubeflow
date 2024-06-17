@@ -1,0 +1,712 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:ind="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:win="http://oval.mitre.org/XMLSchema/oval-definitions-5#windows" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5#windows https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/windows-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5 https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/oval-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-common-5 https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/oval-common-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5#independent https://github.com/CISecurity/OVALRepo/raw/master/oval_schemas/5.11.2/independent-definitions-schema.xsd">
+	<generator>
+		<oval:product_name>Center for Internet Security</oval:product_name>
+		<oval:schema_version>5.11.2</oval:schema_version>
+		<oval:timestamp>2019-12-11T10:15:31.188-04:00</oval:timestamp>
+	</generator>
+	
+	<definitions>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:104" version="1">
+			<metadata>
+				<title>1.4 Maintain Detailed Asset Inventory</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>1.4 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:104"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:106" version="1">
+			<metadata>
+				<title>1.6 Address Unauthorized Assets</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>1.6 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:106"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:201" version="1">
+			<metadata>
+				<title>2.1 Maintain Inventory of Authorized Software</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>2.1 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:201"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:202" version="1">
+			<metadata>
+				<title>2.2 Ensure Software is Supported by Vendor</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>2.2 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:202"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:206" version="1">
+			<metadata>
+				<title>2.6 Address Unapproved Software</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>2.6 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:206"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:305" version="1">
+			<metadata>
+				<title>3.5 Deploy Automated Software Patch Management Tools</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>3.5 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:305"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:403" version="1">
+			<metadata>
+				<title>4.3 Ensure the Use of Dedicated Administrative Accounts</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>4.3 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:403"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:501" version="1">
+			<metadata>
+				<title>5.1 Establish Secure Configurations</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>5.1 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:501"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:701" version="1">
+			<metadata>
+				<title>7.1 Ensure Use of Only Fully Supported Browsers and Email Clients</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>7.1 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:701"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:707" version="1">
+			<metadata>
+				<title>7.7 Use of DNS Filtering Services</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>7.7 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:707"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:804" version="1">
+			<metadata>
+				<title>8.4 Configure Anti-Malware Scanning of Removable Media</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>8.4 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:804"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1005" version="1">
+			<metadata>
+				<title>10.5 Ensure All Backups Have at Least One Offline Backup Destination</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>10.5 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1005"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1104" version="1">
+			<metadata>
+				<title>11.4 Install the Latest Stable Version of Any Security-Related Updates on All Network Devices</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>114 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1104"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1201" version="1">
+			<metadata>
+				<title>12.1 Maintain an Inventory of Network Boundaries</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>12.1 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1201"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1204" version="1">
+			<metadata>
+				<title>12.4 Deny Communication Over Unauthorized Ports</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>12.4 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1204"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1301" version="1">
+			<metadata>
+				<title>13.1 Maintain an Inventory of Sensitive Information</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>13.1 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1301"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1302" version="1">
+			<metadata>
+				<title>13.2 Remove Sensitive Data or Systems Not Regularly Accessed by Organization</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>13.2 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1302"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1406" version="1">
+			<metadata>
+				<title>14.6 Protect Information Through Access Control Lists</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>14.6 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1406"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1510" version="1">
+			<metadata>
+				<title>15.10 Create Separate Wireless Network for Personal and Untrusted Devices</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>15.10 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1510"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1608" version="1">
+			<metadata>
+				<title>16.8 Disable Any Unassociated Accounts</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>16.8 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1608"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1703" version="1">
+			<metadata>
+				<title>17.3 Implement a Security Awareness Program</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>17.3 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1703"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1705" version="1">
+			<metadata>
+				<title>17.5 Train Workforce on Secure Authentication</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>17.5 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1705"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1706" version="1">
+			<metadata>
+				<title>17.6 Train Workforce on Identifying Social Engineering Attacks</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>17.6 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1706"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1707" version="1">
+			<metadata>
+				<title>17.7 Train Workforce on Sensitive Data Handling</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>17.7 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1707"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1708" version="1">
+			<metadata>
+				<title>17.8 Train Workforce on Causes of Unintentional Data Exposure</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>17.8 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1708"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1709" version="1">
+			<metadata>
+				<title>17.9 Train Workforce Members on Identifying and Reporting Incidents</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>17.9 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1709"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1901" version="1">
+			<metadata>
+				<title>19.1 Document Incident Response Procedures</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>19.1 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1901"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1903" version="1">
+			<metadata>
+				<title>19.3 Designate Management Personnel to Support Incident Handling</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>19.3 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1903"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1905" version="1">
+			<metadata>
+				<title>19.5 Maintain Contact Information for Reporting Security Incidents</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>19.5 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1905"/>
+			</criteria>
+		</definition>
+		<definition class="compliance" id="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1906" version="1">
+			<metadata>
+				<title>19.6 Publish Information Regarding Reporting Computer Anomalies and Incidents</title>
+				<affected family="windows">
+					<product>Microsoft Windows 10</product>
+				</affected>
+				<description>19.6 Definition Description</description>
+			</metadata>
+			<criteria operator="AND">
+				<criterion test_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1906"/>
+			</criteria>
+		</definition>
+	</definitions>
+	
+	<tests>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="1.4 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:104" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:104"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:104"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="1.6 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:106" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:106"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:106"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="2.1 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:201" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:201"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:201"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="2.2 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:202" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:202"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:202"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="2.6 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:206" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:206"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:206"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="3.5 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:305" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:305"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:305"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="4.3 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:403" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:403"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:403"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="5.1 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:501" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:501"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:501"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="7.1 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:701" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:701"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:701"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="7.7 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:707" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:707"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:707"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="8.4 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:804" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:804"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:804"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="10.5 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1005" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1005"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1005"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="11.4 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1104" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1104"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1104"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="12.1 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1201" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1201"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1201"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="12.4 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1204" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1204"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1204"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="13.1 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1301" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1301"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1301"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="13.2 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1302" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1302"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1302"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="14.6 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1406" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1406"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1406"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="15.10 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1510" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1510"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1510"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="16.8 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1608" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1608"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1608"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="17.3 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1703" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1703"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1703"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="17.5 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1705" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1705"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1705"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="17.6 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1706" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1706"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1706"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="17.7 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1707" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1707"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1707"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="17.8 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1708" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1708"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1708"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="17.9 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1709" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1709"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1709"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="19.1 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1901" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1901"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1901"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="19.3 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1903" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1903"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1903"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="19.5 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1905" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1905"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1905"/>
+		</ind:variable_test>
+		<ind:variable_test check="all" check_existence="at_least_one_exists" comment="19.6 Test" id="oval:org.cisecurity.benchmarks.controls_assessment_module:tst:1906" version="1">
+			<ind:object object_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1906"/>
+			<ind:state state_ref="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1906"/>
+		</ind:variable_test>
+	</tests>
+	
+	<objects>
+		<ind:variable_object comment="1.4 Maintain Detailed Asset Inventory" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:104" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:104</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="1.6 Address Unauthorized Assets" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:106" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:106</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="2.1 Maintain Inventory of Authorized Software" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:201" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:201</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="2.2 Ensure Software is Supported by Vendor" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:202" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:202</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="2.6 Address Unapproved Software" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:206" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:206</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="3.5 Deploy Automated Software Patch Management Tools" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:305" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:305</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="4.3 Ensure the Use of Dedicated Administrative Accounts" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:403" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:403</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="5.1 Establish Secure Configurations" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:501" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:501</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="7.1 Ensure Use of Only Fully Supported Browsers and Email Clients" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:701" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:701</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="7.7 Use of DNS Filtering Services" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:707" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:707</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="8.4 Configure Anti-Malware Scanning of Removable Media" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:804" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:804</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="10.5 Ensure All Backups Have at Least One Offline Backup Destination" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1005" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1005</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="11.4 Install the Latest Stable Version of Any Security-Related Updates on All Network Devices" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1104" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1104</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="12.1 Maintain an Inventory of Network Boundaries" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1201" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1201</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="12.4 Deny Communication Over Unauthorized Ports" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1204" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1204</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="13.1 Maintain an Inventory of Sensitive Information" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1301" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1301</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="13.2 Remove Sensitive Data or Systems Not Regularly Accessed by Organization" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1302" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1302</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="14.6 Protect Information Through Access Control Lists" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1406" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1406</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="15.10 Create Separate Wireless Network for Personal and Untrusted Devices" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1510" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1510</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="16.8 Disable Any Unassociated Accounts" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1608" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1608</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="17.3 Implement a Security Awareness Programs" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1703" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1703</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="17.5 Train Workforce on Secure Authentication" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1705" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1705</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="17.6 Train Workforce on Identifying Social Engineering Attacks" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1706" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1706</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="17.7 Train Workforce on Sensitive Data Handling" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1707" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1707</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="17.8 Train Workforce on Causes of Unintentional Data Exposure" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1708" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1708</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="17.9 Train Workforce Members on Identifying and Reporting Incidents" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1709" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1709</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="19.1 Document Incident Response Procedures" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1901" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1901</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="19.3 Designate Management Personnel to Support Incident Handling" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1903" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1903</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="19.5 Maintain Contact Information for Reporting Security Incidents" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1905" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1905</ind:var_ref>
+		</ind:variable_object>
+		<ind:variable_object comment="19.6 Publish Information Regarding Reporting Computer Anomalies and Incidents" id="oval:org.cisecurity.benchmarks.controls_assessment_module:obj:1906" version="1">
+			<ind:var_ref>oval:org.cisecurity.benchmarks.controls_assessment_module:var:1906</ind:var_ref>
+		</ind:variable_object>
+	</objects>
+	
+	<states>
+		<ind:variable_state comment="1.4 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:104" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="1.6 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:106" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="2.1 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:201" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="2.2 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:202" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="2.6 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:206" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="3.5 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:305" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="4.3 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:403" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="5.1 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:501" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="7.1 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:701" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="7.7 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:707" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="8.4 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:804" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="10.5 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1005" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="11.4 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1104" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="12.1 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1201" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="12.4 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1204" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="13.1 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1301" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="13.2 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1302" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="14.6 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1406" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="15.10 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1510" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="16.8 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1608" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="17.3 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1703" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="17.5 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1705" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="17.6 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1706" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="17.7 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1707" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="17.8 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1708" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="17.9 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1709" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="19.3 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1901" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="19.3 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1903" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="19.5 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1905" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+		<ind:variable_state comment="19.6 State" id="oval:org.cisecurity.benchmarks.controls_assessment_module:ste:1906" version="1">
+			<ind:value datatype="string" operation="pattern match">^[y|Y](es|ES|eS|Es)?$</ind:value>
+		</ind:variable_state>
+	</states>
+	
+	<variables>
+		<external_variable comment="1.4 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:104" version="1"/>
+		<external_variable comment="1.6 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:106" version="1"/>
+		<external_variable comment="2.1 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:201" version="1"/>
+		<external_variable comment="2.2 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:202" version="1"/>
+		<external_variable comment="2.6 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:206" version="1"/>
+		<external_variable comment="3.5 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:305" version="1"/>
+		<external_variable comment="4.3 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:403" version="1"/>
+		<external_variable comment="5.1 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:501" version="1"/>
+		<external_variable comment="7.1 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:701" version="1"/>
+		<external_variable comment="7.7 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:707" version="1"/>
+		<external_variable comment="8.4 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:804" version="1"/>
+		<external_variable comment="10.5 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1005" version="1"/>
+		<external_variable comment="11.4 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1104" version="1"/>
+		<external_variable comment="12.1 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1201" version="1"/>
+		<external_variable comment="12.4 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1204" version="1"/>
+		<external_variable comment="13.1 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1301" version="1"/>
+		<external_variable comment="13.2 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1302" version="1"/>
+		<external_variable comment="14.6 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1406" version="1"/>
+		<external_variable comment="15.10 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1510" version="1"/>
+		<external_variable comment="16.8 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1608" version="1"/>
+		<external_variable comment="17.3 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1703" version="1"/>
+		<external_variable comment="17.5 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1705" version="1"/>
+		<external_variable comment="17.6 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1706" version="1"/>
+		<external_variable comment="17.7 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1707" version="1"/>
+		<external_variable comment="17.8 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1708" version="1"/>
+		<external_variable comment="17.9 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1709" version="1"/>
+		<external_variable comment="19.1 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1901" version="1"/>
+		<external_variable comment="19.3 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1903" version="1"/>
+		<external_variable comment="19.5 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1905" version="1"/>
+		<external_variable comment="19.6 Variable" datatype="string" id="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1906" version="1"/>
+	</variables>
+</oval_definitions>

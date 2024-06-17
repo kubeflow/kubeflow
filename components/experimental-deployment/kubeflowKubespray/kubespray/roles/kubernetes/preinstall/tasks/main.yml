@@ -1,0 +1,148 @@
+---
+# Disable swap
+- name: Disable swap
+  import_tasks: 0010-swapoff.yml
+  when:
+    - not dns_late
+    - kubelet_fail_swap_on
+
+- name: Set facts
+  import_tasks: 0020-set_facts.yml
+  tags:
+    - resolvconf
+    - facts
+
+- name: Check settings
+  import_tasks: 0040-verify-settings.yml
+  when:
+    - not dns_late
+  tags:
+    - asserts
+
+- name: Create directories
+  import_tasks: 0050-create_directories.yml
+  when:
+    - not dns_late
+
+- name: Apply resolvconf settings
+  import_tasks: 0060-resolvconf.yml
+  when:
+    - dns_mode != 'none'
+    - resolvconf_mode == 'host_resolvconf'
+    - systemd_resolved_enabled.rc != 0
+    - networkmanager_enabled.rc != 0
+  tags:
+    - bootstrap-os
+    - resolvconf
+
+- name: Apply systemd-resolved settings
+  import_tasks: 0061-systemd-resolved.yml
+  when:
+    - dns_mode != 'none'
+    - resolvconf_mode == 'host_resolvconf'
+    - systemd_resolved_enabled.rc == 0
+  tags:
+    - bootstrap-os
+    - resolvconf
+
+- name: Apply networkmanager unmanaged devices settings
+  import_tasks: 0062-networkmanager-unmanaged-devices.yml
+  when:
+    - networkmanager_enabled.rc == 0
+  tags:
+    - bootstrap-os
+
+- name: Apply networkmanager DNS settings
+  import_tasks: 0063-networkmanager-dns.yml
+  when:
+    - dns_mode != 'none'
+    - resolvconf_mode == 'host_resolvconf'
+    - networkmanager_enabled.rc == 0
+  tags:
+    - bootstrap-os
+    - resolvconf
+
+- name: Install required system packages
+  import_tasks: 0070-system-packages.yml
+  when:
+    - not dns_late
+  tags:
+    - bootstrap-os
+
+- name: Apply system configurations
+  import_tasks: 0080-system-configurations.yml
+  when:
+    - not dns_late
+  tags:
+    - bootstrap-os
+
+- name: Configure NTP
+  import_tasks: 0081-ntp-configurations.yml
+  when:
+    - not dns_late
+    - ntp_enabled
+  tags:
+    - bootstrap-os
+
+- name: Configure /etc/hosts
+  import_tasks: 0090-etchosts.yml
+  tags:
+    - bootstrap-os
+    - etchosts
+
+- name: Configure dhclient
+  import_tasks: 0100-dhclient-hooks.yml
+  when:
+    - dns_mode != 'none'
+    - resolvconf_mode == 'host_resolvconf'
+    - dhclientconffile is defined
+    - not ansible_os_family in ["Flatcar", "Flatcar Container Linux by Kinvolk"]
+  tags:
+    - bootstrap-os
+    - resolvconf
+
+- name: Configure dhclient dhclient hooks
+  import_tasks: 0110-dhclient-hooks-undo.yml
+  when:
+    - dns_mode != 'none'
+    - resolvconf_mode != 'host_resolvconf'
+    - dhclientconffile is defined
+    - not ansible_os_family in ["Flatcar", "Flatcar Container Linux by Kinvolk"]
+  tags:
+    - bootstrap-os
+    - resolvconf
+
+# We need to make sure the network is restarted early enough so that docker can later pick up the correct system
+# nameservers and search domains
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Check if we are running inside a Azure VM
+  stat:
+    path: /var/lib/waagent/
+    get_attributes: no
+    get_checksum: no
+    get_mime: no
+  register: azure_check
+  when:
+    - not dns_late
+  tags:
+    - bootstrap-os
+
+- name: Grow partition on azure CentOS
+  import_tasks: 0120-growpart-azure-centos-7.yml
+  when:
+    - not dns_late
+    - azure_check.stat.exists
+    - ansible_os_family == "RedHat"
+    - growpart_azure_enabled
+  tags:
+    - bootstrap-os
+
+- name: Run calico checks
+  include_role:
+    name: network_plugin/calico
+    tasks_from: check
+  when:
+    - kube_network_plugin == 'calico'
+    - not ignore_assert_errors

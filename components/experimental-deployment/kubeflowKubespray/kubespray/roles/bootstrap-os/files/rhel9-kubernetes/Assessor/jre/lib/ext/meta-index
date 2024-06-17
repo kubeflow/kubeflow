@@ -1,0 +1,28 @@
+% VERSION 2
+% WARNING: this file is auto-generated; do not edit
+% UNSUPPORTED: this file and its format may change and/or
+%   may be removed in a future release
+! cldrdata.jar
+sun/text
+sun/util
+# dnsns.jar
+META-INF/services/sun.net.spi.nameservice.NameServiceDescriptor
+sun/net
+! jaccess.jar
+com/sun/java/accessibility/
+# localedata.jar
+sun/text
+sun/util
+# nashorn.jar
+jdk/nashorn
+META-INF/services/javax.script.ScriptEngineFactory
+jdk/internal
+! sunec.jar
+sun/security
+! sunjce_provider.jar
+com/sun/crypto/
+! sunpkcs11.jar
+sun/security
+# zipfs.jar
+META-INF/services/java.nio.file.spi.FileSystemProvider
+com/sun/nio/

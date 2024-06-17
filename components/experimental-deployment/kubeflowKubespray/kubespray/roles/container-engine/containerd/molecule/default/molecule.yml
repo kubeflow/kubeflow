@@ -1,0 +1,47 @@
+---
+role_name_check: 1
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+platforms:
+  - name: ubuntu20
+    box: generic/ubuntu2004
+    cpus: 1
+    memory: 1024
+    groups:
+      - kube_control_plane
+      - kube_node
+      - k8s_cluster
+    provider_options:
+      driver: kvm
+  - name: debian11
+    box: generic/debian11
+    cpus: 1
+    memory: 1024
+    groups:
+      - kube_control_plane
+      - kube_node
+      - k8s_cluster
+    provider_options:
+      driver: kvm
+  - name: almalinux8
+    box: almalinux/8
+    cpus: 1
+    memory: 1024
+    groups:
+      - kube_control_plane
+      - kube_node
+      - k8s_cluster
+    provider_options:
+      driver: kvm
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: ../../../../
+  config_options:
+    defaults:
+      callbacks_enabled: profile_tasks
+      timeout: 120
+verifier:
+  name: testinfra

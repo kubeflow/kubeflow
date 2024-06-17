@@ -1,0 +1,50 @@
+---
+# Workaround to retry a block of tasks, ansible doesn't have a direct way to do it,
+# you can follow the block loop request in: https://github.com/ansible/ansible/issues/46203
+- name: Calico-rr | Configure route reflector
+  block:
+  - name: Set the retry count
+    set_fact:
+      retry_count: "{{ 0 if retry_count is undefined else retry_count | int + 1 }}"
+
+  - name: Calico | Set label for route reflector  # noqa command-instead-of-shell
+    shell: "{{ bin_dir }}/calicoctl.sh label node  {{ inventory_hostname }} calico-rr-id={{ calico_rr_id }} --overwrite"
+    changed_when: false
+    register: calico_rr_id_label
+    until: calico_rr_id_label is succeeded
+    delay: "{{ retry_stagger | random + 3 }}"
+    retries: 10
+    when: calico_rr_id is defined
+
+  - name: Calico-rr | Fetch current node object
+    command: "{{ bin_dir }}/calicoctl.sh get node {{ inventory_hostname }} -ojson"
+    changed_when: false
+    register: calico_rr_node
+    until: calico_rr_node is succeeded
+    delay: "{{ retry_stagger | random + 3 }}"
+    retries: 10
+
+  - name: Calico-rr | Set route reflector cluster ID
+    # noqa: jinja[spacing]
+    set_fact:
+      calico_rr_node_patched: >-
+        {{ calico_rr_node.stdout | from_json | combine({ 'spec': { 'bgp':
+        { 'routeReflectorClusterID': cluster_id }}}, recursive=True) }}
+
+  - name: Calico-rr | Configure route reflector  # noqa command-instead-of-shell
+    shell: "{{ bin_dir }}/calicoctl.sh replace -f-"
+    args:
+      stdin: "{{ calico_rr_node_patched | to_json }}"
+
+  rescue:
+  - name: Fail if retry limit is reached
+    fail:
+      msg: Ended after 10 retries
+    when: retry_count | int == 10
+
+  - name: Retrying node configuration
+    debug:
+      msg: "Failed to configure route reflector - Retrying..."
+
+  - name: Retry node configuration
+    include_tasks: update-node.yml

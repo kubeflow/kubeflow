@@ -1,0 +1,102 @@
+---
+- name: Common tasks for every playbooks
+  import_playbook: boilerplate.yml
+
+- name: Gather facts
+  import_playbook: facts.yml
+
+- name: Prepare for etcd install
+  hosts: k8s_cluster:etcd
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes/preinstall, tags: preinstall }
+    - { role: "container-engine", tags: "container-engine", when: deploy_container_engine }
+    - { role: download, tags: download, when: "not skip_downloads" }
+
+- name: Install etcd
+  import_playbook: install_etcd.yml
+
+- name: Install Kubernetes nodes
+  hosts: k8s_cluster
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes/node, tags: node }
+
+- name: Install the control plane
+  hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes/control-plane, tags: master }
+    - { role: kubernetes/client, tags: client }
+    - { role: kubernetes-apps/cluster_roles, tags: cluster-roles }
+
+- name: Invoke kubeadm and install a CNI
+  hosts: k8s_cluster
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes/kubeadm, tags: kubeadm}
+    - { role: kubernetes/node-label, tags: node-label }
+    - { role: kubernetes/node-taint, tags: node-taint }
+    - { role: network_plugin, tags: network }
+    - { role: kubernetes-apps/kubelet-csr-approver, tags: kubelet-csr-approver }
+
+- name: Install Calico Route Reflector
+  hosts: calico_rr
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: network_plugin/calico/rr, tags: ['network', 'calico_rr'] }
+
+- name: Patch Kubernetes for Windows
+  hosts: kube_control_plane[0]
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: win_nodes/kubernetes_patch, tags: ["master", "win_nodes"] }
+
+- name: Install Kubernetes apps
+  hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes-apps/external_cloud_controller, tags: external-cloud-controller }
+    - { role: kubernetes-apps/network_plugin, tags: network }
+    - { role: kubernetes-apps/policy_controller, tags: policy-controller }
+    - { role: kubernetes-apps/ingress_controller, tags: ingress-controller }
+    - { role: kubernetes-apps/external_provisioner, tags: external-provisioner }
+    - { role: kubernetes-apps, tags: apps }
+
+- name: Apply resolv.conf changes now that cluster DNS is up
+  hosts: k8s_cluster
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes/preinstall, when: "dns_mode != 'none' and resolvconf_mode == 'host_resolvconf'", tags: resolvconf, dns_late: true }
+
+      #- name: Apply CIS benchmarks
+      #  hosts: k8s_cluster
+      # gather_facts: False
+      #any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+      # environment: "{{ proxy_disable_env }}"
+      #roles:
+      #- { role: cis-kubernetes }

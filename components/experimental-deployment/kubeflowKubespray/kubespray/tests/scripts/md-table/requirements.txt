@@ -1,0 +1,4 @@
+jinja2
+pathlib ; python_version < '3.10'
+pyaml
+pydblite

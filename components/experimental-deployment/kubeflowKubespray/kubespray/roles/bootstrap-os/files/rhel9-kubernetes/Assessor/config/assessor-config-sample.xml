@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="http://cisecurity.org/ccpa/config">
+    <!-- ***************************************************************************************     -->
+    <!-- Within the <sessions> element, individual connections to assessment targets are configured. -->
+    <!-- Valid session types are: ssh, windows, ios, and local                                       -->
+    <!--   Note: Support for the "asa" session type is in development                                -->
+    <!-- ***************************************************************************************     -->
+    <sessions test="false">
+        <!-- ******************************************************************************
+         An example session for the SSH connection to a Unix, Linux, or Apple OSX host 
+        ****************************************************************************** -->
+        <session id="unix_linux_mac">
+            <type>ssh</type>
+            <host>HOSTNAME_or_IP</host>
+            <port>22</port> <!-- 22 is the default port for SSH -->
+            <user>USER</user>
+            <!--<credentials></credentials>-->
+            <identity>C:\CIS\Assessor_v4\unix_linux_mac.ppk</identity>
+            <tmp_path>/path/to/tmp/folder</tmp_path>
+        </session>
+        
+        <!-- ******************************************************************************
+         An example session for a WinRM connection to a Windows host 
+        ****************************************************************************** -->
+        <session id="windows">
+            <type>windows</type>
+            <host>HOSTNAME_or_IP</host>
+            <port>5986</port> <!-- 5986 is the default port for WinRM over HTTPS, 5985 for WinRM over HTTP -->
+            <user>USER</user>
+            <credentials>cr3d3nti@l5!</credentials>
+            <tmp_path>C:\Path\to\tmp</tmp_path>
+        </session>
+        
+        <!-- ******************************************************************************
+         A "connection" for a local, host-based assessment 
+        ****************************************************************************** -->
+        <session id="local">
+            <type>local</type>
+            <tmp_path>C:\Path\to\tmp</tmp_path>
+        </session>
+        
+        <!-- ******************************************************************************
+         An example session for the SSH connection to a Cisco IOS device 
+        ****************************************************************************** -->
+        <session id="cisco_ios">
+            <type>ios</type>
+            <host>HOSTNAME_or_IP</host>
+            <port>22</port> <!-- 22 is the default port for SSH used for IOS sessions -->
+            <user>USER</user>
+            <!--<credentials></credentials>-->
+            <identity>C:\CIS\Assessor_v4\unix_linux_mac.ppk</identity>
+            <identity_passphrase>P@55phr@s3</identity_passphrase>
+            <!-- *** The "enable" password MUST be entered to allow the user to enter "privileged exec" mode on the device *** -->
+            <enable_password>3n@bl3m3Plz?</enable_password> <!-- IOS sessions only -->
+        </session>
+        <!-- ******************************************************************************
+         An example session for the Palo Alto configuration file based assessment
+        ****************************************************************************** -->
+        <session id="palo">
+            <type>panos</type>
+            <path_to_config_file>C:\Path\To\Exported-configuration-file.xml</path_to_config_file>
+        </session>
+    </sessions>
+    
+    <!-- *************************************************************************************** -->
+    <!-- The assessments section describes the various assessment content to be assessed against -->
+    <!-- the sessions configured above.  These elements allow for the various content types that -->
+    <!-- are supported by CIS-CAT Pro Assessor v4.                                               -->
+    <!--   The @quiet attribute notes whether assessment status information is displayed or not. -->
+    <!-- *************************************************************************************** -->
+
+    <assessments quiet="(true|false)">
+        <!-- *********************** XCCDF COLLECTIONS *********************** -->
+        <!-- An XCCDF collection is specified with the <benchmark> element -->
+        <!-- - The "xccdf" attribute is MANDATORY and specifies the path to the XCCDF file. -->
+        <!-- - The "profile" attribute is optional.  If not present, the first profile in the XCCDF will be selected. -->
+        <!-- - The "session-ref" attribute is MANDATORY and must reference the "id" of a <session> configured above.  -->
+        <!-- - To override a user property loaded from assessor-cli.properties, include it in the <properties> element: -->
+        <!--   A <property> consists of a "name" attribute identifying the property.  The element's value configures the property value for that assessment. -->
+        <!-- - To configure interactive values, such as JDBC connection strings, include it in the <interactive_values> element: -->
+        <!--   A <value> consists of an "id" attribute, which must be the same as the XCCDF <Value>'s "id" attribute -->
+        <!--   The element's value configures the interactive value for use in that assessment. -->
+        
+        <!-- An XCCDF collection without a profile selection: -->
+        <benchmark xccdf="benchmarks\CIS_Ubuntu_Linux_16.04_LTS_Benchmark_v1.0.0-xccdf.xml" session-ref="unix_linux_mac"/>
+        
+        <!-- An XCCDF collection with a profile selection: -->
+        <benchmark xccdf="benchmarks\CIS_Ubuntu_Linux_16.04_LTS_Benchmark_v1.0.0-xccdf.xml" profile="Level 1 - Server" session-ref="unix_linux_mac"/>
+        
+        <!-- An XCCDF collection with a profile selection and custom user properties: -->
+        <benchmark xccdf="benchmarks\CIS_Microsoft_Windows_Server_2012_R2_Benchmark_v2.2.1-xccdf.xml" profile="Level 1 - Member Server" session-ref="windows">
+            <properties>
+                <property name="ignore.platform.mismatch">true</property>
+            </properties>
+        </benchmark>
+        
+        <!-- An XCCDF collection with a profile selection, configuring interactive values: -->
+        <benchmark xccdf="benchmarks\CIS_Oracle_Database_11g_R2_Benchmark_v2.2.0-xccdf.xml" profile="Level 1" session-ref="unix_linux_mac">
+            <interactive_values>
+                <value id="xccdf_org.cisecurity_value_jdbc.url">jdbc:oracle:thin:sys/passw0rd1@DB-SERVER:1521:ORCL</value>
+                <value id="xccdf_org.cisecurity_value_listener.ora">/opt/oracle/product/oracle11g/network/admin/listener.ora</value>
+            </interactive_values>
+        </benchmark>
+        
+        <!-- *********************** DATA-STREAM COLLECTIONS *********************** -->
+        <!-- A data-stream collection is specified with the <data-stream-collection> element -->
+        <!-- - The "collection" attribute is MANDATORY and specifies the path to the data-stream collection file. -->
+        <!-- - The "data-stream" attribute is optional, specifying a specific data-stream's ID from the collection.  If not present, the first data-stream in the collection will be selected. -->
+        <!-- - The "checklist" attribute is optional, specifying a specific checklist ID from the selected data-stream.  If not present, the first checklist in the data-stream will be selected. -->
+        <!-- - The "profile" attribute is optional.  If not present, the first profile in the checklist will be selected. -->
+        <!-- - The "session-ref" attribute is MANDATORY and must reference the "id" of a <session> configured above.  -->
+        <!-- - Note that user properties and interactive values MAY be configured for data-stream-collections as well.  The format is the same as described above. -->
+        
+        <!-- A data-stream collection selecting a specific data-stream, checklist, and profile: -->
+        <data-stream-collection 
+            collection="collections\CIS_Microsoft_Windows_Server_2012_R2_Benchmark_v2.2.1-collection.xml" 
+            data-stream="scap_org.cisecurity_datastream_1.0.0_CIS_Microsoft_Windows_Server_2016_Benchmark" 
+            checklist="scap_org.cisecurity_cref_1.0.0_CIS_Microsoft_Windows_Server_2016_Benchmark-xccdf" 
+            profile="xccdf_org.cisecurity.benchmarks_profile_Level_1_-_Domain_Controller" 
+            session-ref="local"/>
+        
+        <!-- *********************** OVAL DEFINITIONS COLLECTIONS *********************** -->
+        <!-- An OVAL Definitions collection is specified with the <oval_definitions> element -->
+        <!-- - The "definitions" attribute is MANDATORY and specifies the path to the OVAL Definitions file. -->
+        <!-- - The "variables" attribute is optional.  If present, this attribute specifies the path to an OVAL Variables file. -->
+        <!-- - The "session-ref" attribute is MANDATORY and must reference the "id" of a <session> configured above.  -->
+        
+        <!-- An OVAL definitions collection selecting OVAL Definitions and OVAL Variables: -->
+        <oval_definitions definitions="definitions\defs.xml" variables="definitions\vars.xml" session-ref="local"/>
+    </assessments>
+    
+    <!-- *************************************************************************************** -->
+    <!-- The <reports> element overrides any values for the following command-line options. -->
+    <!-- This element allows for the configuration of the report formats to produce. -->
+    <!-- html: If "true", generate HTML results; Overrides the command-line -html  -->
+    <!-- csv: If "true", generate CSV results; Overrides the command-line -csv -->
+    <!-- txt: If "true", generate plain Text results; Overrides the command-line -txt -->
+    <!-- json: If "true", generate JSON results; Overrides the command-line -json -->
+    <!-- npr: If "true", generate the JSON "non-passing" results report; Overrides the command-line -npr -->
+    <!-- no-arf:  If "true", do not generate the results in the Asset Reporting Format; Overrides the command-line -narf -->
+    <!-- no-report-file: If "true", do not generate any report FILEs; should be used in conjunction with the <reports_url> element; Overrides the command-line -nrf -->
+    <!-- <reports_dir>: Specify the folder in which report files are saved; Overrides the command-line -rd -->
+    <!-- <reports_url>: Specify the URL to which reports are POST'ed; Overrides the command-line -u -->
+    <!-- ignore_certificate_warnings: ignore ssl certificate warnings when POST'ing reports; Overrides the command-line -ui -->
+    <!-- <reports prefix>: Override the default report name.  Timestamp information will be appended to the report_prefix unless the no-timestamp value is "true"; Overrides the command-line -rp -->
+    <!-- no-timestamp:  If "true", do not include the auto-generated timestamp as part of the report name; Overrides the command-line -nts -->
+    <!-- *************************************************************************************** -->
+    <reports html="true" csv="true" txt="true" json="true">
+        
+        <!-- Customize the folder to which CIS-CAT reports are saved.  If not present, CIS-CAT will use the default reports location. -->
+        <reports_dir>C:\_Development\Projects\Shared\Assessor\reports</reports_dir>
+        
+        <!-- POST the Asset Reporting Format or OVAL Results XML to a URL, ignoring SSL certificate warnings if specified -->
+        <reports_url ignore_certificate_warnings="true">https://example.cisecurity.org/CCPD/api/reports/upload</reports_url>
+        
+        <!-- Override the default report name.  Timestamp information will always be appended to the report_prefix -->
+        <reports_prefix>REPORT-PREFIX</reports_prefix>
+    </reports>
+</configuration>

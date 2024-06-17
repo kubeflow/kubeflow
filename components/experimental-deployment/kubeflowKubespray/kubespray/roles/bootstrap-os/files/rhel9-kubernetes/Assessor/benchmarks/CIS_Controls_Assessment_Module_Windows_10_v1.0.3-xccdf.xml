@@ -1,0 +1,1388 @@
+<xccdf:Benchmark xmlns:xccdf="http://checklists.nist.gov/xccdf/1.2" xmlns="http://checklists.nist.gov/xccdf/1.2" xmlns:ae="http://benchmarks.cisecurity.org/ae/0.5" xmlns:cc="http://cisecurity.org/20-cc/v7.0" xmlns:ciscf="https://benchmarks.cisecurity.org/ciscf/1.0" xmlns:notes="http://benchmarks.cisecurity.org/notes" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="xccdf_org.cisecurity.benchmarks_benchmark_CIS_controls_assessment_module_Windows_10_v_1.0.3" style="SCAP_1.2" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.2 ../misc/xsd/xccdf-1.2.xsd http://cisecurity.org/check ../misc/xsd/ecl.xsd">
+   <xccdf:status date="2019-12-11">draft</xccdf:status>
+   <xccdf:title xml:lang="en">CIS Controls Assessment Module - Implementation Group 1 for Windows 10</xccdf:title>
+   <xccdf:description xml:lang="en">
+      <xhtml:p>The Controls Assessment Module (CAM) provides a means of measuring implementation of the CIS Controls Implementation Group 1 Sub-Controls in a Microsoft Windows 10 environment.  If you have questions, comments, or have identified ways to improve the Controls Assessment Module (CAM), please write us at <xhtml:a href="mailto:support@cisecurity.org">support@cisecurity.org</xhtml:a> or start a discussion in the <xhtml:a href="https://workbench.cisecurity.org/communities/92">CAM community on CIS WorkBench ( https://workbench.cisecurity.org/benchmarks/92)</xhtml:a>.</xhtml:p>
+   </xccdf:description>
+   <xccdf:notice id="terms-of-use" xml:lang="en"> BACKGROUND. The Center for Internet Security ("CIS") provides benchmarks, scoring tools, software, data, information, suggestions, ideas, and other services and materials from the CIS website or elsewhere ("Products") as a public service to Internet users worldwide. Recommendations contained in the Products ("Recommendations") result from a consensus-building process that involves many security experts and are generally generic in nature. The Recommendations are intended to provide helpful information to organizations attempting to evaluate or improve the security of their networks, systems, and devices. Proper use of the Recommendations requires careful analysis and adaptation to specific user requirements. The Recommendations are not in any way intended to be a "quick fix" for anyone's information security needs. NO REPRESENTATIONS, WARRANTIES, OR COVENANTS. CIS makes no representations, warranties, or covenants whatsoever as to (i) the positive or negative effect of the Products or the Recommendations on the operation or the security of any particular network, computer system, network device, software, hardware, or any component of any of the foregoing or (ii) the accuracy, reliability, timeliness, or completeness of the Products or the Recommendations. CIS is providing the Products and the Recommendations "as is" and "as available" without representations, warranties, or covenants of any kind. USER AGREEMENTS. By using the Products and/or the Recommendations, I and/or my organization ("We") agree and acknowledge that: 1. No network, system, device, hardware, software, or component can be made fully secure; 2. We are using the Products and the Recommendations solely at our own risk; 3. We are not compensating CIS to assume any liabilities associated with our use of the Products or the Recommendations, even risks that result from CIS's negligence or failure to perform; 4. We have the sole responsibility to evaluate the risks and benefits of the Products and Recommendations to us and to adapt the Products and the Recommendations to our particular circumstances and requirements; 5. Neither CIS, nor any CIS Party (defined below) has any responsibility to make any corrections, updates, upgrades, or bug fixes; or to notify us of the need for any such corrections, updates, upgrades, or bug fixes; and 6. Neither CIS nor any CIS Party has or will have any liability to us whatsoever (whether based in contract, tort, strict liability or otherwise) for any direct, indirect, incidental, consequential, or special damages (including without limitation loss of profits, loss of sales, loss of or damage to reputation,loss of customers, loss of software, data, information or emails, loss of privacy, loss of use of any computer or other equipment, business interruption, wasted management or other staff resources or claims of any kind against us from third parties) arising out of or in any way Connected with our use of or our inability to use any of the Products or Recommendations (even if CIS has been advised of the possibility of such damages), including without limitation any liability associated with infringement of intellectual property, defects, bugs, errors, omissions, viruses, worms, backdoors, Trojan horses or other harmful items. GRANT OF LIMITED RIGHTS. CIS hereby grants each user the following rights, but only so long as the user complies with all of the terms of these Agreed Terms of Use: 1. Except to the extent that we may have received additional authorization pursuant to a written agreement with CIS, each user may download, install and use each of the Products on a single computer; 2. Each user may print one or more copies of any Product or any component of a Product that is in a .txt, .pdf, .doc, .mcw, or .rtf format, provided that all such copies are printed in full and are kept intact, including without limitation the text of this Agreed Terms of Use in its entirety. RETENTION OF INTELLECTUAL PROPERTY RIGHTS; LIMITATIONS ON DISTRIBUTION. The Products are protected by copyright and other intellectual property laws and by international treaties. We acknowledge and agree that we are not acquiring title to any intellectual property rights in the Products and that full title and all ownership rights to the Products will remain the exclusive property of CIS or CIS Parties. CIS reserves all rights not expressly granted to users in the preceding section entitled "Grant of limited rights." Subject to the paragraph entitled "Special Rules" (which includes a waiver, granted to some classes of CIS Members, of certain limitations in this paragraph), and except as we may have otherwise agreed in a written agreement with CIS, we agree that we will not (i) decompile, disassemble, reverse engineer, or otherwise attempt to derive the source code for any software Product that is not already in the form of source code; (ii) distribute, redistribute, encumber, sell, rent, lease, lend, sublicense, or otherwise transfer or exploit rights to any Product or any component of a Product; (iii) post any Product or any component of a Product on any website, bulletin board, ftp server, newsgroup, or other similar mechanism or device, without regard to whether such mechanism or device is internal or external, (iv) remove or alter trademark, logo, copyright or other proprietary notices, legends, symbols or labels in any Product or any component of a Product; (v) remove these Agreed Terms of Use from, or alter these Agreed Terms of Use as they appear in, any Product or any component of a Product; (vi) use any Product or any component of a Product with any derivative works based directly on a Product or any component of a Product; (vii) use any Product or any component of a Product with other products or applications that are directly and specifically dependent on such Product or any component for any part of their functionality, or (viii) represent or claim a particular level of compliance with a CIS Benchmark, scoring tool or other Product. We will not facilitate or otherwise aid other individuals or entities in any of the activities listed in this paragraph. We hereby agree to indemnify, defend, and hold CIS and all of its officers, directors, members, contributors, employees, authors, developers, agents, affiliates, licensors, information and service providers, software suppliers, hardware suppliers, and all other persons who aided CIS in the creation, development, or maintenance of the Products or Recommendations ("CIS Parties") harmless from and against any and all liability, losses, costs, and expenses (including attorneys' fees and court costs) incurred by CIS or any CIS Party in connection with any claim arising out of any violation by us of the preceding paragraph, including without limitation CIS's right, at our expense, to assume the exclusive defense and control of any matter subject to this indemnification, and in such case, we agree to cooperate with CIS in its defense of such claim. We further agree that all CIS Parties are third-party beneficiaries of our undertakings in these Agreed Terms of Use. SPECIAL RULES. CIS has created and will from time to time create, special rules for its members and for other persons and organizations with which CIS has a written contractual relationship. Those special rules will override and supersede these Agreed Terms of Use with respect to the users who are covered by the special rules. CIS hereby grants each CIS Security Consulting or Software Vendor Member and each CIS Organizational User Member, but only so long as such Member remains in good standing with CIS and complies with all of the terms of these Agreed Terms of Use, the right to distribute the Products and Recommendations within such Member's own organization, whether by manual or electronic means. Each such Member acknowledges and agrees that the foregoing grant is subject to the terms of such Member's membership arrangement with CIS and may, therefore, be modified or terminated by CIS at any time. CHOICE OF LAW; JURISDICTION; VENUE. We acknowledge and agree that these Agreed Terms of Use will be governed by and construed in accordance with the laws of the State of Maryland, that any action at law or in equity arising out of or relating to these Agreed Terms of Use shall be filed only in the courts located in the State of Maryland, that we hereby consent and submit to the personal jurisdiction of such courts for the purposes of litigating any such action. If any of these Agreed Terms of Use shall be determined to be unlawful, void, or for any reason unenforceable, then such terms shall be deemed severable and shall not affect the validity and enforceability of any remaining provisions. BY USING THE PRODUCTS I(WE) ACKNOWLEDGE THAT WE HAVE READ THESE AGREED TERMS OF USE IN THEIR ENTIRETY, UNDERSTAND THEM, AND I(WE) AGREE TO BE BOUND BY THEM IN ALL RESPECTS.</xccdf:notice>
+   <xccdf:platform idref="cpe:/o:microsoft:windows_10"/>
+   <xccdf:version>1.0.3</xccdf:version>
+   
+   <xccdf:Profile id="xccdf_org.cisecurity.benchmarks_profile_controls_assessment_module_implementation_group_1_for_Windows_automated">
+      <xccdf:title xml:lang="en">Implementation Group 1 for Windows 10 (Partial) - Automated Sub-Controls Only</xccdf:title>
+      <xccdf:description xml:lang="en">
+         <xhtml:p>This profile assesses the implementation of the CIS Controls Implementation Group 1 (IG1) Sub-Controls in Windows 10 with automated checks.  Since some IG1 Sub-Controls are procedural, these automated checks will not assess all IG1 Sub-Controls.</xhtml:p>
+      </xccdf:description> 
+      
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_3.4_Deploy_Automated_Operating_System_Patch_Management_Tools" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_4.2_Change_Default_Passwords" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_6.2_Activate_Audit_Logging" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.2_Ensure_Anti-Malware_Software_and_Signatures_are_Updated" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.5_A_Configure_Devices_to_Not_Auto-Run_Content" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.5_B_Configure_Devices_to_Not_Auto-Run_Content" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_9.4_Apply_Host-Based_Firewalls_or_Port_Filtering" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.1_Ensure_Regular_Automated_Backups" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.2_Perform_Complete_System_Backups" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.4_Protect_Backups" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_13.6_Encrypt_Mobile_Device_Data" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_15.7_Leverage_the_Advanced_Encryption_Standard_to_Encrypt_Wireless_Data" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_16.9_Disable_Dormant_Accounts" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_16.11_Lock_Workstation_Sessions_After_Inactivity" selected="true"/>
+   </xccdf:Profile>
+   
+   <xccdf:Profile id="xccdf_org.cisecurity.benchmarks_profile_controls_assessment_module_implementation_group_1_for_Windows_survey">
+      <xccdf:title xml:lang="en">Implementation Group 1 for Windows 10 (Partial) - Survey Question Sub-Controls Only</xccdf:title>
+      <xccdf:description xml:lang="en">
+         <xhtml:p>This profile assesses the implementation of the CIS Controls Implementation Group 1 (IG1) Sub-Controls in Windows 10 with survey questions.  Since some IG1 Sub-Controls have automated checks, the survey questions will only assess the IG1 Sub-Controls that do not have automated checks.</xhtml:p>
+      </xccdf:description> 
+      
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_1.4_Maintain_Detailed_Asset_Inventory" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_1.6_Address_Unauthorized_Assets" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_2.1_Maintain_Inventory_of_Authorized_Software" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_2.2_Ensure_Software_is_Supported_by_Vendor" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_2.6_Address_Unapproved_Software" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_3.5_Deploy_Automated_Software_Patch_Management_Tools" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_4.3_Ensure_the_Use_of_Dedicated_Administrative_Accounts" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_5.1_Establish_Secure_Configurations" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_7.1_Ensure_Use_of_Only_Fully_Supported_Browsers_and_Email_Clients" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_7.7_Use_of_DNS_Filtering_Services" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.4_Configure_Anti-Malware_Scanning_of_Removable_Media" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.5_Ensure_All_Backups_Have_at_Least_One_Offline_Backup_Destination" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_11.4_Install_the_Latest_Stable_Version_of_Any_Security-Related_Updates_on_All_Network_Devices" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_12.1_Maintain_an_Inventory_of_Network_Boundaries" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_12.4_Deny_Communication_Over_Unauthorized_Ports" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_13.1_Maintain_an_Inventory_of_Sensitive_Information" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_13.2_Remove_Sensitive_Data_or_Systems_Not_Regularly_Accessed_by_Organization" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_14.6_Protect_Information_Through_Access_Control_Lists" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_15.10_Create_Separate_Wireless_Network_for_Personal_and_Untrusted_Devices" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_16.8_Disable_Any_Unassociated_Accounts" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.3_Implement_a_Security_Awareness_Program" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.5_Train_Workforce_on_Secure_Authentication" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.6_Train_Workforce_on_Identifying_Social_Engineering_Attacks" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.7_Train_Workforce_on_Sensitive_Data_Handling" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.8_Train_Workforce_on_Causes_of_Unintentional_Data_Exposure" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.9_Train_Workforce_Members_on_Identifying_and_Reporting_Incidents" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.1_Document_Incident_Response_Procedures" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.3_Designate_Management_Personnel_to_Support_Incident_Handling" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.5_Maintain_Contact_Information_for_Reporting_Security_Incidents" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.6_Publish_Information_Regarding_Reporting_Computer_Anomalies_and_Incidents" selected="true"/>
+   </xccdf:Profile>
+   
+   <xccdf:Profile id="xccdf_org.cisecurity.benchmarks_profile_controls_assessment_module_implementation_group_1_for_Windows">
+      <xccdf:title xml:lang="en">Implementation Group 1 for Windows 10 (Full) - Automated Checks and Survey Questions</xccdf:title>
+      <xccdf:description xml:lang="en">
+         <xhtml:p>This profile assesses the implementation of the CIS Controls Implementation Group 1 (IG1) Sub-Controls in Windows 10 with a combination of automated checks and survey questions to cover all IG1 Sub-Controls.</xhtml:p>
+      </xccdf:description> 
+      
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_3.4_Deploy_Automated_Operating_System_Patch_Management_Tools" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_4.2_Change_Default_Passwords" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_6.2_Activate_Audit_Logging" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.2_Ensure_Anti-Malware_Software_and_Signatures_are_Updated" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.5_A_Configure_Devices_to_Not_Auto-Run_Content" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.5_B_Configure_Devices_to_Not_Auto-Run_Content" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_9.4_Apply_Host-Based_Firewalls_or_Port_Filtering" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.1_Ensure_Regular_Automated_Backups" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.2_Perform_Complete_System_Backups" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.4_Protect_Backups" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_13.6_Encrypt_Mobile_Device_Data" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_15.7_Leverage_the_Advanced_Encryption_Standard_to_Encrypt_Wireless_Data" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_16.9_Disable_Dormant_Accounts" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_16.11_Lock_Workstation_Sessions_After_Inactivity" selected="true"/>
+      
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_1.4_Maintain_Detailed_Asset_Inventory" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_1.6_Address_Unauthorized_Assets" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_2.1_Maintain_Inventory_of_Authorized_Software" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_2.2_Ensure_Software_is_Supported_by_Vendor" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_2.6_Address_Unapproved_Software" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_3.5_Deploy_Automated_Software_Patch_Management_Tools" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_4.3_Ensure_the_Use_of_Dedicated_Administrative_Accounts" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_5.1_Establish_Secure_Configurations" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_7.1_Ensure_Use_of_Only_Fully_Supported_Browsers_and_Email_Clients" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_7.7_Use_of_DNS_Filtering_Services" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_8.4_Configure_Anti-Malware_Scanning_of_Removable_Media" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_10.5_Ensure_All_Backups_Have_at_Least_One_Offline_Backup_Destination" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_11.4_Install_the_Latest_Stable_Version_of_Any_Security-Related_Updates_on_All_Network_Devices" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_12.1_Maintain_an_Inventory_of_Network_Boundaries" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_12.4_Deny_Communication_Over_Unauthorized_Ports" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_13.1_Maintain_an_Inventory_of_Sensitive_Information" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_13.2_Remove_Sensitive_Data_or_Systems_Not_Regularly_Accessed_by_Organization" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_14.6_Protect_Information_Through_Access_Control_Lists" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_15.10_Create_Separate_Wireless_Network_for_Personal_and_Untrusted_Devices" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_16.8_Disable_Any_Unassociated_Accounts" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.3_Implement_a_Security_Awareness_Program" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.5_Train_Workforce_on_Secure_Authentication" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.6_Train_Workforce_on_Identifying_Social_Engineering_Attacks" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.7_Train_Workforce_on_Sensitive_Data_Handling" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.8_Train_Workforce_on_Causes_of_Unintentional_Data_Exposure" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_17.9_Train_Workforce_Members_on_Identifying_and_Reporting_Incidents" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.1_Document_Incident_Response_Procedures" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.3_Designate_Management_Personnel_to_Support_Incident_Handling" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.5_Maintain_Contact_Information_for_Reporting_Security_Incidents" selected="true"/>
+      <xccdf:select idref="xccdf_org.cisecurity.benchmarks_rule_19.6_Publish_Information_Regarding_Reporting_Computer_Anomalies_and_Incidents" selected="true"/>
+   </xccdf:Profile>
+   
+   
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_4.2_var" interactive="1" prohibitChanges="false" type="number">
+      <xccdf:title override="0">4.2 Required Minimum Password Length</xccdf:title>
+      <xccdf:description override="0">The required minimum number of characters for password policy for sub-control 4.2 (Windows will not accept values larger than 14).  The CAM default is 14 characters which is consistent with the Windows Benchmark.</xccdf:description>
+      <xccdf:value>14</xccdf:value>
+   </xccdf:Value>
+   
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_10.2_var" interactive="1" prohibitChanges="false" type="number">
+      <xccdf:title override="0">10.2 Maximum Days Without System Image Backup</xccdf:title>
+      <xccdf:description override="0">The maximum number of days allowed without a Windows System Image backup for sub-control 10.2  The CAM default is 90 days.</xccdf:description>
+      <xccdf:value>90</xccdf:value>
+   </xccdf:Value>
+   
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_16.9_var" interactive="1" prohibitChanges="false" type="number">
+      <xccdf:title override="0">16.9 Maximum Inactivity Days</xccdf:title>
+      <xccdf:description override="0">The maximum number of days allowed for an account to be inactive before being considered dormant for sub-control 16.9.  The CAM default is 90 days.</xccdf:description>
+      <xccdf:value>90</xccdf:value>
+   </xccdf:Value>
+   
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_16.11_var" interactive="1" prohibitChanges="false" type="number">
+      <xccdf:title override="0">16.11 Maximum Timeout</xccdf:title>
+      <xccdf:description override="0">The maximum number of seconds allowed for the lock screen timeout in order to pass sub-control 16.11.  The CAM default is 900 seconds (15 minutes) which is consistent with the Windows Benchmark.</xccdf:description>
+      <xccdf:value>900</xccdf:value>
+   </xccdf:Value>
+   
+   
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_1.4_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">1.4 Does your organization maintain an accurate and up-to-date inventory of all technology assets with the potential to store or process information (including all assets, whether connected to the organization's network or not)? (y/n) </xccdf:title>
+      <xccdf:description override="0">Maintain Detailed Asset Inventory (description)</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_1.6_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">1.6 Does your organization ensure that unauthorized assets are either removed from the network, quarantined, or the inventory is updated in a timely manner? (y/n) </xccdf:title>
+      <xccdf:description override="0">1.6 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_2.1_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">2.1 Does your organization maintain an up-to-date list of all authorized software that is required in the enterprise for any business purpose on any business system? (y/n) </xccdf:title>
+      <xccdf:description override="0">2.1 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_2.2_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">2.2 Does your organization ensure that only software applications or operating systems currently supported and receiving vendor updates are added to the organization's authorized software inventory (or tag unsupported software as unsupported in the inventory system)? (y/n) </xccdf:title>
+      <xccdf:description override="0">2.2 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_2.6_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">2.6 Does your organization ensure that unauthorized software is either removed or the inventory is updated in a timely manner? (y/n) </xccdf:title>
+      <xccdf:description override="0">2.6 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_3.5_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">3.5 Does your organization deploy automated software update tools in order to ensure that third-party software on all systems is running the most recent security updates provided by the software vendor? (y/n) </xccdf:title>
+      <xccdf:description override="0">3.5 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_4.3_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">4.3 Does your organization ensure that all users with administrative account access use a dedicated or secondary account for elevated activities (only using this account for administrative activities and not Internet browsing, email, or similar activities)? (y/n) </xccdf:title>
+      <xccdf:description override="0">4.3 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_5.1_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">5.1 Does your organization maintain documented security configuration standards for all authorized operating systems and software? (y/n) </xccdf:title>
+      <xccdf:description override="0">5.1 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_7.1_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">7.1 Does your organization ensure that only fully supported web browsers and email clients are allowed to execute in the organization, ideally only using the latest version of the browsers and email clients provided by the vendor? (y/n) </xccdf:title>
+      <xccdf:description override="0">7.1 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_7.7_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">7.7 Does your organization use Domain Name System (DNS) filtering services to help block access to known malicious domains? (y/n) </xccdf:title>
+      <xccdf:description override="0">7.7 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_8.4_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">8.4 Does your organization configure devices so that they automatically conduct an anti-malware scan of removable media when inserted or connected? (y/n) </xccdf:title>
+      <xccdf:description override="0">8.4 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_10.5_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">10.5 Does your organization ensure that all backups have at least one offline (i.e., not accessible via a network connection) backup destination? (y/n) </xccdf:title>
+      <xccdf:description override="0">10.5 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_11.4_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">11.4 Does your organization install the latest stable version of any security-related updates on all network devices? (y/n) </xccdf:title>
+      <xccdf:description override="0">11.4 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_12.1_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">12.1 Does your organization maintain an up-to-date inventory of all of the organization's network boundaries? (y/n) </xccdf:title>
+      <xccdf:description override="0">12.1 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_12.4_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">12.4 Does your organization deny communication over unauthorized TCP or UDP ports or application traffic to ensure that only authorized protocols are allowed to cross the network boundary in or out of the network at each of the organization's network boundaries? (y/n) </xccdf:title>
+      <xccdf:description override="0">12.4 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_13.1_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">13.1 Does your organization maintain an inventory of all sensitive information stored, processed, or transmitted by the organization's technology systems, including those located on-site or at a remote service provider? (y/n) </xccdf:title>
+      <xccdf:description override="0">13.1 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_13.2_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">13.2 Does your organization remove sensitive data or systems not regularly accessed by the organization from the network, and use these systems only as stand-alone systems (disconnected from the network) by the business unit needing to occasionally use the system or completely virtualized and powered off until needed? (y/n) </xccdf:title>
+      <xccdf:description override="0">13.2 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_14.6_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">14.6 Does your organization protect all information stored on systems with file system, network share, claims, application, or database specific access control lists (to enforce the principle that only authorized individuals should have access to the information based on their need to access the information as a part of their responsibilities)? (y/n) </xccdf:title>
+      <xccdf:description override="0">14.6 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_15.10_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">15.10 Does your organization create a separate wireless network for personal or untrusted devices (treating enterprise access from this network as untrusted and filtered and audited accordingly)? (y/n) </xccdf:title>
+      <xccdf:description override="0">15.10 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_16.8_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">16.8 Does your organization disable any account that cannot be associated with a business process or business owner? (y/n) </xccdf:title>
+      <xccdf:description override="0">16.8 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_17.3_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">17.3 Does your organization create a security awareness program for all workforce members to complete on a regular basis to ensure they understand and exhibit the necessary behaviors and skills to help ensure the security of the organization (communicating this program in a continuous and engaging manner)? (y/n) </xccdf:title>
+      <xccdf:description override="0">17.3 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_17.5_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">17.5 Does your organization train workforce members on the importance of enabling and utilizing secure authentication? (y/n) </xccdf:title>
+      <xccdf:description override="0">17.5 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_17.6_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">17.6 Does your organization train the workforce on how to identify different forms of social engineering attacks, such as phishing, phone scams, and impersonation calls? (y/n) </xccdf:title>
+      <xccdf:description override="0">17.6 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_17.7_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">17.7 Does your organization train workforce members on how to identify and properly store, transfer, archive, and destroy sensitive information? (y/n) </xccdf:title>
+      <xccdf:description override="0">17.7 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_17.8_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">17.8 Does your organization train workforce members to be aware of causes for unintentional data exposures, such as losing their mobile devices or emailing the wrong person due to autocomplete in email? (y/n) </xccdf:title>
+      <xccdf:description override="0">17.8 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_17.9_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">17.9 Does your organization train workforce members to be able to identify the most common indicators of an incident and be able to report such an incident? (y/n) </xccdf:title>
+      <xccdf:description override="0">17.9 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_19.1_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">19.1 Does your organization ensure that there are written incident response plans that define roles of personnel as well as phases of incident handling/management? (y/n) </xccdf:title>
+      <xccdf:description override="0">19.1 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_19.3_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">19.3 Does your organization designate management personnel, as well as backups, who will support the incident handling process by acting in key decision-making roles? (y/n) </xccdf:title>
+      <xccdf:description override="0">19.3 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_19.5_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">19.5 Does your organization maintain third-party contact information to be used to report a security incident, such as Law Enforcement, relevant government departments, vendors, and Information Sharing and Analysis Center (ISAC) partners? (y/n) </xccdf:title>
+      <xccdf:description override="0">19.5 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+   <xccdf:Value abstract="false" hidden="false" id="xccdf_org.cisecurity_value_19.6_var" interactive="1" prohibitChanges="false" type="string">
+      <xccdf:title override="0">19.6 Does your organization publish information for all workforce members, regarding reporting computer anomalies and incidents, to the incident handling team (and include such information in routine employee awareness activities)? (y/n) </xccdf:title>
+      <xccdf:description override="0">19.6 Description</xccdf:description>
+      <xccdf:value selector=""/>
+   </xccdf:Value>
+      
+   <xccdf:Group id="xccdf_org.cisecurity.benchmarks_group_1_Automated_Checks">
+	  <xccdf:title xml:lang="en">Automated Checks</xccdf:title>
+	  <xccdf:description xml:lang="en">
+         <xhtml:p>This section contains automated checks.</xhtml:p>
+      </xccdf:description>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_3.4_Deploy_Automated_Operating_System_Patch_Management_Tools" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">3.4 Deploy Automated Operating System Patch Management Tools</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Deploy automated software update tools in order to ensure that the operating systems are running the most recent security updates provided by the software vendor.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Security patches are updates to a computer system’s operating system or installed software, and are a basic part of IT maintenance. The patches the OS developers provide may contain new features, but also contain fixes to recently discovered security vulnerabilities. Operating systems go “stale” and need to be updated. Without a constant stream of security patches, computer systems are more vulnerable to malware that can read sensitive company data, or simply destroy it. Accordingly, patching systems is one of the primary ways an enterprise can protect itself from attackers.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/3/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>The automated CAM check for 3.4 requires both the download of updates and the installation of those updates to be automatic and without user intervention.  Therefore, it will fail even if automatic update downloads are on but the user can decide whether to install those updates.</xhtml:p>
+                  <xhtml:p>CAM is checking the following registry settings: 
+                     <p>HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate DisableWindowsUpdateAccess <br>(Fail if this setting is set to 1)</br></p>
+                     <p>HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU NoAutoUpdate <br>(Fail if this setting is set to 1)</br></p>
+                     <p>HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU AUOptions <br>(Fail if this setting is not set to 4)</br></p>
+                  </xhtml:p>
+                  <xhtml:p>The AUOptions value can be set via local group policy as follows: Open the Local Group Policy Editor, navigate to Computer Configuration &gt; Administrative Templates &gt; Windows Components &gt; Windows Update &gt; Configure Automatic Updates.  Ensure that Enabled is selected, and Configure automatic updating is set to 4 – Auto download and schedule the install.  The other settings there (such as the specific schedule for updates) can be set as appropriate for your organization and are not assessed by CAM.    Similar settings are available at the Domain level as well.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/3_4.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_4.2_Change_Default_Passwords" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">4.2 Change Default Passwords</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Before deploying any new asset, change all default passwords to have values consistent with administrative level accounts.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Default passwords are the passwords that ship with computers, applications, routers, and other equipment. Default passwords are a very common way for computer systems, devices, and applications to be hacked. Lists of default passwords for operating systems, applications, and devices are readily available on the internet for anyone to download and try on enterprise systems. Therefore, they need to be changed from the defaults to something that is not easily guessable.
+               <p>Default passwords can be easily guessed by individuals external to an organization, which can result in the theft of sensitive enterprise data. For example, if the password for a wireless router is guessed, an attacker will be able to add and remove network devices, which will allow them to read sensitive enterprise information. To be able to guess a router’s default password, it’s often sufficient to identify the make and model. Attacks may be able to figure this out by physically seeing the device, or remotely based on a router’s SSID or MAC address. Cheatsheets are also available online with the default passwords for wireless routers common to small and home offices. If a password for an application or utility is guessed, the offending party will be able to access the information contained by that program.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/4/subcontrol/2" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>Since Windows does not have default passwords, the automated CAM check for 4.2 focuses on the having "values consistent with administrative level accounts" portion of the sub-control.  CAM is checking for a required minimum password length.  By default, the required minimum in CAM is 14 (which is consistent with the Windows Benchmark), but this setting can be adjusted in the assessor-cli.properties file as appropriate for your organization.</xhtml:p>
+                  <xhtml:p>The minimum password length can be set via local group policy as follows: Open the Local Group Policy Editor, navigate to Computer Configuration &gt; Windows Settings &gt; Security Settings &gt; Account Policies &gt; Password Policy &gt; Minimum password length.  Similar settings are available at the Domain level as well.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <xccdf:check-export export-name="XCCDF_VALUE_4_2_MIN_PASSWORD_LENGTH" value-id="xccdf_org.cisecurity_value_4.2_var"/>
+            <check-content-ref href="sce/cam/windows_10/4_2.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+	   <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_6.2_Activate_Audit_Logging" role="full" selected="false" weight="1.0">
+            <xccdf:title xml:lang="en">6.2 Activate Audit Logging</xccdf:title>
+            <xccdf:description xml:lang="en">
+               <xhtml:p>Ensure that local logging has been enabled on all systems and networking devices.</xhtml:p>
+            </xccdf:description>
+            <xccdf:rationale xml:lang="en">
+               <xhtml:p>On the surface, logging may appear to be a boring task, but it’s a critical cybersecurity control to have in place. Once a security breach occurs, reviewing logs is often the primary way that computer incident responders identify who did what, and when they did it. Log files allow incident responders to track what happened on individual systems, but also the entire network. Logs can also be helpful to an enterprise when performing general maintenance activities to understand the current status of computer systems and networks, and be notified to take action if there’s a problem. But this visibility is not always on by default and often must be manually enabled. 
+                  <p>Logging doesn’t stop threats from happening. Instead logs help to provide tamper detection, which means if an unauthorized event happens to one of your computer systems or the data stored there, you’ll be able to know that something was changed.</p>
+               </xhtml:p>
+            </xccdf:rationale>
+	         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/6/subcontrol/2" system="http://cisecurity.org/20-cc/v7.0"/>
+            <xccdf:fixtext xml:lang="en">
+               <xhtml:div>
+                  <xhtml:p>
+                     <xhtml:p>For the CAM automated check for 6.2, CAM verifies that at least one sub-category of logging is turned on (but does not currently require specific sub-categories).  For recommended audit sub-categories, see section 17 of the appropriate Windows Benchmark.</xhtml:p>
+                     <xhtml:p>This should pass with a default Windows installation.  Logging sub-categories can be enabled/disabled: Open the Local Group Policy Editor, navigate to Computer Configuration &gt; Windows Settings &gt; Security Settings &gt; Advanced Audit Policy Configuration &gt; System Audit Policies.  Click into the desired logging category, and you can enable or disable the sub-categories under that category.  Similar settings are available at the Domain level as well.</xhtml:p>
+                  </xhtml:p>
+               </xhtml:div>
+            </xccdf:fixtext>
+
+            <xccdf:check system="http://open-scap.org/page/SCE">
+               <check-import import-name="stdout"/>
+               <check-content-ref href="sce/cam/windows_10/6_2.ps1"/>
+            </xccdf:check>
+
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_8.2_Ensure_Anti-Malware_Software_and_Signatures_are_Updated" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">8.2 Ensure Anti-Malware Software and Signatures are Updated</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that the organization's anti-malware software updates its scanning engine and signature database on a regular basis.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Anti-malware, sometimes referred to as anti-virus, is a well-known product of security technology. Anti-malware suites work by constantly monitoring all of the running applications on a system, and alerting the user and/or enterprise administrator if a malicious program or other suspicious activity is detected. A list of suspicious applications and actions that the security technology looks for is created and kept up-to-date by the anti-malware company. The company regularly delivers updates to the suspicious applications and actions list on a regular basis, and these updates are called signatures. If signatures are not downloaded and installed on a regular basis, machines may be vulnerable to the most recent attacks. Because it’s easy to forget, antivirus updates should be set to automatically download and install on each and every computer in an enterprise.
+               <p>Malware is software specifically designed to attack computer systems, devices, and data. Malware is the catch-all term for spyware, adware, and all the other types of malicious software developed to attack computers and steal information. Malware is quick to change and hard to keep track of, and can enter through any number of points like email attachments, smart phones, web pages, cloud services, and USB drives. Modern malware can be quite benign and just slow a computer system down, or it can be much more pernicious, stealing passwords and company data or holding that company data for ransom.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/8/subcontrol/2" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>For the automated check for 8.2, CAM verifies that an anti-malware tool is enabled and up-to-date on the machine.  In Control Panel &gt; System and Security &gt; Security and Maintenance, look under Security &gt; Virus Protection to see whether Windows shows that an anti-malware program is On or Off.  The exact steps for ensuring that anti-malware software is enabled and that automatic updates for that software are turned on varies depending on which anti-malware software is being used.</xhtml:p>
+                  <xhtml:p> </xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/8_2.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_8.5_A_Configure_Devices_to_Not_Auto-Run_Content" role="full" selected="false" weight="0.5">
+         <xccdf:title xml:lang="en">8.5(a) Configure Devices to Not Auto-Run Content (AutoRun)</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Configure devices to not auto-run content from removable media.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Removable media includes USB sticks, memory cards, and external hard drives, just to name a few examples. These devices are commonly used to store photos, videos, and enterprise data. Removable media is also one method used by attackers to install malicious software on computer systems. This attack method can be used to infect traditional enterprise workstations, but also computer systems without a WiFi or Internet connection. Banning the use of removable media is often impractical for businesses. If software on a USB device is allowed to automatically run, it could install malware with limited to no user interaction.
+               <p>This Sub-Control was specifically included due to the emerging technique of dropping USB drives embedded with malware in parking lots or other areas where employees are likely to pick them up and plug them into their computers.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/8/subcontrol/5" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>CAM's check for 8.5 is divided into two separate checks - one for AutoRun and one for AutoPlay.  This is the AutoRun check.</xhtml:p>
+                  <xhtml:p>CAM is checking the following registry settings to see if at least one of them is set to disable AutoRun: 
+                     <p>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer NoAutoRun <br>(Pass if this setting is set to 1)</br></p>
+                     <p>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer NoAutoRun <br>(Pass if this setting is set to 1)</br></p>
+                     <p>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer NoDriveTypeAutoRun <br>(Pass if this setting is set to 0xff)</br></p>
+                     <p>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer NoDriveTypeAutoRun <br>(Pass if this setting is set to 0xff)</br></p>
+                     <p>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer NoDriveAutoRun <br>(Pass if this setting is set to 0x3FFFFFF)</br></p>
+                     <p>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer NoDriveAutoRun <br>(Pass if this setting is set to 0x3FFFFFF)</br></p>
+                     <p>Note that while the Machine settings or Current User settings are accepted by CAM, the Machine settings are preferred because they would turn AutoRun off for all users on the machine.</p>
+                  </xhtml:p>
+                  <xhtml:p>AutoRun can be turned off via local group policy as follows: Open the Local Group Policy Editor, navigate to Computer Configuration &gt; Administrative Templates &gt; Windows Components &gt; AutoPlay Policies &gt; Set the default behavior for AutoRun.  Ensure that Enabled is selected, and then select "Do not execute any autorun commands" in the drop down menu.  Similar settings are available at the Domain level as well.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/8_5_a_autorun.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_8.5_B_Configure_Devices_to_Not_Auto-Run_Content" role="full" selected="false" weight="0.5">
+         <xccdf:title xml:lang="en">8.5(b) Configure Devices to Not Auto-Run Content (AutoPlay)</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Configure devices to not auto-run content from removable media.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Removable media includes USB sticks, memory cards, and external hard drives, just to name a few examples. These devices are commonly used to store photos, videos, and enterprise data. Removable media is also one method used by attackers to install malicious software on computer systems. This attack method can be used to infect traditional enterprise workstations, but also computer systems without a WiFi or Internet connection. Banning the use of removable media is often impractical for businesses. If software on a USB device is allowed to automatically run, it could install malware with limited to no user interaction.
+               <p>This Sub-Control was specifically included due to the emerging technique of dropping USB drives embedded with malware in parking lots or other areas where employees are likely to pick them up and plug them into their computers.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/8/subcontrol/5" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>CAM's check for 8.5 is divided into two separate checks - one for AutoRun and one for AutoPlay.  This is the AutoPlay check.</xhtml:p>
+                  <xhtml:p>CAM is checking the following registry setting to see if it is set to disable AutoPlay: 
+                     <p>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers DisableAutoPlay <br>(Pass if this setting is set to 1)</br></p>
+                  </xhtml:p>
+                  <xhtml:p>In the Windows Settings, go to AutoPlay Settings.  Move the "Use AutoPlay for all media and devices" toggle to Off.  Note: this is a per user setting.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/8_5_b_autoplay.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_9.4_Apply_Host-Based_Firewalls_or_Port_Filtering" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">9.4 Apply Host-Based Firewalls or Port Filtering</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Apply host-based firewalls or port-filtering tools on end systems, with a default-deny rule that drops all traffic except those services and ports that are explicitly allowed.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Out of the box computers are already setup with certain networking features enabled. This is typically an easy going set of configurations that allows computer systems to connect to resources users require. Setting up the firewall helps to reduce the ways that your computer can be attacked, reducing the chances of malware infection in the first place.
+               <p>Malware can be much more easily downloaded directly to your company’s computer systems if there is no firewall in place. Installed malware can steal sensitive enterprise data, bring a network down, or infect other systems.</p>  
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/9/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>The automated CAM check for 9.4 ensures that all three host-based Windows Firewall profiles (Domain, Private, and Public) are using a default-deny rule for incoming traffic.  In Windows Defender Security Center, select Firewall and network protection, and ensure that all 3 are turned on.  To edit the default-deny rules for Inbound Traffic, select Advanced Settings and click Windows Defender Firewall Properties, and then ensure that "Block (default)" is selected for Inbound Connections in each of the 3 profile tabs.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/9_4.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_10.1_Ensure_Regular_Automated_Backups" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">10.1 Ensure Regular Automated Backups</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that all system data is automatically backed up on a regular basis.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>A backup is a duplicate of a computer system’s data. If an attacker breaches a network or computer system, their first step will often be to change system configurations to ensure access to the attacker is permanently available. Additionally automated malware infections will often delete or prevent an organization’s valid access to data. Attackers will sometimes make subtle alterations to data that can jeopardize an organization’s effectiveness at a later date. It’s also common for computer systems to fail and simply stop working when attacked. This can be especially true of backend information systems that remain out of sight from customers. These systems may simply grow old and need to be replaced. Other accidents can happen like fires and floods. Systems fail and a plan needs to be in place to make sure that a business can recover from whatever incident occurs. Automated backups taken on a regular basis are a primary part of an enterprise disaster recovery plan.
+               <p>Backups protect against the effects of many types of malware, including newer variants such as ransomware and destructive malware. Additionally, backups help to harden an organization against accidents, natural disasters, and hardware failures.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/10/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>The automated CAM check for 10.1 verifies that Windows 10 File History is turned on for at least one user.  In the Windows 10 Backup settings, in the "Back up using File History" section, ensure an appropriate destination drive is selected (or select one with "Add a drive"), then make sure the "Automatically back up my files" toggle is set to "On".  In the "More options" menu, individual folders can be included or excluded from the File History backups.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/10_1.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_10.2_Perform_Complete_System_Backups" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">10.2 Perform Complete System Backups</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that all of the organization's key systems are backed up as a complete system, through processes such as imaging, to enable the quick recovery of an entire system.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>A backup is a duplicate of a computer system’s data, but different types and degrees of backups exist. A backup is commonly viewed as a small collection of a system’s overall data. Often times a few important folders containing photos, receipts, contracts, or tax information are stored elsewhere. This information may be stored on another computer system, external hard drive, removable media, or cloud service. This strategy is insufficient for protecting an organization. Flavors of backups include incremental, differential, or complete. A complete system image is a snapshot of all data and settings on a system.
+               <p>If a system is breached by an attacker, infected with malware, or involved in an accident (e.g., fire, flood), it often takes a long time to bring a system or network back online. This would include reinstalling and configuring all of the enterprise applications used for business tasks. Complete system backups rectify this issue by backing up not just important folders, but by backing up the entire computer, which can be pushed to new systems. Although this approach is a more complex solution, it makes recovery from a disaster or computer incident much quicker and enables you to get your business operational again. Backups protect against many types of malware, including ransomware and destructive malware. Additionally, backups help to harden your organization against accidents and natural disasters.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/10/subcontrol/2" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>The automated CAM check for 10.2 verifies that a successful Windows System Image backup was generated within a specified timeframe.  By default, CAM uses 7 days for this time frame, but this setting can be adjusted in the assessor-cli.properties file as appropriate for your organization.</xhtml:p>
+               <xhtml:p>A Windows System Image backup can be initiated in Control Panel &gt; System and Security &gt; Backup and Restore (Windows 7), and then clicking on "Create a system image" on the left side.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <xccdf:check-export export-name="XCCDF_VALUE_10_2_MAX_DAYS_WITHOUT_BACKUP" value-id="xccdf_org.cisecurity_value_10.2_var"/>
+            <check-content-ref href="sce/cam/windows_10/10_2.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_10.4_Protect_Backups" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">10.4 Protect Backups</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that backups are properly protected via physical security or encryption when they are stored, as well as when they are moved across the network. This includes remote backups and cloud services.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Backups can help an enterprise recover from a variety of disaster situations, be they the cause of malicious actors or accidents. Yet backups can be physically and digitally targeted by attackers looking to hurt an enterprise. Backups that are connected to a network can be altered or deleted by malware, and physical backup drives can be stolen or suffer fires, floods, and other natural disasters. Backups need to be protected from these threats in order to be useful when the time comes. Digital mitigations include authenticating users before access and encrypting backups. Physical mitigations include keeping backup drives locked away from thieves, and also outside of the same fire zone. This means that if a fire or flood were to strike an organization’s physical location, the backups would not be affected. This is sometimes accomplished by using third-party backup services to store data offsite. These backups need to be protected as well.
+               <p>There are two primary groups of threats to backups: digital and physical. Digital threats include local and remote attempts to access backups without being properly authenticated. Additional issues include altering or deleting backups. Physical threats include theft of physical backups or natural disasters (e.g., fires, floods).</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/10/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>The automated Controls Assessment Module check for 10.4 verifies that if Windows 10 File History is on, the drive that the File History data is being backed up to is encrypted with native Windows encryption (either hardware/device encryption or BitLocker software encryption).  Similarly, if Windows System Image backups are turned on, this check verifies that the destination drive for those backups is encrypted with native Windows encryption.  If either/both of these two backup methods are enabled, the check will fail if the corresponding backup drives are not encrypted.  If neither backup method is enabled, the check will also fail.</xhtml:p>  
+               <xhtml:p>In order to pass this check, enable either Windows 10 File History, Windows System Image backups, or both.  For whichever of these backup methods that you enable, ensure that the corresponding backup drive destinations are encrypted with native Windows encryption.</xhtml:p> 
+               <xhtml:p>File History can be turned on in the Windows 10 Backup settings, in the "Back up using File History" section, ensure an appropriate destination drive is selected (or select one with "Add a drive"), then make sure the "Automatically back up my files" toggle is set to "On". In the "More options" menu, individual folders can be included or excluded from the File History backups.</xhtml:p> 
+               <xhtml:p>A Windows System Image backup can be initiated in Control Panel &gt; System and Security &gt; Backup and Restore (Windows 7), and then clicking on "Create a system image" on the left side.</xhtml:p> 
+               <xhtml:p>To turn on Bitlocker, navigate to Control Panel &gt; System and Security &gt; BitLocker Drive Encryption, and select Turn on BitLocker.</xhtml:p> 
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/10_4.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_13.6_Encrypt_Mobile_Device_Data" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">13.6 Encrypt Mobile Device Data</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Utilize approved cryptographic mechanisms to protect enterprise data stored on all mobile devices.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Smartphones and tablets used by employees for work activities contain a treasure trove of sensitive enterprise data. This includes personal devices and those provided by the company – enterprise data can be spread across a variety of mobile devices. This is true for upper management, rank and file, and all employees in between. It’s common for nearly all employees to use a phone to obtain company email. Therefore, an organization’s sensitive email, with proprietary secrets, financials, and more, is stored on a device that an employee could easily misplace or have stolen. One of the best ways to help protect against these failures is to encrypt a company’s information while on the device.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/13/subcontrol/6" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>While sub-control 13.6 does explicitly specify mobile devices, the automated CAM check for 13.6 does not discriminate by device type.  This CAM check passes if native Windows encryption (either hardware/device encryption or BitLocker software encryption) is enabled for all drives.  To turn on Bitlocker, navigate to Control Panel &gt; System and Security &gt; BitLocker Drive Encryption, and select Turn on BitLocker.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/13_6.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_15.7_Leverage_the_Advanced_Encryption_Standard_to_Encrypt_Wireless_Data" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">15.7 Leverage the Advanced Encryption Standard (AES) to Encrypt Wireless Data</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Leverage the Advanced Encryption Standard (AES) to encrypt wireless data in transit.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>The Advanced Encryption Standard, or AES, is an algorithm used for cryptographic encryption of information standardized by the United States Government in 2001. It is considered a modern, strong cipher that has withstood attempts to break it for nearly two decades. This purpose of this Sub-Control is to make sure that an organization’s wireless traffic is strongly encrypted. AES is built into most wireless access points, or wireless routers, that can be bought at major electronics stores. AES is utilized with Wireless Protected Access version 2, or WPA2. Wireless Equivalent Privacy (WEP) or Wireless Protected Access (WPA) version 1 have known weaknesses that can allow an attacker to decrypt the traffic, so their use does not meet this Sub-Control, as AES will not be the algorithm used to encrypt wireless information. It is easier for an attacker to listen to wireless communications than wired communications. By properly setting up AES, anyone listening, or sniffing, the wireless network will not be able to understand the data transmitted on the network.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/15/subcontrol/7" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>The automated CAM check for 15.7 ensures that any wireless connections detected for the machine are making use of CCMP (the Counter Mode CBCMAC Protocol, a mode of AES used for WLAN connections as discussed in IEEE 802.11i).  If no wireless connections are detected, this check will Pass. </xhtml:p>
+                  <xhtml:p>For each wireless connection in Control Panel &gt; All Control Panel Items &gt; Network and Sharing Center, click on the linked name of that connection to open the Wi-Fi Status of the connection, and then click Wireless Properties.  In the Properties dialog box for that connection, click on the Security tab.  Ensure that WPA2 is being used in the Security type dropdown and that AES is selected as the Encryption type (note: settings may be different for WPA2-Enterprise).</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <check-content-ref href="sce/cam/windows_10/15_7.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_16.9_Disable_Dormant_Accounts" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">16.9 Disable Dormant Accounts</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Automatically disable dormant accounts after a set period of inactivity.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>System and user accounts establish identity and access on information systems. Operating system privileges and granular file permissions can be assigned to individual users and groups of users (i.e., roles). When an organization is using Active Directory and domain controllers, each employee is generally assigned an account and assigned roles for what they are allowed to do within an organization’s network architecture. Local accounts unique to a system are often also utilized. When employees leave an organization, or even change organizational units, their privileges are removed. Yet it’s possible to go a step further and automatically disable accounts after a predetermined period of time. Deleting accounts is not always recommended as this may disturb user, system, or application logs, or other information that may be needed to audit user activity in case an incident is discovered in the future. </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/16/subcontrol/9" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>The automated CAM check for 16.9 checks the last logon date for each of the enabled local machine accounts and verifies that they have been logged into within a specified timeframe.  If the account has never been logged into, this timeframe is applied to the last password set date instead.  By default, CAM uses 30 days for this timeframe, but this setting can be adjusted in the assessor-cli.properties file as appropriate for your organization.</xhtml:p>
+                  <xhtml:p>Ensure that any accounts not meeting the specified dormancy time frame are disabled.  The "net user" command can be used to identify last logon times for specific users.  Accounts can be deactivated either with the "net user" command or in Computer Management &gt; System Tools &gt; Local Users and Groups &gt; Users .</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <xccdf:check-export export-name="XCCDF_VALUE_16_9_MAX_INACTIVITY_DAYS" value-id="xccdf_org.cisecurity_value_16.9_var"/>
+            <check-content-ref href="sce/cam/windows_10/16_9.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_16.11_Lock_Workstation_Sessions_After_Inactivity" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">16.11 Lock Workstation Sessions After Inactivity</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Automatically lock workstation sessions after a standard period of inactivity.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Using a password to regularly log into a computer can cause trouble for a user, especially if a computer quickly locks. Yet too often computers are left unattended without being locked. Unlocked computers allow anyone to access the information and applications open on a system. A point of sale (POS) system, tax information, and even an employee’s personal information will be available to anyone who walks up to an unattended enterprise workstation. This Sub-Control applies to more than just a computer system since smartphones and tablets can also be left unlocked. 
+               <p>This Sub-Control is so important because it protects from very basic, low-effort attacks. People with very little technical skill can walk up to a computer and access a company’s information if there is no lock on the system. If someone with technical knowledge accessed a system without a lockscreen, depending on how the computer is setup they can install malware and potentially access passwords used by employees. In a worst-case scenario, they can potentially bring your computer systems and networks down if passwords are reused or if the computer they are on is setup to manage other devices.</p>   
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/16/subcontrol/11" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>
+                  <xhtml:p>The CAM automated check for 16.11 makes sure that the lock screen timeout does not exceed a maximum value and that the lock screen is enabled.  The default maximum timeout value for CAM is 900 seconds (15 minutes, which is consistent with the Windows Benchmark), but this setting can be adjusted in the assessor-cli.properties file as appropriate for your organization.</xhtml:p>
+                  <xhtml:p>The lock screen timeout value can be set via local group policy as follows: Open the Local Group Policy Editor, navigate to Computer Configuration &gt; Windows Settings &gt; Security Settings &gt; Local Policies &gt; Security Options &gt; Interactive logon: Machine inactivity limit .  This setting may require a reboot to take effect.</xhtml:p>
+               </xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         
+         <xccdf:check system="http://open-scap.org/page/SCE">
+            <check-import import-name="stdout"/>
+            <xccdf:check-export export-name="XCCDF_VALUE_16_11_MAX_TIMEOUT" value-id="xccdf_org.cisecurity_value_16.11_var"/>
+            <check-content-ref href="sce/cam/windows_10/16_11.ps1"/>
+         </xccdf:check>
+         
+      </xccdf:Rule>
+      
+   </xccdf:Group>
+   
+   <xccdf:Group id="xccdf_org.cisecurity.benchmarks_group_2_User_Survey_Questions">
+      <xccdf:title xml:lang="en">User Survey Questions</xccdf:title>
+      <xccdf:description xml:lang="en">
+         <xhtml:p>This section contains user-answered survey questions.</xhtml:p>
+      </xccdf:description>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_1.4_Maintain_Detailed_Asset_Inventory" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">1.4 Maintain Detailed Asset Inventory</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Maintain an accurate and up-to-date inventory of all technology assets with the potential to store or process information. This inventory shall include all assets, whether connected to the organization's network or not.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>An accurate and up-to-date inventory of computer systems within a network is often the first step in securing an enterprise. This list of information systems is known as a hardware asset inventory. Having a definitive list of what hardware is supposed to be part of a network enables comparison against the list of systems that are actually in place. This allows for the identification of unauthorized devices that should not be connected. A hardware asset inventory also helps define what an organization needs to protect. 
+               <p>An asset inventory often extends beyond what is solely connected to the network. Many organizations utilize older smartphones, laptops, networking gear, and other technology that may not be connected, or even powered on, yet might still contain sensitive information if the data is exfiltrated outside of the network. In addition to physical systems, many enterprises use third-party services for website hosting or email that are hosted in the cloud. Accordingly, any third-party services and cloud platforms should be included in the asset inventory. Examples of what to track include: <ul> <li>General computer workstations, laptops, phones, tablets, servers, and network devices</li> <li>Physical systems and devices operated or possibly owned by another organization that are connected to your network (e.g., Point of Sale devices), and</li> <li>Systems used by an organization that are cloud-hosted.</li></ul></p>
+               <p>Although asset management doesn’t specifically mitigate any threats, it is the foundation for a large majority of cybersecurity activities. If you don’t know what you are supposed to be defending, you can’t properly defend it.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/1/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:104" value-id="xccdf_org.cisecurity_value_1.4_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:104"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_1.6_Address_Unauthorized_Assets" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">1.6 Address Unauthorized Assets</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that unauthorized assets are either removed from the network, quarantined or the inventory is updated in a timely manner.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Once an inventory of authorized assets is established, this list can be used to help identify network-connected assets that are not authorized. Any device on the list, including phones, tablets, and laptops, should be investigated. It is possible that a device under investigation is actually authorized to be there, at which point it can be removed from the list. If a device is not meant to be on the network, it should be removed from the network and thoroughly investigated. Unauthorized devices may be accessing enterprise network traffic, including proprietary or sensitive information. They also are in position on the network from which to launch attacks and hack into organizational systems. 
+               <p>This Sub-Control helps to prevent unauthorized eavesdroppers on a public network. Attackers might be able to view enterprise traffic, or change it while it’s being sent. Eavesdroppers can be listening on the wired and wireless network.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/1/subcontrol/6" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:106" value-id="xccdf_org.cisecurity_value_1.6_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:106"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_2.1_Maintain_Inventory_of_Authorized_Software" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">2.1 Maintain Inventory of Authorized Software</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Maintain an up-to-date list of all authorized software that is required in the enterprise for any business purpose on any business system.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>An accurate and up-to-date inventory of all company software is nearly as important as tracking the hardware inventory (as mentioned in Sub-Control 1.4). By tracking the software being used on organizational assets, organizations can work to ensure that only authorized software is actually installed. Maintaining an authorized software inventory provides the capability to identify the software that is not allowed to be installed. Unauthorized software may include older versions of previously authorized software applications, or software installed by an employee, unbeknownst to the enterprise (sometimes referred to as shadow IT). Unauthorized software also includes any malware or code installed by an attacker with system access. Understanding the software installed on a system helps organizations to define their software attack surface, and allow for a plan to be devised to remove unauthorized software.  
+               <p>Software should be tracked for all enterprise systems and devices, even if they do not have network access. An old, unpatched application running on a non-networked system may be connected at some point in the future. Old phones, laptops, networking appliances, and other technology that is rarely powered on may still contain sensitive information. In addition to physical systems, some companies may rely upon cloud infrastructure for email and data storage. Virtualized systems are another asset type that can contain sensitive enterprise data. Software associated with cloud-based and virtualized systems should both be included in a software asset inventory. Therefore, examples of software on different types of systems that should be tracked to comply with this Sub-Control include:<ul> <li>Software pre-installed on the operating system,</li><li>Software installed by an organization,</li><li>Cloud applications, and</li> <li>Virtual machines and their hypervisors.</li></ul></p>
+               <p>Although asset management doesn’t specifically mitigate any threats, it is the foundation for a large majority of cybersecurity activities. If you don’t know what you are supposed to be defending, you can’t properly defend it.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/2/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:201" value-id="xccdf_org.cisecurity_value_2.1_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:201"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_2.2_Ensure_Software_is_Supported_by_Vendor" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">2.2 Ensure Software is Supported by Vendor</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that only software applications or operating systems currently supported and receiving vendor updates are added to the organization's authorized software inventory. Unsupported software should be tagged as unsupported in the inventory system.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>The phrase vendor supported software means that a program or application is a current product offering from the developer. Furthermore, a supported application is still generally under development, which means that software and security updates are regularly made available and distributed to customers. If an organization is using unsupported software, any computer system running that software is at greater risk of being vulnerable to attack.
+               <p>Software that is out of date can contain vulnerabilities and other software bugs that can be used by an attacker to gain a foothold within an enterprise network. The longer software goes without receiving an update, the more likely it is to have significant security problems. Therefore, triaging the number of bugs and their severity is key. Allowing unpatched and old software within an enterprise is one of the most dangerous practices possible from a security perspective.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/2/subcontrol/2" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:202" value-id="xccdf_org.cisecurity_value_2.2_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:202"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_2.6_Address_Unapproved_Software" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">2.6 Address Unapproved Software</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that unauthorized software is either removed or the inventory is updated in a timely manner.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>This Sub-Control is the natural progression from Sub-Control 2.1. Once a software asset inventory has been created, each computer, phone, and/or tablet should be checked to ensure that the software installed on that system is authorized to be there. When unapproved software is identified, it should be uninstalled or otherwise removed. A regular cadence should be established to survey relevant systems for unauthorized software. 
+               <p>Unapproved software has not been approved by anyone within an organization that has decision authority for IT. Additionally, it has not been approved by the organization’s security professionals to understand if the software meets an organization’s minimum baselines for security. Unapproved software is commonly out of date and can contain known vulnerabilities that can be exploited. Unapproved software may also be malware, all of which should be avoided.</p> 
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/2/subcontrol/6" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:206" value-id="xccdf_org.cisecurity_value_2.6_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:206"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_3.5_Deploy_Automated_Software_Patch_Management_Tools" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">3.5 Deploy Automated Software Patch Management Tools</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Deploy automated software update tools in order to ensure that third-party software on all systems is running the most recent security updates provided by the software vendor.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Security patches are updates to a computer system’s operating system or installed software, and applying them is a basic part of IT maintenance. Just like patching the OS, patching these software applications is a basic part of cybersecurity. The patches from application developers may contain new features, but also contain fixes to recently discovered security vulnerabilities. Without a constant stream of security patches, old and insecure applications are more vulnerable and at greater risk of being infected by malware that can read sensitive enterprise data, or simply destroy it.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/3/subcontrol/5" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:305" value-id="xccdf_org.cisecurity_value_3.5_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:305"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_4.3_Ensure_the_Use_of_Dedicated_Administrative_Accounts" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">4.3 Ensure the Use of Dedicated Administrative Accounts</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that all users with administrative account access use a dedicated or secondary account for elevated activities. This account should only be used for administrative activities and not Internet browsing, email, or similar activities.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Accounts on a computer system can have different types of privileges. The accounts with the highest levels of access and privileges are called administrative accounts. Other terms for this account include admin, superuser, or root accounts. These accounts grant access to all of a computer system’s data and functionality, thus protecting these accounts is of the utmost importance. If they are abused or taken advantage of, they can be used to compromise an entire system and the computers connected to them. For example, if you are using an administrative account to browse the web, and accidentally download malware, the malware will be able to run on a computer with the highest levels of access.
+               <p>Yet administrative accounts are needed for certain important tasks. Examples include installing new programs, updating the operating system, or adding new users. This Sub-Control states that administrative tasks need to be accomplished with a separate account dedicated to administrative tasks. Normal accounts should be used for everyday business tasks, like using a browser to perform market research or using accounting software. If vulnerabilities in your operating system are exploited, they often have a much lesser impact if they are exploited within the realm of a normal account.</p>
+               <p>If someone is able to obtain administrative access on a computer system, they essentially have the keys to the kingdom. They will be able to steal passwords stored on the computer, which may be used in other computer systems or applications within a network. They will also be able to install a rootkit which is a type of malware that is sometimes undetectable, even by antivirus software. These types of information could compromise your systems for months or even years.</p>   
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/4/subcontrol/3" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:403" value-id="xccdf_org.cisecurity_value_4.3_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:403"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_5.1_Establish_Secure_Configurations" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">5.1 Establish Secure Configurations</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Maintain documented security configuration standards for all authorized operating systems and software.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Establishing secure configurations means that each computer system within an enterprise must have the appropriate security settings applied. Many computers do not come with all of the security settings applied “out of the box”, as it tends to decrease the functionality of the OS and applications. As operating systems and applications receive updates configuration settings can change. New configuration settings may be created, and others may be removed. This creates a constant problem that needs to be addressed.
+               <p>As delivered by manufacturers and resellers, the default configurations for operating systems and applications are normally geared towards ease-of-deployment and ease-of-use – not security. Open services and ports, default accounts or passwords, older (vulnerable) protocols, preinstallation of unneeded software; all can be exploitable in their default state. All of these improperly configured settings can be taken advantage of by attackers. Properly configuring enterprise computer systems can help to defend against major types of malware and even network-based attacks.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/5/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:501" value-id="xccdf_org.cisecurity_value_5.1_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:501"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_7.1_Ensure_Use_of_Only_Fully_Supported_Browsers_and_Email_Clients" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">7.1 Ensure Use of Only Fully Supported Browsers and Email Clients</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that only fully supported web browsers and email clients are allowed to execute in the organization, ideally only using the latest version of the browsers and email clients provided by the vendor.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Web browsers and email clients are some of the most common applications that individuals use to access the internet. This means that they are on the front line of an organization’s IT infrastructure, being exposed to a variety of digital threats on a daily basis. In fact, browsers and email clients are likely the most exposed applications within an enterprise. Because of this it’s important to keep all browsers and email systems up-to-date. Often the most recent version of software also includes the most recent security patches. Sometimes versions of browsers are no longer supported, and an entirely new browser or email client will need to be installed. 
+               <p>When an email client or browser is attacked there can be a number of bad outcomes. One example is that a browser extension can be installed which is an extra program that gets put into your browser. These can be extremely helpful and provide great benefits such as allowing teleconferencing or managing passwords. Unfortunately, if a malicious programmer is able to get one of these installed into your browser, they can often severely invade your privacy by watching all of your web activity and potentially reading information that would normally be protected (e.g., encrypted).</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/7/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:701" value-id="xccdf_org.cisecurity_value_7.1_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:701"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_7.7_Use_of_DNS_Filtering_Services" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">7.7 Use of DNS Filtering Services</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Use Domain Name System (DNS) filtering services to help block access to known malicious domains.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>While there are a lot of technical details relating to Domain Name Service (DNS), the important details are relatively simple. Think of DNS as a phonebook for websites which translates a human understandable domain such as (www.cisecurity.org) to a series of numbers that a computer can understand. These numbers are IP addresses like (93.184.215.125). Therefore, when a computer wants to connect to cisecurity.org, it uses DNS to look up where it can find cisecurity.org, much like how a phone book would be used to search a person’s name to get their phone number. All of this happens transparently in the background when requesting a webpage, leaving individuals to solely need to remember the domain name instead of the having to remember complex numbers.
+               <p>This Sub-Control will help to prevent enterprise infrastructure from connecting to known malicious servers that may be controlling, hosting or distributing malware or trying to collect sensitive information. As you can imagine, DNS is a key service for allowing the internet to function, good or bad. Many bad actors will host a malicious domain like “evil.com” where they can do any number of things, like trick users into giving sensitive information (phishing) or control already infected systems. By using a DNS filtering service, you’re essentially pointing your computer to a filtered phonebook that won’t provide you the phone number to any known bad domains, thereby protecting you from getting infected or communicating with that malicious system.</p>  
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/7/subcontrol/7" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:707" value-id="xccdf_org.cisecurity_value_7.7_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:707"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_8.4_Configure_Anti-Malware_Scanning_of_Removable_Media" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">8.4 Configure Anti-Malware Scanning of Removable Media</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Configure devices so that they automatically conduct an anti-malware scan of removable media when inserted or connected.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Removable media includes USB sticks, memory cards, and external hard drives, just to name a few examples. These devices are commonly used to store photos, videos, and enterprise data. Removable media is also one method used by attackers to install malicious software on computer systems. This attack method can be used to infect traditional enterprise workstations, but also computer systems without a WiFi or Internet connection. Banning the use of removable media is often impractical for businesses. In order to combat this threat, enterprise systems should be configured to scan removable devices for malware before they can be used.
+               <p>This Sub-Control was specifically included due to the emerging technique of dropping USB drives embedded with malware in parking lots or other areas where employees are likely to pick them up and plug them into their computers.</p> 
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/8/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:804" value-id="xccdf_org.cisecurity_value_8.4_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:804"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_10.5_Ensure_All_Backups_Have_at_Least_One_Offline_Backup_Destination" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">10.5 Ensure All Backups Have at Least One Offline Backup Destination</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that all backups have at least one offline (i.e., not accessible via a network connection) backup destination.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>A trend in malware has arisen over the past few years that prevents enterprises from accessing their own data. Sometimes criminals extort money in order to gain access to the data again, whereas other times access may never be provided again. Malware that requires money to obtain access once again is called ransomware. Ransomware uses cryptography to block access to a system’s data. If access to the data is never restored, it is considered destructive malware.
+               <p>Besides user education and antivirus software, one of the best defenses against ransomware is backing up data to another system before access is lost. But backups alone won’t completely prevent this malware from accomplishing its goals. Typical backups may be connected to another system or network, meaning backup data can still be attacked. Therefore, regular backups should be stored in an unconnected manner.</p> 
+               <p>Keeping offline backups helps organizations recover and restore systems when ransomware or destructive malware hits a system. A common way for this malware to get into a network is to be installed via email attachments or downloads for websites. Both of these types of malware have impacted law enforcement, hospitals, governments, and academic institutions and cost millions of dollars to recover.</p>  
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/10/subcontrol/5" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1005" value-id="xccdf_org.cisecurity_value_10.5_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1005"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_11.4_Install_the_Latest_Stable_Version_of_Any_Security-Related_Updates_on_All_Network_Devices" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">11.4 Install the Latest Stable Version of Any Security-Related Updates on All Network Devices</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Install the latest stable version of any security-related updates on all network devices.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Network devices include wireless routers, sometimes called wireless access points, and the networking appliance provided from an Internet service provider (ISP). An ISP is a telecommunications company that provides access to the internet. ISP provided appliances are confusingly referred to by multiple interchangeable terms such as modem or cable box. Some ISPs can provide a single network device that acts as modem, wireless access point, and firewall all in one. Regardless, all networking equipment needs to be regularly updated. To update the software or firmware on any of these network appliances, it will often be necessary to access the device via an administrator account. This is commonly done via a web browser. The correct settings to update the system will be provided by the relevant ISP and/or network device manufacturer.
+               <p>Older software on wireless access points and cable boxes or modems can lead to a malicious actor accessing sensitive enterprise information via the device. This can occur via vulnerabilities in protocols supported by the router or how users are authenticated to the router. If an attacker gains access to the device, they may be able to change network passwords, grant any computer access to the network, or sniff / alter data in transit.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/11/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1104" value-id="xccdf_org.cisecurity_value_11.4_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1104"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_12.1_Maintain_an_Inventory_of_Network_Boundaries" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">12.1 Maintain an Inventory of Network Boundaries</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Maintain an up-to-date inventory of all of the organization's network boundaries.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Network boundaries define how data flows and traverses an enterprise network. Wired and wireless boundaries will exist, alongside logical boundaries. Logical boundaries sometimes include subnetworks (e.g., subnets) or virtual local area networks (vLANs). Generally, information cannot flow from one subnet to another without a networking device such as a firewall or router acting as a gatekeeper for access. This helps to establish trust boundaries between network segments. Therefore, a survey should be performed to understand where trusted networks end and untrusted ones begin.
+               <p>Understanding network boundaries can be a challenging task in a network that has been growing organically for some time. The simplest example of a network boundary is the demarcation between a wireless and wired network. Another commonly seen example of a network boundary is between the external network (typically the internet), and the internal intranet. An intranet generally isn’t accessible from outside of the trust boundary. Sometimes specific subnets will not be able to communicate with others. This is sometimes intentional for security reasons. Finally, another important boundary to keep in mind is when a single organization has multiple physical locations. Often IT will work to logically connect all of their physical locations together.</p> 
+               <p>Specifically noting which networks are within your trust boundary, and then regularly checking them helps to prevent from accidentally trusting an untrustworthy device or network component. For instance, public users such as customers should not be granted access to the intranet, which often contains sensitive enterprise information.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/12/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1201" value-id="xccdf_org.cisecurity_value_12.1_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1201"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_12.4_Deny_Communication_Over_Unauthorized_Ports" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">12.4 Deny Communication Over Unauthorized Ports</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Deny communication over unauthorized TCP or UDP ports or application traffic to ensure that only authorized protocols are allowed to cross the network boundary in or out of the network at each of the organization's network boundaries.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>The overarching CIS Control 12 details precautions that should be taken for boundary defense.  Boundary defense is the notion of establishing and protecting a perimeter around an organization’s externally facing networking equipment. The enterprise boundary is a foundation of a defensive strategy for both internal and external threats. Sub-Control 9.4 focuses on controlling communication from a typical enterprise workstation, whereas Sub-Control 12.4 manages how communication is controlled on networking devices, such as firewalls. In order to accomplish this, the firewall configuration and ruleset in use should be carefully reviewed, monitored, and curated. If an enterprise grade firewall is not in use, many of the dual-use modems / wireless access points from the ISP will often have a firewall built into the system which can be enabled.   
+               <p>A large majority of attacks launched against an organization will attempt to enter networks through a firewall. Firewalls often act the default entry point into a network and can deny communication over certain ports. Because of this they are under nearly constant attack and must be configured properly to protect the organization's assets sitting behind them. A firewall is typically envisioned to protect against basic attacks using a variety of protocols such as HTTP, FPT, and NTP.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/12/subcontrol/4" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1204" value-id="xccdf_org.cisecurity_value_12.4_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1204"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_13.1_Maintain_an_Inventory_of_Sensitive_Information" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">13.1 Maintain an Inventory of Sensitive Information</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Maintain an inventory of all sensitive information stored, processed, or transmitted by the organization's technology systems, including those located on-site or at a remote service provider.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Sensitive data can be stored on smartphones, Point of Service (POS) terminals, workstations, and backend systems. Enterprises should have a listing of their sensitive information, and which computer systems contain it. Those that do not carefully identify and separate their most sensitive and critical assets from less sensitive, publicly accessible information on internal networks can have a hard time preventing unauthorized access of information from occurring. It’s important to have a proper listing of sensitive enterprise information so that it can be properly protected.  
+               <p>If sensitive enterprise information is on an unprotected or untrusted system, the information may be able to be accessed in an unauthorized manner. If sensitive enterprise information is not labeled correctly, then it may be accidentally distributed to unauthorized outside parties.</p>  
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/13/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1301" value-id="xccdf_org.cisecurity_value_13.1_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1301"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_13.2_Remove_Sensitive_Data_or_Systems_Not_Regularly_Accessed_by_Organization" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">13.2 Remove Sensitive Data or Systems Not Regularly Accessed by Organization</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Remove sensitive data or systems not regularly accessed by the organization from the network. These systems shall only be used as stand-alone systems (disconnected from the network) by the business unit needing to occasionally use the system or completely virtualized and powered off until needed.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>A breach of sensitive enterprise data and systems can cost time, money, and bring an organization out of compliance with legal or regulatory requirements. Sensitive data and computer systems not often accessed may not receive the regular maintenance and attention necessary to properly manage them. Therefore, systems that are infrequently used should be removed from service and the entire enterprise network. If it’s not needed, get rid of it. This helps to reduce enterprise attack surface leaving fewer systems that can be targeted.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/13/subcontrol/2" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1302" value-id="xccdf_org.cisecurity_value_13.2_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1302"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_14.6_Protect_Information_Through_Access_Control_Lists" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">14.6 Protect Information Through Access Control Lists</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Protect all information stored on systems with file system, network share, claims, application, or database specific access control lists. These controls will enforce the principle that only authorized individuals should have access to the information based on their need to access the information as a part of their responsibilities.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Different users will need varying levels of access within enterprise systems. Users with more sensitive roles and job responsibilities may need additional access, such as Human Resources and Finances, whereas users with less complex workplace needs will necessitate fewer permissions. This means that access to data, systems, and files should be provided according to business needs. Administrative or superuser access should not be provided to all employees.  
+               <p>Users with greater access to systems and functions can easily make accidental changes that affect multiple users and systems. Sometimes these changes will not be easily recoverable, like deleting an entire network drive. Another scenario worth considering is if a user with broad privileges has their accounts compromised, the attacker would be able to access everything that user is able to access.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/14/subcontrol/6" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1406" value-id="xccdf_org.cisecurity_value_14.6_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1406"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_15.10_Create_Separate_Wireless_Network_for_Personal_and_Untrusted_Devices" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">15.10 Create Separate Wireless Network for Personal and Untrusted Devices</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Create a separate wireless network for personal or untrusted devices. Enterprise access from this network should be treated as untrusted and filtered and audited accordingly.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Some computers, tablets and smartphones are more trustworthy than others. If a device is bought, configured, and safely used by an employee or enterprise, it is likely more trustworthy than a completely unknown device that has not been seen before. This level of trust can be extended past enterprise devices and into a company’s networks. Devices that are trusted and used only for company tasks should be kept on a completely separate network from personal devices owned by employees or guests. This will keep devices that are potentially misconfigured, infected with malware, or built in an insecure fashion from being used to infect a network and its systems.
+               <p>Untrustworthy, misconfigured, and insecure devices will likely be brought into an enterprise’s network at some point, even by well-meaning individuals and employees. These devices may already harbor malware that would steal sensitive enterprise data, or attack other computers and devices on your network. One device with malware on it places every device on the network in danger.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/15/subcontrol/10" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1510" value-id="xccdf_org.cisecurity_value_15.10_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1510"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_16.8_Disable_Any_Unassociated_Accounts" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">16.8 Disable Any Unassociated Accounts</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Disable any account that cannot be associated with a business process or business owner.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Extraneous accounts can be used by attackers to compromise other systems on a network. These accounts can be created by accident, for testing purposes, or be leftover accounts from contractors or employees no longer employed at an organization. Attackers often find and exploit legitimate, but inactive user accounts, and use them to impersonate legitimate users. When this occurs, it makes tracking the activities of attacker behavior quite difficult for those responding to a breach or performing forensic analysis. The Sub-Control states the need for disabling unassociated accounts, as deleting accounts is not recommended as this will not preserve the audit trail.  
+               <p>“Stale” or “ghost” accounts on a system are often a weak link for attackers. Accounts that have not been used by an employee are valuable accounts for an attacker to overtake. The account owners are not actively using the account, so it’s difficult for an organization to notice if the account is being used maliciously.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/16/subcontrol/8" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1608" value-id="xccdf_org.cisecurity_value_16.8_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1608"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_17.3_Implement_a_Security_Awareness_Program" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">17.3 Implement a Security Awareness Program</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Create a security awareness program for all workforce members to complete on a regular basis to ensure they understand and exhibit the necessary behaviors and skills to help ensure the security of the organization. The organization's security awareness program should be communicated in a continuous and engaging manner.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Employees are the first line of defense in any good security program. In some sense, the phrase “you are only as strong as your weakest link” is very true in security. While attempting to build defense in depth into our people, processes, and technology, sometimes all it takes is one employee to unknowingly install a malicious program on their computer to lead to a security breach. This is why it’s important that all employees know the importance of and have a basic awareness of how to keep themselves and the company secure. This starts with a security awareness program.  
+               <p>Many of the top security threats take advantage of the human factor of security. These include social engineering type attacks such as phishing, spear phishing, vishing, pretexting, baiting, and others. Many threats take advantage of human tendency or emotion. They look to trick employees who are not paying attention to detail or who get caught believing an emotional story.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/17/subcontrol/3" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1703" value-id="xccdf_org.cisecurity_value_17.3_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1703"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_17.5_Train_Workforce_on_Secure_Authentication" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">17.5 Train Workforce on Secure Authentication</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Train workforce members on the importance of enabling and utilizing secure authentication.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Especially with the move to cloud-first, mobile-first world, employees now more than ever need to be trained to properly manage their user accounts. In many cases, their user account is the only line of defense to prevent an attacker from infiltrating an organization’s enterprise infrastructure. Employee user account security is even important if an enterprise company has a local network. Storing passwords on sticky notes, sharing password with co-workers, or using the same password for all accounts are all examples of poor practices which can be exploited by attackers leading to significant harm for a company. 
+               <p>Account takeovers are a common approach for attackers to gain a foothold within an organization and begin taking data or control. With access to a legitimate account, attackers will often attempt to move horizontally to take over other accounts, launch phishing campaigns which appear legitimate, and look to obtain sensitive information. Additionally, it can be very difficult to detect and track an attacker who has taken over a legitimate account. Finally, users may share personal passwords with enterprise accounts. Personal accounts may be a victim of a breach, and the username and password for the enterprise account is not always changed.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/17/subcontrol/5" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1705" value-id="xccdf_org.cisecurity_value_17.5_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1705"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_17.6_Train_Workforce_on_Identifying_Social_Engineering_Attacks" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">17.6 Train Workforce on Identifying Social Engineering Attacks</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Train the workforce on how to identify different forms of social engineering attacks, such as phishing, phone scams, and impersonation calls.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Social engineering attacks are one of the more common and successful types of attacks. This is because they prey upon human tendencies and emotions. Even if not always successful, any successfully social engineering attack can have devastating impacts on an organization. While these types of attacks are often preventable, they are getting more and more sophisticated and harder to spot. This is why it is important for employees to know what to look for and how to spot suspicious activity in their email, over the phone, and even in person.
+               <p>The goal of social engineering is to get a user to do something that the attacker wants, such as disclose information or run a malicious program. Social engineering attacks include phishing, spear phishing, vishing, pretexting, baiting, tailgating, and quid pro quo. Phishing is the most common type of social engineering attack. The attacker recreates the website or support portal of a renowned company and sends the link to targets via emails or social media platforms. The other person, completely unknown to the real attacker, ends up compromising personal information and even credit card details. Another form of phishing will trick the user to navigating to a website that downloads malicious software.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/17/subcontrol/6" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1706" value-id="xccdf_org.cisecurity_value_17.6_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1706"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_17.7_Train_Workforce_on_Sensitive_Data_Handling" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">17.7 Train Workforce on Sensitive Data Handling</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Train workforce members on how to identify and properly store, transfer, archive, and destroy sensitive information.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Data classification provides one of the most basic ways for organizations to determine and assign relative values to the data they possess. The process of data classification allows organizations to categorize their stored data by sensitivity and business impact in order to determine the risks associated with the data. After the process is completed, organizations can manage their data in ways that reflect its value to them instead of treating all data the same way. Data classification is a conscious, thoughtful approach that enables organizations to realize optimizations that might not be possible when all data is assigned the same value.
+               <p>Improperly handling sensitive data can lead to unintentional sensitive data exposure, such as placing trade secrets on a cloud platform that doesn’t require authentication for data access. Improper data handling can also make it easier for attackers to access enterprise data in an unauthorized manner. Therefore, clearly marked and labeled data, alongside the appropriate policies for handling sensitive data, can help employees understand and properly handle sensitive information.</p> 
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/17/subcontrol/7" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1707" value-id="xccdf_org.cisecurity_value_17.7_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1707"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_17.8_Train_Workforce_on_Causes_of_Unintentional_Data_Exposure" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">17.8 Train Workforce on Causes of Unintentional Data Exposure</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Train workforce members to be aware of causes for unintentional data exposures, such as losing their mobile devices or emailing the wrong person due to autocomplete in email.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>People play a huge role in preventing data breaches, often more critical than any technological solution. Employees must be regularly exposed to and reminded of causes of data exposure and data breaches. The following is a non-exhaustive list:<ul> <li>Loss of device with sensitive information</li><li>Leaving sensitive information in an insecure area</li><li>Downloading sensitive information to temporary or download folders which are not secure</li><li>Sending sensitive information over insecure communication channels - unencrypted email, text messages, etc.</li><li>Sending sensitive information to the wrong recipient</li><li>Not reviewing newly created data for its sensitivity - not realizing an email chain had sensitive information before you forwarded it</li><li>Assigning permissions to sensitive information to the wrong person</li><li>Not properly segmented data based on need to know - not having granular controls over access to sensitive information</li><li>Not setting proper access controls on sensitive data</li></ul>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/17/subcontrol/8" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1708" value-id="xccdf_org.cisecurity_value_17.8_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1708"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_17.9_Train_Workforce_Members_on_Identifying_and_Reporting_Incidents" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">17.9 Train Workforce Members on Identifying and Reporting Incidents</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Train workforce members to be able to identify the most common indicators of an incident and be able to report such an incident.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>As with most incidents, the earlier a security incident is identified and a response is initiated, the less severe the incident will likely become. It is also true that earlier detection often leads to more information being available about the incident. This information may be key to stopping an ongoing attack and to understanding certain details such as how the attack was conducted and what impact it has had. One of the key details required in many state laws is information on how the breach occurred, how many people were impacted, and what was done to remedy the attack. Reducing the impact and understanding the details of the breach are both much more achievable with earlier detection and response. Employees are key to this early detection. Employees should be trained on the types of things to look for and how to report suspicious behavior or events.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/17/subcontrol/9" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1709" value-id="xccdf_org.cisecurity_value_17.9_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1709"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_19.1_Document_Incident_Response_Procedures" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">19.1 Document Incident Response Procedures</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Ensure that there are written incident response plans that define roles of personnel as well as phases of incident handling/management.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>If an organization continuously operates for a long enough period of time, it is likely that they will suffer a cyber breach. Even if a breach never occurs, it’s best to plan for the possibility, even if just from a legal liability standpoint. When a data breach occurs, it can feel like multiple extremely important events are all taking place at the same time. Important processes, procedures, and security critical tasks can be forgotten during this time frame. That’s in part why a series of written procedures for how to handle a cyber incident before it occurs are needed.  
+               <p>The threats surrounding this Sub-Control mostly revolve around the inappropriate handling of a cyber incident while it is active. This means accidents from internal employees tasked with responding to the breach. This is especially true if the breach is the first one an organization has experienced. Improper data breach handling can lead to the breach getting worse, for instance malware getting deeper into a network and having additional access to sensitive data.</p>  
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/19/subcontrol/1" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1901" value-id="xccdf_org.cisecurity_value_19.1_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1901"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_19.3_Designate_Management_Personnel_to_Support_Incident_Handling" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">19.3 Designate Management Personnel to Support Incident Handling</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Designate management personnel, as well as backups, who will support the incident handling process by acting in key decision-making roles.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>During an incident, many important decisions will need to be made in a short timeframe.  For this reason, it is necessary for management personnel with the authority to make those decisions to be involved in the incident handling process.  Designated management personnel should have a clear understanding of their role in the process ahead of time, before incidents occur.  Backups should also be designated in case the corresponding primary personnel are unavailable when an incident arises.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/19/subcontrol/3" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1903" value-id="xccdf_org.cisecurity_value_19.3_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1903"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_19.5_Maintain_Contact_Information_for_Reporting_Security_Incidents" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">19.5 Maintain Contact Information for Reporting Security Incidents</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Assemble and maintain information on third-party contact information to be used to report a security incident, such as Law Enforcement, relevant government departments, vendors, and Information Sharing and Analysis Center (ISAC) partners.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>Incidents often necessitate the involvement or notification of multiple third party organizations.  Depending on the nature of the incident, it may be necessary to contact law enforcement, other government agencies, vendors and business partners, or Information Sharing and Analysis Center (ISAC) partners.  It is best to have the contact information for these organizations consolidated, up-to-date, and easily accessible, as it may be difficult and time-consuming to try to look up all of this information during an incident.  Keep in mind that some cyber incidents may result in limited access to networks and files during incident response, so having this information available in varied locations or formats can also be helpful.</xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/19/subcontrol/5" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1905" value-id="xccdf_org.cisecurity_value_19.5_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1905"/>
+         </xccdf:check>
+      </xccdf:Rule>
+      <xccdf:Rule id="xccdf_org.cisecurity.benchmarks_rule_19.6_Publish_Information_Regarding_Reporting_Computer_Anomalies_and_Incidents" role="full" selected="false" weight="1.0">
+         <xccdf:title xml:lang="en">19.6 Publish Information Regarding Reporting Computer Anomalies and Incidents</xccdf:title>
+         <xccdf:description xml:lang="en">
+            <xhtml:p>Publish information for all workforce members, regarding reporting computer anomalies and incidents, to the incident handling team. Such information should be included in routine employee awareness activities.</xhtml:p>
+         </xccdf:description>
+         <xccdf:rationale xml:lang="en">
+            <xhtml:p>The types of computer incidents regularly affecting a company can be useful when devising training activities. Each incident is an opportunity for learning, and then using those lessons to improve the process that’s already in place. Besides feeding back into computer incident response activities, this information can also be communicated to contractors and employees of an organization as part of the regular user education process for cybersecurity. Understanding the types of threats a company faces can help employees to make better decisions the next time around, responding more appropriately, and ultimately mitigating the impact of an incident.    
+               <p>Publishing information about previous computer incidents helps personnel helps prevent improper handling of an incident. Improper incident handling can lead to malware accessing your sensitive enterprise data for longer periods of time as it may not be properly removed. Another issue of significance is that improper incident handling may violate local and federal laws about the privacy of data and breach notifications.</p>
+            </xhtml:p>
+         </xccdf:rationale>
+         <xccdf:ident cc:controlURI="http://cisecurity.org/20-cc/v7.0/control/19/subcontrol/6" system="http://cisecurity.org/20-cc/v7.0"/>
+         <xccdf:fixtext xml:lang="en">
+            <xhtml:div>
+               <xhtml:p>CAM currently assesses this sub-control via survey question.  Be sure that the answer to this survey question corresponds to your organization’s implementation status for the sub-control.  Answers to the survey questions can be updated in the Assessor properties file (assessor-cli.properties), which can be found in the Assessor config folder.</xhtml:p>
+            </xhtml:div>
+         </xccdf:fixtext>
+         <xccdf:check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+            <xccdf:check-export export-name="oval:org.cisecurity.benchmarks.controls_assessment_module:var:1906" value-id="xccdf_org.cisecurity_value_19.6_var"/>
+            <xccdf:check-content-ref href="CIS_Controls_Assessment_Module_Windows_10_v1.0.3-oval.xml" name="oval:org.cisecurity.benchmarks.controls_assessment_module:def:1906"/>
+         </xccdf:check>
+      </xccdf:Rule>
+   </xccdf:Group>
+<xccdf:signature><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>ZyHWjYmipSaMsLZshepM8IAz9ew=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+BDMotOm8JWLTnJR0JCvk8Dza7apE0Ykr8yPEOLjYXVZbMQDt7kgLqyBaCNaB5aVnZMGCO3+6ZX88
+oy8FPzIVURTyOrnir/ZtMnekYsz1gem3ubY1EdvKehkXDRHMgz64Zx9j2OWvpBKipSajWtNddTj1
+DIysaCHfvFAzNWygng4wglaSKyoMfuQXXMP2A51p/21m4tR71668+MGrBMYwIOQcYANSr+IdoGQx
+hoYhMxFPurds7Qd8UFrSAVXpz0cBtDhclAOBJ+P4l3TFNkDnW1ZDATO4C7xaZpbY17UDEP+/eBCZ
+MjeHCO0EboxA7V+Lhf0Xj3NV0x4EnfpeH0Kbqw==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>
+0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==
+</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></xccdf:signature></xccdf:Benchmark>

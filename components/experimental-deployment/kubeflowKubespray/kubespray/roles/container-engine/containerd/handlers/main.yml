@@ -1,0 +1,17 @@
+---
+- name: Containerd | restart containerd
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+    masked: no
+  listen: Restart containerd
+
+- name: Containerd | wait for containerd
+  command: "{{ containerd_bin_dir }}/ctr images ls -q"
+  register: containerd_ready
+  retries: 8
+  delay: 4
+  until: containerd_ready.rc == 0
+  listen: Restart containerd

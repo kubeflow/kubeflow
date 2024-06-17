@@ -1,0 +1,1428 @@
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 https://oval.cisecurity.org/schemas/validator-oval-definitions-5.11.2.xsd">
+   <generator>
+      <oval:product_name>Center for Internet Security - Optimus</oval:product_name>
+      <oval:schema_version>5.11.2</oval:schema_version>
+      <oval:timestamp>2023-08-20T23:52:21.391Z</oval:timestamp>
+   </generator>
+   <definitions>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353338" version="1">
+         <metadata>
+            <title>Disable X-Powered-By HTTP Header and Rename the Server Value for all Connectors</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_2.4_Disable_X-Powered-By_HTTP_Header_and_Rename_the_Server_Value_for_all_Connectors" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_2.4_Disable_X-Powered-By_HTTP_Header_and_Rename_the_Server_Value_for_all_Connectors"/>
+            <description>Disable X-Powered-By HTTP Header and Rename the Server Value for all Connectors</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353338"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265660" version="1">
+         <metadata>
+            <title>Set a nondeterministic Shutdown command value</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.1_Set_a_nondeterministic_Shutdown_command_value" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.1_Set_a_nondeterministic_Shutdown_command_value"/>
+            <description>Set a nondeterministic Shutdown command value</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265660"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353347" version="1">
+         <metadata>
+            <title>Disable the Shutdown port</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_3.2_Disable_the_Shutdown_port" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_3.2_Disable_the_Shutdown_port"/>
+            <description>Disable the Shutdown port</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353347"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265672" version="1">
+         <metadata>
+            <title>Ensure SSLEnabled is set to True for Sensitive Connectors</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.2_Ensure_SSLEnabled_is_set_to_True_for_Sensitive_Connectors" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.2_Ensure_SSLEnabled_is_set_to_True_for_Sensitive_Connectors"/>
+            <description>Ensure SSLEnabled is set to True for Sensitive Connectors</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265672"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265674" version="1">
+         <metadata>
+            <title>Ensure scheme is set accurately</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_6.3_Ensure_scheme_is_set_accurately" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_6.3_Ensure_scheme_is_set_accurately"/>
+            <description>Ensure scheme is set accurately</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265674"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265686" version="1">
+         <metadata>
+            <title>Ensure className is set correctly in context.xml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_7.3_Ensure_className_is_set_correctly_in_context.xml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_7.3_Ensure_className_is_set_correctly_in_context.xml"/>
+            <description>Ensure className is set correctly in context.xml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265686"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265697" version="1">
+         <metadata>
+            <title>Disabling auto deployment of applications</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_9.2_Disabling_auto_deployment_of_applications" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_9.2_Disabling_auto_deployment_of_applications"/>
+            <description>Disabling auto deployment of applications</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265697"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265700" version="1">
+         <metadata>
+            <title>Disable deploy on startup of applications</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_9.3_Disable_deploy_on_startup_of_applications" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_9.3_Disable_deploy_on_startup_of_applications"/>
+            <description>Disable deploy on startup of applications</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265700"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353357" version="1">
+         <metadata>
+            <title>Restrict access to the web administration application</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.2_Restrict_access_to_the_web_administration_application" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.2_Restrict_access_to_the_web_administration_application"/>
+            <description>Restrict access to the web administration application</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353357"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265695" version="1">
+         <metadata>
+            <title>Configure connectionTimeout</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.9_Configure_connectionTimeout" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.9_Configure_connectionTimeout"/>
+            <description>Configure connectionTimeout</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265695"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265698" version="1">
+         <metadata>
+            <title>Configure maxHttpHeaderSize</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.10_Configure_maxHttpHeaderSize" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.10_Configure_maxHttpHeaderSize"/>
+            <description>Configure maxHttpHeaderSize</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265698"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265699" version="1">
+         <metadata>
+            <title>Force SSL for all applications</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.11_Force_SSL_for_all_applications" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.11_Force_SSL_for_all_applications"/>
+            <description>Force SSL for all applications</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265699"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353358" version="1">
+         <metadata>
+            <title>Do not run applications as privileged</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.13_Do_not_run_applications_as_privileged" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.13_Do_not_run_applications_as_privileged"/>
+            <description>Do not run applications as privileged</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353358"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265705" version="1">
+         <metadata>
+            <title>Do not allow cross context requests</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.14_Do_not_allow_cross_context_requests" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.14_Do_not_allow_cross_context_requests"/>
+            <description>Do not allow cross context requests</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265705"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265706" version="1">
+         <metadata>
+            <title>Do not allow cross context requests</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.14_Do_not_allow_cross_context_requests" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.14_Do_not_allow_cross_context_requests"/>
+            <description>Do not allow cross context requests</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265706"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353360" version="1">
+         <metadata>
+            <title>Do not resolve hosts on logging valves</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.15_Do_not_resolve_hosts_on_logging_valves" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.15_Do_not_resolve_hosts_on_logging_valves"/>
+            <description>Do not resolve hosts on logging valves</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353360"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265708" version="1">
+         <metadata>
+            <title>Enable memory leak listener</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_10.16_Enable_memory_leak_listener" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_10.16_Enable_memory_leak_listener"/>
+            <description>Enable memory leak listener</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265708"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265662" version="1">
+         <metadata>
+            <title>Restrict access to $CATALINA_HOME</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.1_Restrict_access_to_CATALINA_HOME" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.1_Restrict_access_to_CATALINA_HOME"/>
+            <description>Restrict access to $CATALINA_HOME</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265662"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353348" version="1">
+         <metadata>
+            <title>Restrict access to $CATALINA_BASE</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.2_Restrict_access_to_CATALINA_BASE" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.2_Restrict_access_to_CATALINA_BASE"/>
+            <description>Restrict access to $CATALINA_BASE</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353348"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265665" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat configuration directory</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.3_Restrict_access_to_Tomcat_configuration_directory" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.3_Restrict_access_to_Tomcat_configuration_directory"/>
+            <description>Restrict access to Tomcat configuration directory</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265665"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361703" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat logs directory</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.4_Restrict_access_to_Tomcat_logs_directory" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.4_Restrict_access_to_Tomcat_logs_directory"/>
+            <description>Restrict access to Tomcat logs directory</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361703"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361704" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat temp directory</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.5_Restrict_access_to_Tomcat_temp_directory" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.5_Restrict_access_to_Tomcat_temp_directory"/>
+            <description>Restrict access to Tomcat temp directory</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361704"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361705" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat bin directory</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.6_Restrict_access_to_Tomcat_bin_directory" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.6_Restrict_access_to_Tomcat_bin_directory"/>
+            <description>Restrict access to Tomcat bin directory</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361705"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265673" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat web application directory</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.7_Restrict_access_to_Tomcat_web_application_directory" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.7_Restrict_access_to_Tomcat_web_application_directory"/>
+            <description>Restrict access to Tomcat web application directory</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265673"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361706" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat catalina.properties</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.8_Restrict_access_to_Tomcat_catalina.properties" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.8_Restrict_access_to_Tomcat_catalina.properties"/>
+            <description>Restrict access to Tomcat catalina.properties</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361706"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361707" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat catalina.policy</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.9_Restrict_access_to_Tomcat_catalina.policy" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.9_Restrict_access_to_Tomcat_catalina.policy"/>
+            <description>Restrict access to Tomcat catalina.policy</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361707"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361712" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat context.xml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.10_Restrict_access_to_Tomcat_context.xml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.10_Restrict_access_to_Tomcat_context.xml"/>
+            <description>Restrict access to Tomcat context.xml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361712"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4361749" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat logging.properties</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.11_Restrict_access_to_Tomcat_logging.properties" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.11_Restrict_access_to_Tomcat_logging.properties"/>
+            <description>Restrict access to Tomcat logging.properties</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361749"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265685" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat server.xml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.12_Restrict_access_to_Tomcat_server.xml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.12_Restrict_access_to_Tomcat_server.xml"/>
+            <description>Restrict access to Tomcat server.xml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265685"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265688" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat tomcat-users.xml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.13_Restrict_access_to_Tomcat_tomcat-users.xml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.13_Restrict_access_to_Tomcat_tomcat-users.xml"/>
+            <description>Restrict access to Tomcat tomcat-users.xml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265688"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265691" version="1">
+         <metadata>
+            <title>Restrict access to Tomcat web.xml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.14_Restrict_access_to_Tomcat_web.xml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.14_Restrict_access_to_Tomcat_web.xml"/>
+            <description>Restrict access to Tomcat web.xml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265691"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:4353350" version="1">
+         <metadata>
+            <title>Restrict access to jaspic-providers.xml</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_4.15_Restrict_access_to_jaspic-providers.xml" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_4.15_Restrict_access_to_jaspic-providers.xml"/>
+            <description>Restrict access to jaspic-providers.xml</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353350"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265683" version="1">
+         <metadata>
+            <title>Specify file handler in logging.properties files</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_7.2_Specify_file_handler_in_logging.properties_files" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_7.2_Specify_file_handler_in_logging.properties_files"/>
+            <description>Specify file handler in logging.properties files</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265683"/>
+         </criteria>
+      </definition>
+      <definition class="compliance" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:def:3265684" version="1">
+         <metadata>
+            <title>Specify file handler in logging.properties files</title>
+            <reference ref_id="xccdf_org.cisecurity.benchmarks_rule_7.2_Specify_file_handler_in_logging.properties_files" ref_url="http://benchmarks.cisecurity.org" source="xccdf_org.cisecurity.benchmarks_rule_7.2_Specify_file_handler_in_logging.properties_files"/>
+            <description>Specify file handler in logging.properties files</description>
+         </metadata>
+         <criteria negate="false" operator="AND">
+            <criterion test_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265684"/>
+         </criteria>
+      </definition>
+   </definitions>
+   <tests>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="any_exist" comment="Ensure xpoweredBy is NOT set to true" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353338" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353338"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353338"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="at_least_one_exists" comment="Set a nondeterministic Shutdown command value" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265660" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265660"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265660"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Disable the Shutdown port" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353347" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353347"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353347"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure SSLEnabled is set to True for Sensitive Connectors" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265672" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265672"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265672"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure scheme is set accurately" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265674" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265674"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265674"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure className is set correctly in context.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265686" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265686"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265686"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Disabling auto deployment of applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265697" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265697"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265697"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Disable deploy on startup of applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265700" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265700"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265700"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure web administration is restricted in the server.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353357" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353357"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353357"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Configure connectionTimeout" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265695" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265695"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265695"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Configure maxHttpHeaderSize" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265698" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265698"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265698"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Force SSL for all applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265699" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265699"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265699"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="any_exist" comment="Do not run applications as privileged" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353358" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353358"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353358"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="any_exist" comment="Do not allow cross context requests" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265705" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265705"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265705"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="any_exist" comment="Do not allow webapp cross context requests" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265706" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265706"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265706"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="at least one" check_existence="any_exist" comment="Do not resolve hosts on logging valves" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353360" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353360"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353360"/>
+      </xmlfilecontent_test>
+      <xmlfilecontent_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Enable memory leak listener" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265708" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265708"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265708"/>
+      </xmlfilecontent_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to $CATALINA_HOME" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265662" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265662"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265662"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to $CATALINA_BASE" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353348" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353348"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353348"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat configuration directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265665" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265665"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265665"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat logs directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361703" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361703"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361703"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat temp directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361704" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361704"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361704"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat bin directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361705" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361705"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361705"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat web application directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265673" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265673"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265673"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="at least one" check_existence="at_least_one_exists" comment="Restrict access to Tomcat catalina.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361706" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361706"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361706"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat catalina.policy" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361707" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361707"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361707"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat context.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361712" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361712"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361712"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat logging.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4361749" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361749"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361749"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat server.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265685" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265685"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265685"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat tomcat-users.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265688" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265688"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265688"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to Tomcat web.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265691" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265691"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265691"/>
+      </file_test>
+      <file_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" check="all" check_existence="at_least_one_exists" comment="Restrict access to jaspic-providers.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:4353350" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353350"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353350"/>
+      </file_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure handlers are configured in $CATALINA_BASE/conf/logging.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265683" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265683"/>
+      </textfilecontent54_test>
+      <textfilecontent54_test xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" check="all" check_existence="at_least_one_exists" comment="Ensure logging level is configured" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:tst:3265684" version="1">
+         <object object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265684"/>
+         <state state_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265684"/>
+      </textfilecontent54_test>
+   </tests>
+   <objects>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure xpoweredBy is NOT set to true" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353338" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533381"/>
+         <filename>server.xml</filename>
+         <xpath>//Connector/@xpoweredBy</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Set a nondeterministic Shutdown command value" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265660" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656601"/>
+         <filename>server.xml</filename>
+         <xpath>//Server/@shutdown</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Disable the Shutdown port" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353347" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533471"/>
+         <filename>server.xml</filename>
+         <xpath>//Server/@port</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure SSLEnabled is set to True for Sensitive Connectors" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265672" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656721"/>
+         <filename>server.xml</filename>
+         <xpath>//Connector/@SSLEnabled</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure scheme is set accurately" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265674" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656741"/>
+         <filename>server.xml</filename>
+         <xpath>//Connector/@scheme</xpath>
+      </xmlfilecontent_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="$CATALINA_BASE file object" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656863" version="1">
+         <behaviors max_depth="1" recurse="directories" recurse_direction="down"/>
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656861"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure className is set correctly in context.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265686" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656863"/>
+         <filename>context.xml</filename>
+         <xpath>//Valve[@className="org.apache.catalina.valves.AccessLogValve"]</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Disabling auto deployment of applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265697" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656971"/>
+         <filename>server.xml</filename>
+         <xpath>//Host/@autoDeploy</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Disable deploy on startup of applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265700" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657001"/>
+         <filename>server.xml</filename>
+         <xpath>//Host/@deployOnStartup</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure web administration is restricted in the server.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353357" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533571"/>
+         <filename>server.xml</filename>
+         <xpath>//Valve[@className="org.apache.catalina.valves.RemoteAddrValve"]/@allow</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Configure connectionTimeout" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265695" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656951"/>
+         <filename>server.xml</filename>
+         <xpath>//Connector/@connectionTimeout</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Configure maxHttpHeaderSize" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265698" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656981"/>
+         <filename>server.xml</filename>
+         <xpath>//Connector/@maxHttpHeaderSize</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Force SSL for all applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265699" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656991"/>
+         <filename>web.xml</filename>
+         <xpath>//*:security-constraint/*:user-data-constraint/*:transport-guarantee</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not run applications as privileged" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353358" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533581"/>
+         <filename>context.xml</filename>
+         <xpath>//Context/@privileged</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not allow cross context requests" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265705" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657051"/>
+         <filename>context.xml</filename>
+         <xpath>//Context/@crossContext</xpath>
+      </xmlfilecontent_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="$CATALINA_HOME file object" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32657062" version="1">
+         <behaviors max_depth="1" recurse="directories" recurse_direction="down"/>
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657061"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not allow webapp cross context requests" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265706" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657062"/>
+         <filename>context.xml</filename>
+         <xpath>//Context/@crossContext</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not resolve hosts on logging valves" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353360" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533601"/>
+         <filename>server.xml</filename>
+         <xpath>//Connector/@enableLookups</xpath>
+      </xmlfilecontent_object>
+      <xmlfilecontent_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Enable memory leak listener" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265708" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657081"/>
+         <filename>server.xml</filename>
+         <xpath>//Listener[@className="org.apache.catalina.core.JreMemoryLeakPreventionListener"]/@className</xpath>
+      </xmlfilecontent_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to $CATALINA_HOME" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265662" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265662"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656622" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656623" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to $CATALINA_BASE" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353348" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353348"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533482" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533483" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat configuration directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265665" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265665"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656652" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656653" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat logs directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361703" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361703"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617032" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617033" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat temp directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361704" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361704"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617042" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617043" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat bin directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361705" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361705"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617052" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617053" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat web application directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265673" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265673"/>
+         <filename xsi:nil="true"/>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656732" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656733" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat catalina.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361706" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361706"/>
+         <filename>catalina.properties</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617062" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617063" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat catalina.policy" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361707" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361707"/>
+         <filename>catalina.policy</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617072" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617073" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat context.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361712" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361712"/>
+         <filename>context.xml</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617122" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617123" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat logging.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4361749" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361749"/>
+         <filename>logging.properties</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617492" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617493" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat server.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265685" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265685"/>
+         <filename>server.xml</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656852" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656853" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat tomcat-users.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265688" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265688"/>
+         <filename>tomcat-users.xml</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656882" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656883" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat web.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265691" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265691"/>
+         <filename>web.xml</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656912" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656913" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <file_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to jaspic-providers.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:4353350" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353350"/>
+         <filename>jaspic-providers.xml</filename>
+      </file_object>
+      <password_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533502" version="1">
+         <username datatype="string">tomcat_admin</username>
+      </password_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533503" version="1">
+         <filepath datatype="string">/etc/group</filepath>
+         <pattern datatype="string" operation="pattern match">^tomcat[^:]*:[^:]*:([^:]*):</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure handlers are configured in $CATALINA_BASE/conf/logging.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265683" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656831"/>
+         <filename>logging.properties</filename>
+         <pattern operation="pattern match">^(?i)(?:[1-9]?[a-z\-]+\.org\.apache\.juli\.(?:Async)?FileHandler\.level\s*=\s*)+([A-Z]+)\s*$</pattern>
+         <instance datatype="int" operation="greater than or equal">1</instance>
+      </textfilecontent54_object>
+      <textfilecontent54_object xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure logging level is configured" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:3265684" version="1">
+         <path var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656841"/>
+         <filename>logging.properties</filename>
+         <pattern datatype="string" operation="pattern match">^(?i)(?:[1-9]?[a-z\-]+\.org\.apache\.juli\.(?:Async)?FileHandler\.level\s*=\s*)+([A-Z]+)\s*$</pattern>
+         <instance datatype="int" operation="equals">1</instance>
+      </textfilecontent54_object>
+   </objects>
+   <states>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure xpoweredBy is NOT set to true" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353338" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353338"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Set a nondeterministic Shutdown command value" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265660" version="1">
+         <value_of operation="case insensitive not equal" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265660"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Disable the Shutdown port" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353347" version="1">
+         <value_of operation="equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353347"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure SSLEnabled is set to True for Sensitive Connectors" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265672" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265672"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure scheme is set accurately" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265674" version="1">
+         <value_of operation="equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265674"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure className is set correctly in context.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265686" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265686"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Disabling auto deployment of applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265697" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265697"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Disable deploy on startup of applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265700" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265700"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure web administration is restricted in the server.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353357" version="1">
+         <value_of operation="equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353357"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Configure connectionTimeout" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265695" version="1">
+         <value_of operation="equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265695"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Configure maxHttpHeaderSize" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265698" version="1">
+         <value_of operation="equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265698"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Force SSL for all applications" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265699" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265699"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not run applications as privileged" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353358" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353358"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not allow cross context requests" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265705" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265705"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not allow webapp cross context requests" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265706" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265706"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Do not resolve hosts on logging valves" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353360" version="1">
+         <value_of operation="case insensitive equals" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353360"/>
+      </xmlfilecontent_state>
+      <xmlfilecontent_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Enable memory leak listener" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265708" version="1">
+         <value_of operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265708"/>
+      </xmlfilecontent_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to $CATALINA_HOME" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265662" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656622"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656621"/>
+         <gwrite datatype="boolean">false</gwrite>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to $CATALINA_BASE" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353348" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533482"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533481"/>
+         <gwrite datatype="boolean">false</gwrite>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat configuration directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265665" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656652"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656651"/>
+         <gwrite datatype="boolean">false</gwrite>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat logs directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361703" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617032"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617031"/>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat temp directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361704" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617042"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617041"/>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat bin directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361705" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617052"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617051"/>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat web application directory" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265673" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656732"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656731"/>
+         <gwrite datatype="boolean">false</gwrite>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat catalina.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361706" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617062"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617061"/>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat catalina.policy" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361707" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617072"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617071"/>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat context.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361712" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617122"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617121"/>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat logging.properties" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4361749" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617492"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617491"/>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat server.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265685" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656852"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656851"/>
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat tomcat-users.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265688" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656882"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656881"/>
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to Tomcat web.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265691" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656912"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656911"/>
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">false</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <file_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" comment="Restrict access to jaspic-providers.xml" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:4353350" version="1">
+         <group_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533502"/>
+         <user_id datatype="int" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533501"/>
+         <uread datatype="boolean">true</uread>
+         <uwrite datatype="boolean">true</uwrite>
+         <uexec datatype="boolean">false</uexec>
+         <gread datatype="boolean">false</gread>
+         <gwrite datatype="boolean">false</gwrite>
+         <gexec datatype="boolean">false</gexec>
+         <oread datatype="boolean">false</oread>
+         <owrite datatype="boolean">false</owrite>
+         <oexec datatype="boolean">false</oexec>
+      </file_state>
+      <textfilecontent54_state xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" comment="Ensure logging level is configured" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:ste:3265684" version="1">
+         <subexpression operation="pattern match" var_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265684"/>
+      </textfilecontent54_state>
+   </states>
+   <variables>
+      <external_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks:var:4000000" version="1"/>
+      <external_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks:var:4000001" version="1"/>
+      <external_variable comment="Ensure xpoweredBy is NOT set to true" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353338" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533381" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Set a nondeterministic Shutdown command value" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265660" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656601" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Disable the Shutdown port" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353347" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533471" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Ensure SSLEnabled is set to True for Sensitive Connectors" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265672" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656721" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Ensure scheme is set accurately" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265674" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656741" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Ensure className is set correctly in context.xml" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265686" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656861" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000001"/>
+            </end>
+            <literal_component>webapps</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656863" version="1">
+         <concat>
+            <end character="/">
+               <object_component item_field="path" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656863"/>
+            </end>
+            <literal_component>META-INF</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Disabling auto deployment of applications" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265697" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656971" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Disable deploy on startup of applications" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265700" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657001" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Ensure web administration is restricted in the server.xml" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353357" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533571" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Configure connectionTimeout" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265695" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656951" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Configure maxHttpHeaderSize" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265698" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656981" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Force SSL for all applications" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265699" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656991" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Do not run applications as privileged" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353358" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533581" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Do not allow cross context requests" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265705" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657051" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Do not allow webapp cross context requests" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265706" version="1"/>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657061" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>webapps</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657062" version="1">
+         <concat>
+            <end character="/">
+               <object_component item_field="path" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32657062"/>
+            </end>
+            <literal_component>META-INF</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Do not resolve hosts on logging valves" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353360" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533601" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Enable memory leak listener" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265708" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32657081" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to $CATALINA_HOME" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656621" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656622" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to $CATALINA_HOME" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656622" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656623" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265662" version="1">
+         <end character="/">
+            <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+         </end>
+      </local_variable>
+      <local_variable comment="Restrict access to $CATALINA_BASE" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533481" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533482" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to $CATALINA_BASE" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533482" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533483" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353348" version="1">
+         <end character="/">
+            <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000001"/>
+         </end>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat configuration directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656651" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656652" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat configuration directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656652" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656653" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265665" version="1">
+         <end character="/">
+            <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+         </end>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat logs directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617031" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617032" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat logs directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617032" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617033" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361703" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>logs</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat temp directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617041" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617042" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat temp directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617042" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617043" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361704" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>temp</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat bin directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617051" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617052" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat bin directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617052" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617053" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361705" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>bin</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat web application directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656731" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656732" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat web application directory" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656732" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656733" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265673" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>webapps</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat catalina.properties" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617061" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617062" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat catalina.properties" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617062" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617063" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361706" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat catalina.policy" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617071" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617072" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat catalina.policy" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617072" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617073" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361707" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat context.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617121" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617122" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat context.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617122" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617123" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361712" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat logging.properties" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617491" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617492" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat logging.properties" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43617492" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43617493" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4361749" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat server.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656851" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656852" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat server.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656852" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656853" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265685" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat tomcat-users.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656881" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656882" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat tomcat-users.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656882" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656883" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265688" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat web.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656911" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656912" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to Tomcat web.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656912" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:32656913" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_HOME directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265691" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000000"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="Restrict access to jaspic-providers.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533501" version="1">
+         <object_component item_field="user_id" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533502" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="Restrict access to jaspic-providers.xml" datatype="int" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:43533502" version="1">
+         <object_component item_field="subexpression" object_ref="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:obj:43533503" record_field="variable_value"/>
+      </local_variable>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:4353350" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000001"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656831" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000001"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+      <external_variable comment="Ensure logging level is configured" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:3265684" version="1"/>
+      <local_variable comment="$CATALINA_BASE directory" datatype="string" id="oval:org.cisecurity.benchmarks.apache_foundation_apache_tomcat_server_9:var:32656841" version="1">
+         <concat>
+            <end character="/">
+               <variable_component var_ref="oval:org.cisecurity.benchmarks:var:4000001"/>
+            </end>
+            <literal_component>conf</literal_component>
+         </concat>
+      </local_variable>
+   </variables>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>JYEc6ugSVvTRKot56Swhe1+2Sgo=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+pVGP2Du/7Y82tre4YohcISYfGgbkIZGTffoT0CFlL42+Yc2RzF2He6Ja3CrkWpC98FLdcaM9gLc0
+3eTFA8Bdj+ai/JOYCIFBcrnce2ZPvutNrQ2dRlf4x7owGSeOL0Vx64r48aOlAFkgzYVtFbaLnhrl
+RJsNXrjAcIXNGaCr3H3AjIdJrkff/e9kmi/aTBiFprZfcDCVZCKlM9An/CJsoc3XikjO0519qBnf
+p2xcyF1LDRlKAAzBJgQxA4MWYwWYuqvRkoaqnFq/gwEnunj2/53kVq9yYMkBq14kMtiU90i3pSH2
+KSSm/+pysooydaeROj3sRH2taR6SAl4WBFqfOA==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFUjCCBDqgAwIBAgIIPx+qZKptEY4wDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNVBAYTAlVTMRAw
+DgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRowGAYDVQQKExFHb0RhZGR5LmNv
+bSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMw
+MQYDVQQDEypHbyBEYWRkeSBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMjAw
+OTA4MTMzOTM5WhcNMjMxMDI4MDAzMjA1WjCBkzELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZ
+b3JrMRcwFQYDVQQHEw5FYXN0IEdyZWVuYnVzaDErMCkGA1UEChMiQ2VudGVyIGZvciBJbnRlcm5l
+dCBTZWN1cml0eSwgSW5jLjErMCkGA1UEAxMiQ2VudGVyIGZvciBJbnRlcm5ldCBTZWN1cml0eSwg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANDBp4+sl9kB5JRmnQH0wcbLLz/t
+n2HoD6TRl3xJj12V61njBNgaiGzvoSl07sFLnESukb0CU44MzYDoUMdx3HJUcEAeMY/9eITqGUnk
+N4WsP145eFqH7FoszOY/4NYlgYMYt8ZP2kRHyim9LpQTLT/1mBaUkY2f2e5uUCootH3iT8W3/sK2
+flLzWfLgXTvkhJm4Uvw1RErBFs15+krW0KWtnZ6NmiDhmV0CnFGNnd1meGZPs2sBXEVGLJVSKzoT
+G9Ht/oWyRLRcJuXpHoXTYpkqM2MsixmSaJy5b6/D35r0NXHru3p1gkX2a0VgJQxxWqLi3bVPzpl3
+PlJu3C8M/FUCAwEAAaOCAYUwggGBMAwGA1UdEwEB/wQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+DgYDVR0PAQH/BAQDAgeAMDUGA1UdHwQuMCwwKqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20v
+Z2RpZzJzNS02LmNybDBdBgNVHSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0
+dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQQBMHYGCCsG
+AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20vMEAGCCsGAQUF
+BzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvZ2RpZzIuY3J0
+MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0LIDOMB0GA1UdDgQWBBT7fOf4ISDprbE+qUFe
++friFTKgHjANBgkqhkiG9w0BAQsFAAOCAQEAT0XLw2vmuq6e58bkLDXdqKeGQjREDChLw2Mae9LI
+JB93QgdA2OCLA1FwU2s7lawEDcma9wPiugxVGoaQNOfRw2/+cz0xmR3uaKQq6I24dWbHF20N2tSz
+1RAAK1lRZKewA1fj+qqKWjzETA0LpqZlaFF+CKBpQcyfYyQRZxpHkB1vvKMf4kMIRKruvl4ixLjN
+uAZrbQUWlXuq/MUkVP3FgdxWBPfmMGyngHs4hNMaSQGb1TEhBjj+PGoSunAyaOgO/P94XJPQQX3O
+2oNDsPou6gKcNtbZrH+iYTJ8rcqQTontMwSP/HrYj8lgG3neG53vk05p0jCn2M5W0ukJ4LPEnA==
+</ds:X509Certificate>
+</ds:X509Data>
+<ds:KeyValue>
+<ds:RSAKeyValue>
+<ds:Modulus>0MGnj6yX2QHklGadAfTBxssvP+2fYegPpNGXfEmPXZXrWeME2BqIbO+hKXTuwUucRK6RvQJTjgzN
+gOhQx3HcclRwQB4xj/14hOoZSeQ3haw/Xjl4WofsWizM5j/g1iWBgxi3xk/aREfKKb0ulBMtP/WY
+FpSRjZ/Z7m5QKii0feJPxbf+wrZ+UvNZ8uBdO+SEmbhS/DVESsEWzXn6StbQpa2dno2aIOGZXQKc
+UY2d3WZ4Zk+zawFcRUYslVIrOhMb0e3+hbJEtFwm5ekehdNimSozYyyLGZJonLlvr8PfmvQ1ceu7
+enWCRfZrRWAlDHFaouLdtU/OmXc+Um7cLwz8VQ==</ds:Modulus>
+<ds:Exponent>AQAB</ds:Exponent>
+</ds:RSAKeyValue>
+</ds:KeyValue>
+</ds:KeyInfo>
+</ds:Signature></oval_definitions>

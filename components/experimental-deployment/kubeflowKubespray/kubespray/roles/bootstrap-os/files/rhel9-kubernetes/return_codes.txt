@@ -1,0 +1,9 @@
+This is the list of return codes currently supported by CIS Build Kits:
+
+Return Codes:
+101 - Passed - No remediation required
+102 - Failed - Manual Remediation may be required
+103 - Remediated - Build Kit successfully remediated the recommendation
+104 - Not Applicable - Recommendation has been determined to be non applicable
+105 - Skipped - Recommendation is not part of the selected profile or has been added to the excluded list
+106 - Manual - Recommendation needs to be remediated manually

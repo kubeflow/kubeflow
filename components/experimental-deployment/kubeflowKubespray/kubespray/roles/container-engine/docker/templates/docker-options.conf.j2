@@ -1,0 +1,11 @@
+[Service]
+Environment="DOCKER_OPTS={{ docker_options|default('') }} --iptables={{ docker_iptables_enabled | default('false') }} \
+--exec-opt native.cgroupdriver={{ docker_cgroup_driver }} \
+{% for i in docker_insecure_registries %}--insecure-registry={{ i }} {% endfor %} \
+{% for i in docker_registry_mirrors %}--registry-mirror={{ i }} {% endfor %} \
+--data-root={{ docker_daemon_graph }} \
+{% if ansible_os_family not in ["openSUSE Leap", "openSUSE Tumbleweed", "Suse"] %}{{ docker_log_opts }}{% endif %}"
+
+{% if docker_mount_flags is defined and docker_mount_flags != "" %}
+MountFlags={{ docker_mount_flags }}
+{% endif %}

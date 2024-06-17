@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ccpa="http://cisecurity.org/ccpa/config" targetNamespace="http://cisecurity.org/ccpa/config" elementFormDefault="qualified">
+    <xs:element name="configuration">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:starting_dir" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:sessions" minOccurs="1" maxOccurs="1"/>
+                <xs:element ref="ccpa:assessments" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:reports" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="starting_dir" type="xs:string"/>
+    <xs:element name="reports">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:reports_dir" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:reports_url" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:reports_prefix" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="csv" use="optional" type="xs:boolean"/>
+            <xs:attribute name="html" use="optional" type="xs:boolean"/>
+            <xs:attribute name="no-arf" use="optional" type="xs:boolean"/>
+            <xs:attribute name="no-report-file" use="optional" type="xs:boolean"/>
+            <xs:attribute name="txt" use="optional" type="xs:boolean"/>
+            <xs:attribute name="npr" use="optional" type="xs:boolean"/>
+            <xs:attribute name="json" use="optional" type="xs:boolean"/>
+            <xs:attribute name="no-timestamp" use="optional" type="xs:boolean"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="reports_dir" type="xs:string"/>
+    <xs:element name="reports_url">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:anyURI">
+                    <xs:attribute name="ignore_certificate_warnings" use="optional" type="xs:boolean"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="reports_prefix" type="xs:NCName"/>
+    <xs:element name="assessments">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:benchmark" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ccpa:data-stream-collection" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ccpa:oval_definitions" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="quiet" default="false" type="xs:boolean"/>
+            <xs:attribute name="gui" default="false" type="xs:boolean"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="benchmark">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:interactive_values" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:properties" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="xccdf" use="required"/>
+            <xs:attribute name="profile" use="optional"/>
+            <xs:attribute name="session-ref" use="required" type="xs:NCName"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="interactive_values">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="ccpa:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="value">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:token">
+                    <xs:attribute name="id" use="required"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="properties">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:property"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="property">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:boolean">
+                    <xs:attribute name="name" use="required" type="xs:NCName"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="data-stream-collection">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:interactive_values" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:properties" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="collection" use="required"/>
+            <xs:attribute name="data-stream" use="optional"/>
+            <xs:attribute name="checklist" use="optional"/>
+            <xs:attribute name="profile" use="optional"/>
+            <xs:attribute name="session-ref" use="required" type="xs:NCName"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="oval_definitions">
+        <xs:complexType>
+            <xs:attribute name="definitions" use="required"/>
+            <xs:attribute name="variables" use="optional"/>
+            <xs:attribute name="session-ref" use="required" type="xs:NCName"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="sessions">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="ccpa:session"/>
+            </xs:sequence>
+            <xs:attribute name="test" use="required" type="xs:boolean"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="session">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ccpa:type" minOccurs="1" maxOccurs="1"/>
+                <xs:element ref="ccpa:host" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:port" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:user" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:credentials" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:identity" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:identity_passphrase" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:enable_password" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:path_to_tech_support" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:path_to_config_file" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="ccpa:tmp_path" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="id" use="required" type="xs:NCName"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="local"/>
+                <xs:enumeration value="windows"/>
+                <xs:enumeration value="ssh"/>
+                <xs:enumeration value="ios"/>
+                <xs:enumeration value="panos"/>
+                <!-- TBD <xs:enumeration value="asa"/>-->
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+    <xs:element name="host" type="xs:token"/>
+    <xs:element name="port" type="xs:integer"/>
+    <xs:element name="user" type="xs:token"/>
+    <xs:element name="credentials" type="xs:token"/>
+    <xs:element name="identity" type="xs:string"/>
+    <xs:element name="identity_passphrase" type="xs:token"/>
+    <xs:element name="enable_password" type="xs:token"/>
+    <xs:element name="path_to_tech_support" type="xs:token"/>
+    <xs:element name="path_to_config_file" type="xs:token"/>
+    <xs:element name="tmp_path" type="xs:string"/>
+</xs:schema>
