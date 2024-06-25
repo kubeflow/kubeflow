@@ -53,6 +53,8 @@ const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
 const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
 
 const PrefixEnvVar = "NB_PREFIX"
+const namePrefix = "notebook-"
+const maxNameLength = 63
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
@@ -108,6 +110,12 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
 			log.Error(err, "unable to fetch Notebook by looking at event")
 			return ctrl.Result{}, ignoreNotFound(err)
+		}
+
+		// Make sure the prefix doesn't cause the derived resource names to get too long
+		if len(nbName)+len(involvedNotebookKey.Namespace)+len(namePrefix) > maxNameLength {
+			return reconcile.Result{},
+				fmt.Errorf("notebook name must not be longer than %d characters as notebook resources are prefixed with %s%s", maxNameLength-len(namePrefix), namePrefix, involvedNotebookKey.Namespace)
 		}
 
 		// re-emit the event in the Notebook CR
@@ -173,6 +181,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := ctrl.SetControllerReference(instance, service, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
+
 	// Check if the Service already exists
 	foundService := &corev1.Service{}
 	justCreated = false
@@ -197,6 +206,12 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			log.Error(err, "unable to update Service")
 			return ctrl.Result{}, err
 		}
+	}
+	
+	err = deleteObsoleteService(ctx, r, instance)
+	if err != nil {
+		log.Error(err, "unable to delete obsolete Service")
+		return ctrl.Result{}, err
 	}
 
 	// Reconcile virtual service if we use ISTIO.
@@ -444,12 +459,12 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name,
+			Name:      fmt.Sprintf("%s%s-%s", namePrefix, instance.Namespace, instance.Name),
 			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     "ClusterIP",
-			Selector: map[string]string{"statefulset": instance.Name},
+			Selector: map[string]string{"statefulset": instance.Name, "notebook-name": instance.Name},
 			Ports: []corev1.ServicePort{
 				{
 					// Make port name follow Istio pattern so it can be managed by istio rbac
@@ -465,7 +480,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 }
 
 func virtualServiceName(kfName string, namespace string) string {
-	return fmt.Sprintf("notebook-%s-%s", namespace, kfName)
+	return fmt.Sprintf("%s%s-%s", namePrefix, namespace, kfName)
 }
 
 func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
@@ -609,6 +624,42 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 	}
 
 	return nil
+}
+
+func deleteObsoleteService(ctx context.Context, r *NotebookReconciler, instance *v1beta1.Notebook) error {
+	log := r.Log.WithValues("notebook", instance.Namespace)
+	obsoleteServiceName := instance.Name
+	obsoleteService := &corev1.Service{}
+	
+	err := r.Get(ctx, client.ObjectKey{Name: obsoleteServiceName, Namespace: instance.Namespace}, obsoleteService)
+	if apierrs.IsNotFound(err) {
+			log.Info("Obsolete Service not found; nothing to delete", "namespace", instance.Namespace, "name", obsoleteServiceName)
+			return nil
+	} else if err != nil {
+			log.Error(err, "error getting obsolete service", "namespace", instance.Namespace, "name", obsoleteServiceName)
+			return err
+	}
+
+	log.Info("Found obsolete Service", "namespace", obsoleteService.Namespace, "name", obsoleteService.Name)
+	
+	// Remove owner references
+	obsoleteService.OwnerReferences = []metav1.OwnerReference{}
+	err = r.Update(ctx, obsoleteService)
+	if err != nil {
+			log.Error(err, "unable to update owner reference for obsolete Service", "namespace", obsoleteService.Namespace, "name", obsoleteService.Name)
+			return err
+	}
+
+	// Delete the obsolete service
+	err = r.Delete(ctx, obsoleteService)
+	if err != nil {
+			log.Error(err, "unable to delete obsolete Service", "namespace", obsoleteService.Namespace, "name", obsoleteService.Name)
+			return err
+	}
+
+	log.Info("Deleted obsolete Service", "namespace", obsoleteService.Namespace, "name", obsoleteService.Name)
+	return nil
+	
 }
 
 func isStsOrPodEvent(event *corev1.Event) bool {
