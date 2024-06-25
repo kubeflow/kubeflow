@@ -171,7 +171,7 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 			return reconcile.Result{}, err
 		}
 	} else {
-		// Check exising namespace ownership before move forward
+		// Check existing namespace ownership before move forward
 		owner, ok := foundNs.Annotations["owner"]
 		if ok && owner == instance.Spec.Owner.Name {
 			oldLabels := map[string]string{}
