@@ -33,3 +33,6 @@ contact_links:
   - name: Issues related to other Kubeflow Platform components
     url: https://github.com/kubeflow/dashboard/issues/new/choose
     about: Create issue in kubeflow/dashboard repository
+  - name: Issues related to Kubeflow community or Kubeflow ecosystem
+    url: https://github.com/kubeflow/community/issues/new/choose
+    about: Create issue in kubeflow/community repository

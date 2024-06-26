@@ -18,8 +18,8 @@ The Kubeflow ecosystem is composed of multiple open-source projects for each sta
 
 Learn more about each project in [the Kubeflow documentation](https://www.kubeflow.org/docs/components/).
 
-Please use the following GitHub repositories to open issue and pull requests for different Kubeflow
-components:
+Please use the following GitHub repositories to open issues and pull requests for
+[the different Kubeflow components](https://www.kubeflow.org/docs/started/introduction/#what-are-standalone-kubeflow-components):
 
 | Component                  | Source Code                                                                   |
 | -------------------------- | ----------------------------------------------------------------------------- |
@@ -32,11 +32,18 @@ components:
 | Kubeflow Spark Operator    | [`kubeflow/spark-operator`](https://github.com/kubeflow/spark-operator)       |
 | Kubeflow Training Operator | [`kubeflow/training-operator`](https://github.com/kubeflow/training-operator) |
 
-For Kubeflow Platform components:
+If you want to open issue or pull request for the
+[Kubeflow Platform](https://www.kubeflow.org/docs/started/introduction/#what-is-kubeflow-platform)
+components:
 
-- Use [`kubeflow/manifests`](https://github.com/kubeflow/manifests) for Kubeflow Manifests.
-- Use [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) for Kubeflow Profile Controller,
-  Central Dashboard, CRUD Web Apps, PVC Viewer, PodDefault, and Access Management components.
+- Use the [`kubeflow/manifests`](https://github.com/kubeflow/manifests) GitHub repository for
+  the Kubeflow Manifests.
+- Use the [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) GitHub repository for
+  the Kubeflow Profile Controller, Central Dashboard, CRUD Web Apps, PVC Viewer, PodDefault, and
+  Access Management components.
+
+If you have questions about Kubeflow community or Kubeflow ecosystem, please use the
+[`kubeflow/community`](https://github.com/kubeflow/community) GitHub repository.
 
 ## Kubeflow Community
 
