@@ -10,6 +10,11 @@ ARG TARGETARCH
 # common environemnt variables
 ENV NB_USER jovyan
 ENV NB_UID 1000
+# WARNING: the GID of 'jovyan' MUST be 0!
+#          this allows any UID to be used as all important folders are owned by GID 0.
+#          some Kubernetes environments run containers as a random UID (e.g. OpenShift).
+#          note, having GID 0 (root) does NOT give you root permissions, so this is not a security issue.
+ENV NB_GID 0
 ENV NB_PREFIX /
 ENV HOME /home/$NB_USER
 ENV SHELL /bin/bash
@@ -26,7 +31,7 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 300000
 
 # args - software versions
 ARG KUBECTL_VERSION=v1.27.14
-ARG S6_VERSION=v3.1.6.2
+ARG S6_VERSION=v3.2.0.0
 
 # set shell to bash
 SHELL ["/bin/bash", "-c"]
@@ -76,6 +81,10 @@ RUN case "${TARGETARCH}" in \
        /tmp/s6-overlay-${S6_ARCH}.tar.xz \
        /tmp/s6-overlay-${S6_ARCH}.tar.xz.sha256
 
+# fix permissions of '/run' folder for s6
+# https://github.com/just-containers/s6-overlay/blob/v3.2.0.0/layout/rootfs-overlay/package/admin/s6-overlay-%40VERSION%40/libexec/preinit#L86
+RUN chmod 0775 /run
+
 # install - kubectl
 RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl \
  && curl -fsSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
@@ -84,12 +93,12 @@ RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETA
  && chmod +x /usr/local/bin/kubectl
 
 # create user and set required ownership
-RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
+RUN useradd -M -s /bin/bash -N -u ${NB_UID} -g ${NB_GID} ${NB_USER} \
  && mkdir -p ${HOME} \
  && mkdir -p ${HOME_TMP} \
- && chown -R ${NB_USER}:users ${HOME} \
- && chown -R ${NB_USER}:users ${HOME_TMP} \
- && chown -R ${NB_USER}:users /usr/local/bin
+ && chown -R ${NB_USER}:${NB_GID} ${HOME} \
+ && chown -R ${NB_USER}:${NB_GID} ${HOME_TMP} \
+ && chown -R ${NB_USER}:${NB_GID} /usr/local/bin
 
 # set locale configs
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
@@ -99,7 +108,7 @@ ENV LANGUAGE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 # s6 - copy scripts
-COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 s6/ /etc
 
 USER $NB_UID
 

@@ -35,13 +35,13 @@ RUN mkdir -p ${CONDA_DIR} \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
  && echo "conda activate base" >> ${HOME}/.bashrc \
  && echo "conda activate base" >> /etc/profile \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && chown -R ${NB_USER}:${NB_GID} ${CONDA_DIR} \
+ && chown -R ${NB_USER}:${NB_GID} ${HOME}
 
 # create the SYSTEM_CONFIG_PATH for jupyter, and make it owned by NB_USER
 # this is needed for jupyter to write `--level=system` configs
 RUN mkdir -p /usr/local/etc/jupyter \
- && chown -R ${NB_USER}:users /usr/local/etc/jupyter
+ && chown -R ${NB_USER}:${NB_GID} /usr/local/etc/jupyter
 
 # switch to NB_UID for installs
 USER $NB_UID
@@ -77,12 +77,12 @@ RUN echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned 
  && conda clean -a -f -y
 
 # install - requirements.txt
-COPY --chown=${NB_USER}:users requirements.txt /tmp
+COPY --chown=${NB_USER}:${NB_GID} requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && rm -f /tmp/requirements.txt
 
 # s6 - copy scripts
-COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 s6/ /etc
 
 # configure - jupyter
 # NOTE: we use `--level=system` to write these configs at `/usr/local/etc/jupyter` because it defaults
