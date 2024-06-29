@@ -45,8 +45,8 @@ RUN mkdir -p ${CONDA_DIR} \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
  && echo "conda activate base" >> ${HOME}/.bashrc \
  && echo "conda activate base" >> /etc/profile \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && chown -R ${NB_USER}:${NB_GID} ${CONDA_DIR} \
+ && chown -R ${NB_USER}:${NB_GID} ${HOME}
 
 # setup environment for R
 ENV R_HOME ${CONDA_DIR}/lib/R
@@ -112,24 +112,24 @@ RUN case "${TARGETARCH}" in \
     # allow kubeflow to display rstudio in an iframe
  && echo "www-frame-origin=same" >> /etc/rstudio/rserver.conf \
     # allows the non-root NB_USER to run rstudio
- && chown -R ${NB_USER}:users /etc/rstudio \
- && chown -R ${NB_USER}:users /run/rstudio-server* \
- && chown -R ${NB_USER}:users /usr/lib/rstudio-server \
- && chown -R ${NB_USER}:users /var/lib/rstudio-server
+ && chown -R ${NB_USER}:${NB_GID} /etc/rstudio \
+ && chown -R ${NB_USER}:${NB_GID} /run/rstudio-server* \
+ && chown -R ${NB_USER}:${NB_GID} /usr/lib/rstudio-server \
+ && chown -R ${NB_USER}:${NB_GID} /var/lib/rstudio-server
 
 # tell rstudio to use conda python by setting `RETICULATE_PYTHON` with `--rsession-path=/opt/rsession.sh`
-COPY --chown=${NB_USER}:users --chmod=755 rsession.sh /opt
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 rsession.sh /opt
 RUN chmod +x /opt/rsession.sh
 
 # s6 - copy scripts
-COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 s6/ /etc
 
 # s6 - 01-copy-tmp-home
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
 #       this is a workaround because a PVC will be mounted at $HOME
 #       and the contents of $HOME will be hidden
 RUN cp -r -T "${HOME}" "${HOME_TMP}" \
- && chown -R ${NB_USER}:users ${HOME_TMP}
+ && chown -R ${NB_USER}:${NB_GID} ${HOME_TMP}
 
 USER $NB_UID
 

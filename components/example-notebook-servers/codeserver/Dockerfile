@@ -18,7 +18,7 @@ RUN curl -fsSL "https://github.com/coder/code-server/releases/download/${CODESER
  && rm -f /tmp/code-server.deb
 
 # s6 - copy scripts
-COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 s6/ /etc
 
 USER $NB_UID
 

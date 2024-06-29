@@ -23,8 +23,8 @@ RUN mkdir -p ${CONDA_DIR} \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
  && echo "conda activate base" >> ${HOME}/.bashrc \
  && echo "conda activate base" >> /etc/profile \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && chown -R ${NB_USER}:${NB_GID} ${CONDA_DIR} \
+ && chown -R ${NB_USER}:${NB_GID} ${HOME}
 
 USER $NB_UID
 
@@ -51,7 +51,7 @@ RUN case "${TARGETARCH}" in \
  && conda clean -a -f -y
 
 # install - requirements.txt
-COPY --chown=${NB_USER}:users requirements.txt /tmp
+COPY --chown=${NB_USER}:${NB_GID} requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && rm -f /tmp/requirements.txt
 
