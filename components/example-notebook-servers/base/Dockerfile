@@ -10,7 +10,7 @@ ARG TARGETARCH
 # common environemnt variables
 ENV NB_USER jovyan
 ENV NB_UID 1000
-# WARNING: the GID of 'jovyan' MUST be 0!
+# WARNING: the primary GID of 'jovyan' MUST be 0!
 #          this allows any UID to be used as all important folders are owned by GID 0.
 #          some Kubernetes environments run containers as a random UID (e.g. OpenShift).
 #          note, having GID 0 (root) does NOT give you root permissions, so this is not a security issue.
@@ -18,6 +18,9 @@ ENV NB_GID 0
 ENV NB_PREFIX /
 ENV HOME /home/$NB_USER
 ENV SHELL /bin/bash
+
+# the GID of the 'users' group
+ENV USERS_GID 100
 
 # we copy the contents of $HOME_TMP to $HOME on startup
 # this is to work around the fact that a PVC will be mounted to $HOME
@@ -97,11 +100,21 @@ RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETA
  && chmod +x /usr/local/bin/kubectl
 
 # create user and set required ownership
-RUN useradd -M -s /bin/bash -N -u ${NB_UID} -g ${NB_GID} ${NB_USER} \
- && mkdir -p ${HOME} \
- && mkdir -p ${HOME_TMP} \
- && chown -R ${NB_USER}:${NB_GID} ${HOME} \
- && chown -R ${NB_USER}:${NB_GID} ${HOME_TMP} \
+RUN useradd -M -N \
+    --shell /bin/bash \
+    --home ${HOME} \
+    --uid ${NB_UID} \
+    --gid ${NB_GID} \
+    --groups ${USERS_GID} \
+    ${NB_USER} \
+ && mkdir -pv ${HOME} \
+ && mkdir -pv ${HOME_TMP} \
+    # in the interest of backwards compatibility we have the 'users' group owns the home directory
+    # we also set the SGID bit so that new files and directories are created with the 'users' group
+ && chmod 2775 ${HOME} \
+ && chmod 2775 ${HOME_TMP} \
+ && chown -R ${NB_USER}:${USERS_GID} ${HOME} \
+ && chown -R ${NB_USER}:${USERS_GID} ${HOME_TMP} \
  && chown -R ${NB_USER}:${NB_GID} /usr/local/bin
 
 # set locale configs

@@ -18,13 +18,14 @@ ARG PYTHON_VERSION=3.11.9
 # setup environment for conda
 ENV CONDA_DIR /opt/conda
 ENV PATH "${CONDA_DIR}/bin:${PATH}"
-RUN mkdir -p ${CONDA_DIR} \
+RUN mkdir -pv ${CONDA_DIR} \
+ && chmod 2775 ${CONDA_DIR} \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
  && echo "conda activate base" >> ${HOME}/.bashrc \
  && echo "conda activate base" >> /etc/profile \
  && chown -R ${NB_USER}:${NB_GID} ${CONDA_DIR} \
- && chown -R ${NB_USER}:${NB_GID} ${HOME}
+ && chown -R ${NB_USER}:${USERS_GID} ${HOME}
 
 USER $NB_UID
 
@@ -63,4 +64,6 @@ RUN code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSIO
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
 #       this is a workaround because a PVC will be mounted at $HOME
 #       and the contents of $HOME will be hidden
-RUN cp -r -T "${HOME}" "${HOME_TMP}"
+RUN cp -p -r -T "${HOME}" "${HOME_TMP}" \
+    # give group same access as user (needed for OpenShift)
+ && chmod -R g=u "${HOME_TMP}"
