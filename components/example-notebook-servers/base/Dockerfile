@@ -25,9 +25,13 @@ ENV SHELL /bin/bash
 # see `s6/cont-init.d/01-copy-tmp-home`
 ENV HOME_TMP /tmp_home/$NB_USER
 
-# s3 only gives 5 seconds by default, which is too small for slow PVC storage backends
+# s6-overlay only gives 5 seconds by default, which is too small for slow PVC storage backends
 # when running `/etc/cont-inid.d/01-copy-tmp-home` (note, this is in milliseconds)
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 300000
+
+# s6-overlay does not fail by default if the `/etc/cont-init.d/` or `/etc/services.d/` scripts fail
+# this is not the desired behavior, so we set it to fail
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS 2
 
 # args - software versions
 ARG KUBECTL_VERSION=v1.27.14
