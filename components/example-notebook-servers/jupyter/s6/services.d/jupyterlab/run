@@ -5,6 +5,8 @@
 export JUPYTER_RUNTIME_DIR="/tmp/jupyter_runtime"
 
 cd "${HOME}"
+echo "INFO: starting jupyter..."
+exec 2>&1
 exec /opt/conda/bin/jupyter lab \
   --notebook-dir="${HOME}" \
   --ip=0.0.0.0 \
