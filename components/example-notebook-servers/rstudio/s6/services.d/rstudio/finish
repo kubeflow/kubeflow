@@ -1,2 +1,0 @@
-#!/command/with-contenv bash
-exec rstudio-server stop
