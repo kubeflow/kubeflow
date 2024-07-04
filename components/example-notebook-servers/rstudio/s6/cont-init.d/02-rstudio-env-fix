@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+
 # rstudio terminal cant see environment variables set by the container runtime
 # (which breaks kubectl, to fix this we store the KUBERNETES_* env vars in Renviron.site)
 env | grep KUBERNETES_ >> ${R_HOME}/etc/Renviron.site
