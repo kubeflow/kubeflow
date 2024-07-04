@@ -40,16 +40,26 @@ RUN apt-get -yq update \
 # setup environment for conda
 ENV CONDA_DIR /opt/conda
 ENV PATH "${CONDA_DIR}/bin:${PATH}"
-RUN mkdir -p ${CONDA_DIR} \
+RUN mkdir -pv ${CONDA_DIR} \
+ && chmod 2775 ${CONDA_DIR} \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
  && echo "conda activate base" >> ${HOME}/.bashrc \
  && echo "conda activate base" >> /etc/profile \
- && chown -R ${NB_USER}:users ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${HOME}
+ && chown -R ${NB_USER}:${NB_GID} ${CONDA_DIR} \
+ && chown -R ${NB_USER}:${USERS_GID} ${HOME}
 
 # setup environment for R
 ENV R_HOME ${CONDA_DIR}/lib/R
+
+# rstudio logs to a file by default, but we need to see them in the container logs
+ENV RS_LOG_LEVEL WARN
+ENV RS_LOGGER_TYPE stderr
+
+# rstudio must run as a named user.
+# we change the UID of 'jovyan' at runtime to match the UID of the container.
+# this is important for environments like OpenShift where the container has a random UID.
+RUN chmod g+w /etc/passwd
 
 USER $NB_UID
 
@@ -100,36 +110,51 @@ RUN case "${TARGETARCH}" in \
       *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
     esac \
  && curl -fsSL "${RSTUDIO_DEB_URL}" -o /tmp/rstudio-server.deb \
-    # add rstudio public code-signing keys
+    # validate the build signature
+ && export GNUPGHOME="$(mktemp -d)" \
  && gpg --keyserver keys.gnupg.net --keyserver pgp.surfnet.nl --recv-keys 3F32EE77E331692F \
  && gpg --keyserver keys.openpgp.org --recv-keys 51C0B5BB19F92D60 \
-    # validate the build signature
  && dpkg-sig --verify /tmp/rstudio-server.deb \
+ && rm -rf "${GNUPGHOME}" \
+    # install rstudio-server
  && dpkg -i /tmp/rstudio-server.deb \
  && rm -f /tmp/rstudio-server.deb \
+    # the default DB path '/var/lib/rstudio-server' causes permission issues when running as a random UID (like in OpenShift)
+ && echo "provider=sqlite" > /etc/rstudio/database.conf \
+ && echo "directory=/tmp/rstudio_db" >> /etc/rstudio/database.conf \
     # use advisory file-locks to improve PVC support
  && echo "lock-type=advisory" > /etc/rstudio/file-locks \
     # allow kubeflow to display rstudio in an iframe
  && echo "www-frame-origin=same" >> /etc/rstudio/rserver.conf \
     # allows the non-root NB_USER to run rstudio
- && chown -R ${NB_USER}:users /etc/rstudio \
- && chown -R ${NB_USER}:users /run/rstudio-server* \
- && chown -R ${NB_USER}:users /usr/lib/rstudio-server \
- && chown -R ${NB_USER}:users /var/lib/rstudio-server
+ && chown -R ${NB_USER}:${NB_GID} ${R_HOME} \
+ && chown -R ${NB_USER}:${NB_GID} /etc/rstudio \
+ && chown -R ${NB_USER}:${NB_GID} /run/rstudio-server* \
+ && chown -R ${NB_USER}:${NB_GID} /usr/lib/rstudio-server \
+ && chown -R ${NB_USER}:${NB_GID} /var/lib/rstudio-server \
+ && chown -R ${NB_USER}:${NB_GID} /var/log/rstudio \
+    # give group same access as user (needed for OpenShift)
+ && chmod -R g=u ${R_HOME} \
+ && chmod -R g=u /etc/rstudio \
+ && chmod -R g=u /run/rstudio-server* \
+ && chmod -R g=u /usr/lib/rstudio-server \
+ && chmod -R g=u /var/lib/rstudio-server \
+ && chmod -R g=u /var/log/rstudio
 
 # tell rstudio to use conda python by setting `RETICULATE_PYTHON` with `--rsession-path=/opt/rsession.sh`
-COPY --chown=${NB_USER}:users --chmod=755 rsession.sh /opt
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 rsession.sh /opt
 RUN chmod +x /opt/rsession.sh
 
 # s6 - copy scripts
-COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
+COPY --chown=${NB_USER}:${NB_GID} --chmod=755 s6/ /etc
 
 # s6 - 01-copy-tmp-home
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
 #       this is a workaround because a PVC will be mounted at $HOME
 #       and the contents of $HOME will be hidden
-RUN cp -r -T "${HOME}" "${HOME_TMP}" \
- && chown -R ${NB_USER}:users ${HOME_TMP}
+RUN cp -p -r -T "${HOME}" "${HOME_TMP}" \
+    # give group same access as user (needed for OpenShift)
+ && chmod -R g=u "${HOME_TMP}"
 
 USER $NB_UID
 

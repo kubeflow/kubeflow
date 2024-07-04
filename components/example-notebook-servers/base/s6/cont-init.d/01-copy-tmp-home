@@ -1,5 +1,9 @@
 #!/command/with-contenv bash
 
+# setting umask to 0002 makes copied files/folders writable by group
+# this is needed to run the container as an arbitrary UID
+umask 0002
+
 # the home directory is usually a PVC
 # we need to copy the contents of $HOME_TMP that we populated during the build
 # NOTE: -n prevents overwriting existing files

@@ -1,9 +1,32 @@
 #!/command/with-contenv bash
+
+# the runtime state directory must be a path that is NOT a persistent volume
+# note, this env-var is not read by rstudio, but is used later in this script
+export RSTUDIO_RUNTIME_DIR="/tmp/rstudio_runtime"
+
+# rstudio needs a named user. if we are running as a user with no name,
+# change the 'jovyan' user to match the current UID. this is necessary
+# as some environments (e.g. OpenShift) run containers as a random UID.
+# note, '/etc/passwd' is writable by GID 0, which is why we can edit it.
+if ! whoami &> /dev/null; then
+  echo "INFO: container is running as UID $(id -u), changing 'jovyan' to match"
+  if [[ -w /etc/passwd ]]; then
+    TEMP_SED=$(sed "s/^${NB_USER}:x:${NB_UID}/${NB_USER}:x:$(id -u)/" /etc/passwd)
+    echo "${TEMP_SED}" > /etc/passwd
+  else
+    echo "ERROR: no permission to write /etc/passwd"
+    exit 1
+  fi
+fi
+
 # using rstudio with non-root and `--auth-none=1` inexplicably requires USER to be set
 export USER="${NB_USER}"
 
+echo "INFO: starting rstudio-server..."
+exec 2>&1
 exec /usr/lib/rstudio-server/bin/rserver \
   --server-daemonize=0 \
+  --server-data-dir="${RSTUDIO_RUNTIME_DIR}" \
   --server-working-dir="${HOME}" \
   --server-user="${NB_USER}" \
   --www-address=0.0.0.0 \
