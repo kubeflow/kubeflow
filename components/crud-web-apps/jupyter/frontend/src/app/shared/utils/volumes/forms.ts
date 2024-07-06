@@ -98,6 +98,7 @@ export function createNewPvcVolumeFormGroup(
   return new FormGroup({
     name: new FormControl('', []),
     mount: new FormControl('', Validators.required),
+    ephemeral: new FormControl(false, []),
     newPvc: createNewPvcFormGroup(name),
   });
 }
@@ -214,6 +215,7 @@ export function createNewPvcFormGroupFromVolume(
 export function createFormGroupFromVolume(volume: Volume): FormGroup {
   const group = new FormGroup({
     mount: new FormControl(volume.mount, [Validators.required]),
+    ephemeral: new FormControl(volume.ephemeral, []),
   });
 
   if (volume.newPvc) {
