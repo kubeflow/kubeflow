@@ -32,7 +32,7 @@
   "dependencies": {
     "@google-cloud/monitoring": "^2.3.5",
     "@kubernetes/client-node": "^0.8.2",
-    "express": "^4.17.1",
+    "express": "^4.19.2",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
