@@ -173,6 +173,20 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 	if err != nil {
 		return nil, err
 	}
+	// Environment image can be overriden by the CR specified image
+	if tb.Spec.Image != "" {
+		tensorboardImage = tb.Spec.Image
+	}
+	// Image pull strategy
+	tbImagePullPolicy := corev1.PullIfNotPresent
+	if tb.Spec.ImagePullPolicy != "" {
+		tbImagePullPolicy = tb.Spec.ImagePullPolicy
+	}
+	// Image Pull secret to pull the image from a private docker registry
+	var tbImagePullSecret []corev1.LocalObjectReference = nil
+	if tb.Spec.ImagePullSecret.Name != "" {
+		tbImagePullSecret = []corev1.LocalObjectReference{tb.Spec.ImagePullSecret}
+	}
 
 	//In this case, a PVC is used as a log storage for the Tensorboard server.
 	if !isCloudPath(tb.Spec.LogsPath) {
@@ -270,13 +284,14 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					Affinity:      affinity,
-					RestartPolicy: corev1.RestartPolicyAlways,
+					Affinity:         affinity,
+					RestartPolicy:    corev1.RestartPolicyAlways,
+					ImagePullSecrets: tbImagePullSecret,
 					Containers: []corev1.Container{
 						{
 							Name:            "tensorboard",
 							Image:           tensorboardImage,
-							ImagePullPolicy: "IfNotPresent",
+							ImagePullPolicy: tbImagePullPolicy,
 							Command:         []string{"/usr/local/bin/tensorboard"},
 							WorkingDir:      "/",
 							Args: []string{
@@ -409,8 +424,8 @@ func extractPVCSubPath(path string) string {
 	}
 }
 
-//Searches a corev1.PodList for running pods and returns
-//a running corev1.Pod (if exists)
+// Searches a corev1.PodList for running pods and returns
+// a running corev1.Pod (if exists)
 func findRunningPod(pods *corev1.PodList) corev1.Pod {
 	for _, pod := range pods.Items {
 		if pod.Status.Phase == "Running" {
@@ -470,9 +485,9 @@ func generateNodeAffinity(affinity *corev1.Affinity, pvcname string, r *Tensorbo
 	return nil
 }
 
-//Checks the value of 'RWO_PVC_SCHEDULING' env var (if present in the environment) and returns
-//'true' or 'false' accordingly. If 'RWO_PVC_SCHEDULING' is NOT present, then the value of the
-//returned boolean is set to 'false', so that the scheduling functionality is off by default.
+// Checks the value of 'RWO_PVC_SCHEDULING' env var (if present in the environment) and returns
+// 'true' or 'false' accordingly. If 'RWO_PVC_SCHEDULING' is NOT present, then the value of the
+// returned boolean is set to 'false', so that the scheduling functionality is off by default.
 func rwoPVCScheduling() (error, bool) {
 	if value, exists := os.LookupEnv("RWO_PVC_SCHEDULING"); !exists || value == "false" || value == "False" || value == "FALSE" {
 		return nil, false
