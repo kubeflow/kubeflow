@@ -22,6 +22,17 @@ def get_username():
     return username
 
 
+def get_user_groups():
+    if settings.GROUPS_HEADER not in request.headers:
+        log.debug("Groups header not present!")
+        groups = None
+    else:
+        groups = request.headers[settings.GROUPS_HEADER].split(',')
+        log.debug("Groups: '%s' | Header: '%s'",
+                  groups, settings.GROUPS_HEADER)
+
+    return groups
+
 def no_authentication(func):
     """
     This decorator will be used to disable the default authentication check
