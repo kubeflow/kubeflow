@@ -6,6 +6,7 @@ from .authn import bp as authn_bp
 from .config import BackendMode
 from .csrf import bp as csrf_bp
 from .errors import bp as errors_bp
+from .metrics import enable_metrics
 from .probes import bp as probes_bp
 from .routes import bp as base_routes_bp
 from .serving import bp as serving_bp
@@ -31,5 +32,8 @@ def create_app(name, static_folder, config):
     app.register_blueprint(probes_bp)
     app.register_blueprint(serving_bp)
     app.register_blueprint(base_routes_bp)
+
+    if config.METRICS:
+        enable_metrics(app)
 
     return app
