@@ -9,6 +9,7 @@ REQUIRES = [
     "Werkzeug >= 0.16.0",
     "Flask-Cors >= 3.0.8",
     "gevent",
+    "prometheus-flask-exporter >= 0.23.1"
 ]
 
 setuptools.setup(
