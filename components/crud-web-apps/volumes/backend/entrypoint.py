@@ -12,7 +12,7 @@ BACKEND_MODE = os.environ.get("BACKEND_MODE",
                               config.BackendMode.PRODUCTION.value)
 UI_FLAVOR = os.environ.get("UI_FLAVOR", "default")
 PREFIX = os.environ.get("APP_PREFIX", "/")
-METRICS = os.environ.get("METRICS", False)
+METRICS = bool(os.environ.get("METRICS", False))
 
 cfg = config.get_config(BACKEND_MODE)
 cfg.PREFIX = PREFIX

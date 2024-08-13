@@ -10,7 +10,7 @@ APP_NAME = os.environ.get("APP_NAME", "Jupyter Web App")
 BACKEND_MODE = os.environ.get("BACKEND_MODE",
                               config.BackendMode.PRODUCTION.value)
 PREFIX = os.environ.get("APP_PREFIX", "/")
-METRICS = os.environ.get("METRICS", False)
+METRICS = bool(os.environ.get("METRICS", False))
 
 # Check both values for determining what flavor to load
 UI_FLAVOR = os.environ.get("UI_FLAVOR", None)
