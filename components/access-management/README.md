@@ -27,7 +27,7 @@ RBAC doesn't directly support this. So we provide a service on top of RBAC which
 
 #### Case 2: Allow user to update / share resources they own.
 
-We will not grant user permission to edit cluster-scoped CRD resources. Then to enable user editting their own resources,
+We will not grant user permission to edit cluster-scoped CRD resources. Then to enable user editing their own resources,
 we provide update / share / delete APIs and perform permission check on every coming request.  
 
 ## APIs

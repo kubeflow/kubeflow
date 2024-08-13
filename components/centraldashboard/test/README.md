@@ -44,5 +44,5 @@ Stack | Description
   - Puppeteer is faster than selenium
   - It only supports Google Chrome (unlike Selenium)
   - Maintained directly by Google Chrome team
-- > What does this mean in terms of requirements for a container that is running puppeter? Do we have to have chrome installed?
+- > What does this mean in terms of requirements for a container that is running puppeteer? Do we have to have chrome installed?
   - Nope! Runs out of the box ![image](https://user-images.githubusercontent.com/5303018/74990269-b7914580-53f7-11ea-8620-f367b1aaf9ab.png)
