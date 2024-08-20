@@ -10,7 +10,7 @@ REQUIRES = [
     "Flask-Cors >= 3.0.8",
     "gevent",
     "prometheus-flask-exporter >= 0.23.1",
-    "importlib-metadata;python_version<'3.8'",
+    "importlib-metadata >= 1.0;python_version<'3.8'",
 ]
 
 setuptools.setup(

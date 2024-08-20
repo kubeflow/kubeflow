@@ -1,10 +1,23 @@
 import logging
+import sys
 
-from importlib.metadata import version
 from flask import Flask
 from prometheus_flask_exporter import PrometheusMetrics
 
 log = logging.getLogger(__name__)
+
+
+def _get_backend_version() -> str:
+    """Get the backend version.
+
+    The version is defined in setup.py.
+    """
+    if sys.version_info >= (3, 8):
+        from importlib import metadata
+    else:
+        import importlib_metadata as metadata
+
+    return metadata.version("kubeflow")
 
 
 def enable_metrics(app: Flask) -> None:
@@ -20,7 +33,7 @@ def enable_metrics(app: Flask) -> None:
         flask_exporter_info (Gauge)
     """
     log.info("Enabling the Prometheus metrics for %s", app.name)
-    backend_version = version("kubeflow")
+    backend_version = _get_backend_version()
     log.debug("Backend version is %s", backend_version)
     metrics = PrometheusMetrics(app, default_labels={"app": app.name})
     # add default metrics with info about app
