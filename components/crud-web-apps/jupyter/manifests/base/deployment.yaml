@@ -27,6 +27,8 @@ spec:
           value: $(JWA_USERID_PREFIX)
         - name: APP_SECURE_COOKIES
           value: $(JWA_APP_SECURE_COOKIES)
+        - name: METRICS
+          value: $(JWA_APP_ENABLE_METRICS)
       serviceAccountName: service-account
       volumes:
       - configMap:

@@ -28,7 +28,7 @@ This is list is incomplete, we will be adding more variables in the future.
 | ENV Var | Description |
 | - | - |
 | CSRF_SAMESITE | Controls the [SameSite value](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#SameSite) of the CSRF cookie |
-| METRICS | Enable export of Prometheus metrics on `/metrics` path |
+| METRICS | Enable the exporting of Prometheus metrics on `/metrics` path |
 
 ### How to use
 

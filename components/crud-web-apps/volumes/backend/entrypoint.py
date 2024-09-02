@@ -12,11 +12,9 @@ BACKEND_MODE = os.environ.get("BACKEND_MODE",
                               config.BackendMode.PRODUCTION.value)
 UI_FLAVOR = os.environ.get("UI_FLAVOR", "default")
 PREFIX = os.environ.get("APP_PREFIX", "/")
-METRICS = bool(os.environ.get("METRICS", False))
 
 cfg = config.get_config(BACKEND_MODE)
 cfg.PREFIX = PREFIX
-cfg.METRICS = METRICS
 
 # Load the app based on UI_FLAVOR env var
 if UI_FLAVOR == "default":

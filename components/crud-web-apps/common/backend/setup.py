@@ -15,7 +15,7 @@ REQUIRES = [
 
 setuptools.setup(
     name="kubeflow",
-    version="1.1",
+    version="1.2",
     author="kubeflow-dev-team",
     description="A package with a base Flask CRUD backend common code",
     packages=setuptools.find_packages(),

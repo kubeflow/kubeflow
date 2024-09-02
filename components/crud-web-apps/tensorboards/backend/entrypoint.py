@@ -9,11 +9,9 @@ APP_NAME = os.environ.get("APP_NAME", "Tensorboards Web App")
 PREFIX = os.environ.get("APP_PREFIX", "/")
 BACKEND_MODE = os.environ.get("BACKEND_MODE",
                               config.BackendMode.PRODUCTION.value)
-METRICS = bool(os.environ.get("METRICS", False))
 
 cfg = config.get_config(BACKEND_MODE)
 cfg.PREFIX = PREFIX
-cfg.METRICS = METRICS
 
 app = app.create_app(APP_NAME, cfg)
 
