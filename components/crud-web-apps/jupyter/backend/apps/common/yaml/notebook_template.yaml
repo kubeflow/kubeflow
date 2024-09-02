@@ -23,3 +23,9 @@ spec:
               memory: "0.1Gi"
       volumes: []
       tolerations: []
+      securityContext:
+        capabilities:
+          add:
+          - IPC_LOCK
+
+      
