@@ -9,3 +9,4 @@ from .pvc import *  # noqa F401, F403
 from .secret import *  # noqa F401, F403
 from .storageclass import *  # noqa F401, F403
 from .utils import *  # noqa F401, F403
+from .profile import *  # noqa F401, F403
