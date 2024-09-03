@@ -1,6 +1,6 @@
 from .. import authz
 from . import v1_core, utils, events
-
+from . import custom_api
 
 def create_pvc(pvc, namespace, dry_run=False):
     authz.ensure_authorized(
@@ -47,3 +47,16 @@ def patch_pvc(name, namespace, pvc, auth=True):
 
     return v1_core.patch_namespaced_persistent_volume_claim(name, namespace,
                                                             pvc)
+def get_profile2(profile_name):
+  # get cluster custom object profile
+  print("profile_name: ", profile_name)
+  try:
+    profile = custom_api.get_cluster_custom_object(
+      group="kubeflow.org",
+      version="v1beta1",
+      plural="profiles",
+      name=profile_name
+    )
+    return profile
+  except:
+    return None
