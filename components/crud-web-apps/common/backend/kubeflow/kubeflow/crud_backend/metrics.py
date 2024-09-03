@@ -35,7 +35,9 @@ def enable_metrics(app: Flask) -> None:
     log.info("Enabling the Prometheus metrics for %s", app.name)
     backend_version = _get_backend_version()
     log.debug("Backend version is %s", backend_version)
-    metrics = PrometheusMetrics(app, default_labels={"app": app.name})
+    metrics = PrometheusMetrics(
+        app, group_by="url_rule", default_labels={"app": app.name}
+    )
     # add default metrics with info about app
     metrics.info(
         "app_info", "Application info", version=backend_version, app=app.name
