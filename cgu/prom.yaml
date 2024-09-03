@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cgu-gpu-exporter
+  # Namespace of prometheus operator
+  namespace: prometheus
+  labels:
+    prometheus: mon
+spec:
+  namespaceSelector:
+    matchNames:
+    - server-monitoring
+  selector:
+    matchLabels:
+      k8s-app: cgu-gpu-exporter
+  endpoints:
+  - port: metrics
+    interval: 10s
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kflow-cgu-edu-tw
+  namespace: cgu
+  labels:
+    k8s-app: cgu-gpu-exporter
+spec:
+  type: ExternalName
+  externalName: 120.126.23.231
+  clusterIP: "120.1265.23.231"
+  # Maybe not relevant
+  ports:
+  - name: metrics
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+
+---
+
+apiVersion: v1
+kind: Endpoints
+metadata:
+  # Name must match service name
+  name: kflow-cgu-edu-tw
+  namespace: cgu
+  labels:
+    k8s-app: node-exporter
+subsets:
+  - addresses:
+    - ip: 120.126.23.231
+    ports:
+      - name: metrics
+        port: 8000
+        protocol: TCP

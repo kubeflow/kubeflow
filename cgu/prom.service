@@ -1,0 +1,12 @@
+[Unit]
+Description=Dashboard for k8s
+After=ssh.service
+
+[Service]
+ExecStart=/root/wycc/cgu-kubeflow/cgu/run.sh
+Restart=always
+RestartSec=3
+User=root
+
+[Install]
+WantedBy=multi-user.target
