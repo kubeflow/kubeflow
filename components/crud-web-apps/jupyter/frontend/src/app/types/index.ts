@@ -6,3 +6,4 @@ export * from './poddefault';
 export * from './responses';
 export * from './toleration';
 export * from './volume';
+export * from './authorizationpolicy';

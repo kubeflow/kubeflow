@@ -28,9 +28,18 @@ export interface NotebookResponseObject {
   };
   environment: string;
   shortImage: string;
+  isTemplate: string;
+  jsonStr: string;
+  shortImageName: string;
+  shortImageVersion: string;
+  customerImageName: string;
+  customerImageVersion: string;
+  customerCourseName: string;  
 }
 
 export interface NotebookProcessedObject extends NotebookResponseObject {
+  setTemplateAction?: string;
+  removeTemplateAction?: string;  
   deleteAction?: string;
   connectAction?: string;
   startStopAction?: string;
@@ -39,6 +48,8 @@ export interface NotebookProcessedObject extends NotebookResponseObject {
     url: string;
     queryParams?: Params | null;
   };
+  viewAction?:string;
+  shareAction?:string;  
 }
 
 export interface NotebookFormObject {
@@ -63,6 +74,10 @@ export interface NotebookFormObject {
   datavols: any[];
   shm: boolean;
   configurations: PodDefault[];
+  isTemplate: string;
+  customerImageName: string;
+  customerImageVersion: string;
+  customerCourseName: string;  
 }
 
 export interface NotebookRawObject {

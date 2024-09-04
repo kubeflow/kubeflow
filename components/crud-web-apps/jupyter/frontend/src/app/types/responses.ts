@@ -5,6 +5,7 @@ import { EventObject } from './event';
 import { NotebookRawObject, NotebookResponseObject } from './notebook';
 import { PodDefault } from './poddefault';
 import { PvcResponseObject } from './volume';
+import { AuthorizationPolicyResponseObject } from './authorizationpolicy';
 
 export interface JWABackendResponse extends BackendResponse {
   notebook?: NotebookRawObject;
@@ -16,4 +17,6 @@ export interface JWABackendResponse extends BackendResponse {
   vendors?: string[];
   pod?: V1Pod;
   events?: EventObject[];
+  authorizationpolicy?: AuthorizationPolicyResponseObject[];
+  manager?:string[];  
 }
