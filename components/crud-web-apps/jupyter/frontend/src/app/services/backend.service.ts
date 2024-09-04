@@ -12,6 +12,7 @@ import {
   NotebookFormObject,
   NotebookProcessedObject,
   PvcResponseObject,
+  AuthorizationPolicyResponseObject
 } from '../types';
 import { V1Pod } from '@kubernetes/client-node';
 import { EventObject } from '../types/event';
@@ -218,4 +219,201 @@ export class JWABackendService extends BackendService {
 
     return `Unexpected error encountered`;
   }
+
+  // Lance
+  public getManager(namespace: string): Observable<string[]> {
+    const url = `api/manager/${namespace}`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map(data => data.manager),
+    );
+  }
+
+  //2024 show autostart page notebook start//
+  public getsharedNotebooks(namespace: string,notebook_name:string): Observable<NotebookResponseObject[]> {
+    const url = `api/namespaces/${namespace}/notebooks`;
+    console.log('Requesting notebooks:', namespace);
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: JWABackendResponse) => {
+        const filteredNotebooks = resp.notebooks.filter(notebook => notebook.name.includes(notebook_name));
+        return filteredNotebooks;
+      }),
+    );
+  }
+  //2024 show autostart page notebook end//
+  public getAllNotebooks(namespace: string): Observable<NotebookResponseObject[]> {
+    const url = `api/namespaces/${namespace}/allnotebooks`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: JWABackendResponse) => {
+        // console.log("resp.usery", resp.user)
+        return resp.notebooks;
+      }),
+    );
+  }
+  
+  // 2024/01/21 YCL authorizationPolicy start//
+  public getAllAuthorizationPolicy(namespace): Observable<AuthorizationPolicyResponseObject[]> {
+    const url = `api/namespaces/${namespace}/aps`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: JWABackendResponse) => {
+        console.log('xxxxxx');
+        return resp.authorizationpolicy;
+      }),
+    );
+  }
+  // 2024/01/21 YCL authorizationPolicy end//
+
+  // PATCH
+  // Lance - Begin - 20230818
+  public setCustomerParamNotebook(notebook: NotebookProcessedObject, jsonTag: string, jsonValue:string): Observable<string> {
+    const name = notebook.name;
+    const namespace = notebook.namespace;
+    const url = `api/namespaces/${namespace}/notebooks/${name}`;
+
+    var obj = {};
+    obj[jsonTag] = jsonValue;
+    return this.http.patch<JWABackendResponse>(url, obj).pipe(
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return 'started';
+      }),
+    );
+  }
+
+  public enableTemplateNotebook(notebook: NotebookProcessedObject): Observable<string> {
+    const name = notebook.name;
+    const namespace = notebook.namespace;
+    const url = `api/namespaces/${namespace}/notebooks/${name}`;
+
+    return this.http.patch<JWABackendResponse>(url, { istemplate: true }).pipe(
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return 'started';
+      }),
+    );
+  }
+
+  public disableTemplateNotebook(notebook: NotebookProcessedObject): Observable<string> {
+    const name = notebook.name;
+    const namespace = notebook.namespace;
+    const url = `api/namespaces/${namespace}/notebooks/${name}`;
+
+    return this.http.patch<JWABackendResponse>(url, { istemplate: false }).pipe(
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return 'stopped';
+      }),
+    );
+  }
+  // Lance - End - 20230818
+    
+  //2024/01/21 YCL createauthorizationpolicy start//
+  public createAuthorization(namespace,nameValue,pathValue,userEmail): Observable<string> {
+    const url2 = `api/namespaces/${namespace}/aps_vnc`;
+  
+    // Create an object with the 'name' parameter
+    const requestBody = { name: nameValue, paths: pathValue, useremail: userEmail};
+    
+    return this.http.post<JWABackendResponse>(url2,requestBody).pipe(
+      catchError(_ => {
+        return 'error';
+      }),
+      map(_ => {
+        return 'posted';
+      }),
+    );
+  }
+  //2024/01/21 YCL createauthorizationpolicy end//
+  
+  //2024/01/21 YCL deleteauthorizationpolicy start// 
+  // DELETE
+   public deleteauthorization(delete_name: string, namespace: string) {
+    const url = `api/namespaces/${namespace}/aps_vnc/${delete_name}`;
+    return this.http
+      .delete<JWABackendResponse>(url)
+      .pipe(catchError(error => this.handleError(error, false)));
+  }
+  //2024/01/21 YCL deleteauthorizationpolicy end// 
+  
+  // 2024/01/23 YCL add data start//
+  public modify_authorizaiton(nameSpace,namevalue,adddata): Observable<string> {
+    const url2 = `api/namespaces/${nameSpace}/aps_vnc/${namevalue}`;
+
+    // Create an object with the 'name' parameter
+    const requestBody = { values_to_add: adddata};
+    
+    return this.http.patch<JWABackendResponse>(url2,requestBody).pipe(
+      catchError(_ => {
+        return 'error';
+      }),
+      map(_ => {
+        return 'posted';
+      }),
+    );
+  }
+  // 2024/01/23 YCL add data end//
+  
+  // 2024/01/23 YCL delete data start//
+  public modify_authorizaiton_delete(nameSpace,namevalue,deletedata): Observable<string> {
+    const url2 = `api/namespaces/${nameSpace}/aps_vnc_1/${namevalue}`;
+
+    // Create an object with the 'name' parameter
+    const requestBody = {values_to_delete: deletedata};
+    
+    return this.http.patch<JWABackendResponse>(url2,requestBody).pipe(
+      catchError(_ => {
+        return 'error';
+      }),
+      map(_ => {
+        return 'posted';
+      }),
+    );
+  }
+  // 2024/01/23 YCL delete data end//
+
+    
+  public checkNotebookAccess(namespace: string, name: string): Observable<boolean> {
+    const url = `api/namespaces/${namespace}/check_notebook_access`;
+    const requestBody = { name };
+
+
+    return this.http.post<boolean>(url, requestBody);
+  }
+
+  //2024/04/29 YC auto-start page access start//
+  public getNotebooksaccess(namespace: string,notebook:string,url1:string): Observable<JWABackendResponse> {
+    const url = `api/namespaces/${namespace}/aps-1/${notebook}/${url1}`;
+   
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: JWABackendResponse) => {
+        return resp; // Return the entire backend response
+      }),
+    );
+  }
+  //2024/04/29 YC auto-start page access end//
+
+  //2024/04/29 YC auto-start page get profile start//
+  public getProfiles(namespace: string): Observable<string> {
+    const url = `api/namespaces/${namespace}/aps-2`;
+  
+    return this.http.get<any>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: any) => {
+        if (resp && resp.email) {
+          return resp.email; // 提取 email 字段
+        } else {
+          throw new Error('Failed to get email.');
+        }
+      }),
+    );
+  }
+  //2024/04/29 YC auto-start page access end//
+
 }
