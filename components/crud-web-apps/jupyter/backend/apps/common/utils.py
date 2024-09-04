@@ -53,6 +53,8 @@ def load_spawner_ui_config():
     log.error("Couldn't find any config file.")
     raise exceptions.NotFound("Couldn't find any config file.")
 
+def load_authorizationpolicy_template(**kwargs):
+    return helpers.load_param_yaml(AUTHORIZATIONPOLICY_TEMPLATE_YAML, **kwargs)
 
 def process_gpus(container):
     """
@@ -129,18 +131,83 @@ def notebook_dict_from_k8s_obj(notebook):
         annotations = notebook["metadata"]["annotations"]
         server_type = annotations.get("notebooks.kubeflow.org/server-type")
 
+    isTemplate = "no"
+    if notebook["metadata"].get("labels"):
+        labels = notebook["metadata"]["labels"]
+        isTemplate = labels.get("isTemplateName")
+
+    log.info("Got isTemplate: %s" % isTemplate)
+
+    jsonStr = ""
+    if notebook["metadata"].get("annotations"):
+        annotations = notebook["metadata"]["annotations"]
+        jsonStr = annotations.get("jsonStr")
+
+    if not jsonStr:
+        isTemplate = "no"
+    log.info("Got isTemplate: %s" % isTemplate)
+    
+    shortImageVersion = ""
+    shortImageName = ""
+    imageName = ""
+    shortImage = ""
+    volumeMounts = ""
+    try:
+        volumeMounts = [v["name"] for v in cntr["volumeMounts"]]
+        imageName = cntr["image"]
+        lst = cntr["image"].split("/")[-1].split(":")
+        shortImage = cntr["image"].split("/")[-1]
+        stringcount = len(lst)
+        if stringcount>=2:
+            shortImageName = cntr["image"].split("/")[-1].split(":")[0]
+            shortImageVersion = cntr["image"].split("/")[-1].split(":")[1]
+    except KeyError:
+        volumeMounts = ""
+        shortImageVersion = ""
+        shortImageName = ""
+        imageName = ""
+        shortImage = ""
+
+    customerImageName = ""
+    if notebook["metadata"].get("annotations"):
+        annotations = notebook["metadata"]["annotations"]
+        customerImageName = annotations.get("customerImageName")
+
+    log.info("Got customerImageName: %s" % customerImageName)
+
+    customerImageVersion = ""
+    if notebook["metadata"].get("annotations"):
+        annotations = notebook["metadata"]["annotations"]
+        customerImageVersion = annotations.get("customerImageVersion")
+
+    log.info("Got customerImageVersion: %s" % customerImageVersion)
+
+    customerCourseName = ""
+    if notebook["metadata"].get("annotations"):
+        annotations = notebook["metadata"]["annotations"]
+        customerCourseName = annotations.get("customerCourseName")
+
+    log.info("Got customerCourseName: %s" % customerCourseName)
+
     return {
         "name": notebook["metadata"]["name"],
         "namespace": notebook["metadata"]["namespace"],
         "serverType": server_type,
         "age": notebook["metadata"]["creationTimestamp"],
         "last_activity": get_notebook_last_activity(notebook),
-        "image": cntr["image"],
-        "shortImage": cntr["image"].split("/")[-1],
+        "image": imageName,
+        "shortImage": shortImage,
         "cpu": cntr["resources"]["requests"]["cpu"],
         "gpus": process_gpus(cntr),
         "memory": cntr["resources"]["requests"]["memory"],
-        "volumes": [v["name"] for v in cntr["volumeMounts"]],
+        "volumes": volumeMounts,
         "status": status.process_status(notebook),
         "metadata": notebook["metadata"],
+        "isTemplate": isTemplate,
+        "jsonStr": jsonStr,
+        "shortImageName": shortImageName,
+        "shortImageVersion": shortImageVersion,
+        "customerImageName": customerImageName,
+        "customerImageVersion": customerImageVersion,
+        "customerCourseName": customerCourseName,        
     }

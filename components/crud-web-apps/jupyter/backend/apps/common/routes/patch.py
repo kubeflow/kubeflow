@@ -11,8 +11,11 @@ from . import bp
 log = logging.getLogger(__name__)
 
 STOP_ATTR = "stopped"
-ATTRIBUTES = set([STOP_ATTR])
-
+ISTEMPLATE_ATTE = "istemplate"
+CUSTOMERIMAGENAME_ATTR = "customerImageName"
+CUSTOMERIMAGEVERSION_ATTR = "customerImageVersion"
+CUSTOMERCOURSENAME_ATTR = "customerCourseName"
+ATTRIBUTES = set([STOP_ATTR, ISTEMPLATE_ATTE, CUSTOMERIMAGENAME_ATTR, CUSTOMERIMAGEVERSION_ATTR, CUSTOMERCOURSENAME_ATTR])
 
 # Routes
 @bp.route(
@@ -37,8 +40,89 @@ def patch_notebook(namespace, notebook):
     if STOP_ATTR in request_body:
         start_stop_notebook(namespace, notebook, request_body)
 
+    if ISTEMPLATE_ATTE in request_body:
+        enable_disable_template_notebook(namespace, notebook, request_body)
+
+    if CUSTOMERIMAGENAME_ATTR in request_body:
+        set_customer_image_name_notebook(namespace, notebook, request_body)
+
+    if CUSTOMERIMAGEVERSION_ATTR in request_body:
+        set_customer_image_version_notebook(namespace, notebook, request_body)
+
+    if CUSTOMERCOURSENAME_ATTR in request_body:
+        set_course_image_name_notebook(namespace, notebook, request_body)
+
     return api.success_response()
 
+# helper functions
+def set_customer_image_name_notebook(namespace, notebook, request_body):
+    setname = request_body[CUSTOMERIMAGENAME_ATTR]
+
+    patch_body = {}
+
+    log.info("Set Notebook '%s/%s' %s = %s", namespace, notebook, CUSTOMERIMAGENAME_ATTR, setname)
+
+    patch_body = {
+        "metadata": {"annotations": {CUSTOMERIMAGENAME_ATTR: setname}}
+    }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
+
+def set_customer_image_version_notebook(namespace, notebook, request_body):
+    setname = request_body[CUSTOMERIMAGEVERSION_ATTR]
+
+    patch_body = {}
+
+    log.info("Set Notebook '%s/%s' %s = %s", namespace, notebook, CUSTOMERIMAGEVERSION_ATTR, setname)
+
+    patch_body = {
+        "metadata": {"annotations": {CUSTOMERIMAGEVERSION_ATTR: setname}}
+    }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
+
+def set_course_image_name_notebook(namespace, notebook, request_body):
+    setname = request_body[CUSTOMERCOURSENAME_ATTR]
+
+    patch_body = {}
+
+    log.info("Set Notebook '%s/%s' %s = %s", namespace, notebook, CUSTOMERCOURSENAME_ATTR, setname)
+
+    patch_body = {
+        "metadata": {"annotations": {CUSTOMERCOURSENAME_ATTR: setname}}
+    }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
+
+def enable_disable_template_notebook(namespace, notebook, request_body):
+    istemplate = request_body[ISTEMPLATE_ATTE]
+
+    patch_body = {}
+    if istemplate:
+        log.info("Enable Notebook as Template '%s/%s'", namespace, notebook)
+
+        patch_body = {
+            "metadata": {"labels": {"isTemplateName": "yes"}}
+        }
+    else:
+        log.info("Disable Notebook as Template '%s/%s'", namespace, notebook)
+        patch_body = {
+            "metadata": {"labels": {"isTemplateName": "no"}}
+        }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
 
 # helper functions
 def start_stop_notebook(namespace, notebook, request_body):
@@ -78,3 +162,73 @@ def notebook_is_stopped(namespace, notebook):
     annotations = notebook.get("metadata", {}).get("annotations", {})
 
     return status.STOP_ANNOTATION in annotations
+
+# helper functions
+def set_customer_image_name_notebook(namespace, notebook, request_body):
+    setname = request_body[CUSTOMERIMAGENAME_ATTR]
+
+    patch_body = {}
+
+    log.info("Set Notebook '%s/%s' %s = %s", namespace, notebook, CUSTOMERIMAGENAME_ATTR, setname)
+
+    patch_body = {
+        "metadata": {"annotations": {CUSTOMERIMAGENAME_ATTR: setname}}
+    }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
+
+def set_customer_image_version_notebook(namespace, notebook, request_body):
+    setname = request_body[CUSTOMERIMAGEVERSION_ATTR]
+
+    patch_body = {}
+
+    log.info("Set Notebook '%s/%s' %s = %s", namespace, notebook, CUSTOMERIMAGEVERSION_ATTR, setname)
+
+    patch_body = {
+        "metadata": {"annotations": {CUSTOMERIMAGEVERSION_ATTR: setname}}
+    }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
+
+def set_course_image_name_notebook(namespace, notebook, request_body):
+    setname = request_body[CUSTOMERCOURSENAME_ATTR]
+
+    patch_body = {}
+
+    log.info("Set Notebook '%s/%s' %s = %s", namespace, notebook, CUSTOMERCOURSENAME_ATTR, setname)
+
+    patch_body = {
+        "metadata": {"annotations": {CUSTOMERCOURSENAME_ATTR: setname}}
+    }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
+
+def enable_disable_template_notebook(namespace, notebook, request_body):
+    istemplate = request_body[ISTEMPLATE_ATTE]
+
+    patch_body = {}
+    if istemplate:
+        log.info("Enable Notebook as Template '%s/%s'", namespace, notebook)
+
+        patch_body = {
+            "metadata": {"labels": {"isTemplateName": "yes"}}
+        }
+    else:
+        log.info("Disable Notebook as Template '%s/%s'", namespace, notebook)
+        patch_body = {
+            "metadata": {"labels": {"isTemplateName": "no"}}
+        }
+
+    log.info(
+        "Sending PATCH to Notebook %s/%s: %s", namespace, notebook, patch_body
+    )
+    api.patch_notebook(notebook, namespace, patch_body)
