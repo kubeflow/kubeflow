@@ -1,0 +1,41 @@
+apiVersion: kubeflow.org/v1beta1
+kind: Notebook
+metadata:
+  name: {name}
+  namespace: {namespace}
+  labels:
+    app: {name}
+  annotations:
+    notebooks.kubeflow.org/server-type: ""
+spec:
+  template:
+    spec:
+      serviceAccountName: {serviceAccount}
+      containers:
+        - name: {name}
+          image: ""
+          volumeMounts: []
+          env: []
+          resources:
+            requests:
+              cpu: "0.1"
+              memory: "0.1Gi"
+        - image: alpine
+          name: clone
+          resources:
+            limits:
+              cpu: 300m
+              memory: 1Gi
+            requests:
+              cpu: 300m
+              memory: 1Gi
+          command:
+          - /bin/sh
+          args:
+          - -c
+          - if [ ! -f /home/jovyan/.clonedone ]; then cp -a /source/* /home/jovyan; touch /home/jovyan/.clonedone; sleep 365d; else sleep 365d; fi
+          volumeMounts:
+          - mountPath: /source
+            name: {templatePvcName}
+      volumes: []
+      tolerations: []

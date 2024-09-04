@@ -1,0 +1,15 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {name}
+  namespace: {namespace}
+spec:
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths: 
+        - {paths}
+    when:
+    - key: request.headers[kubeflow-userid]
+      values: {useremail}

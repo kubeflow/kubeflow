@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pvc-f0186330-ff26-4b6c-9ac3-6a63474041e9
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  mountOptions:
+  - fsc
+  nfs:
+    path: /volume1/dev/kubeflow-user-example-com-sdsafsa-volume-pvc-f0186330-ff26-4b6c-9ac3-6a63474041e9
+    server: 120.126.23.246
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-client
+  volumeMode: Filesystem
