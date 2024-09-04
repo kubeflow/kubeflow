@@ -90,4 +90,3 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
-

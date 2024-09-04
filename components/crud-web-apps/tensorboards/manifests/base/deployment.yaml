@@ -22,5 +22,4 @@ spec:
           value: $(TWA_APP_SECURE_COOKIES)
         - name: METRICS
           value: $(TWA_APP_ENABLE_METRICS)
-
       serviceAccountName: service-account
