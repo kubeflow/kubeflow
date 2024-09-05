@@ -1,4 +1,10 @@
-# Change Log
+# Changelog
+
+The [GitHub Releases](https://github.com/kubeflow/kubeflow/releases) page covers newer versions of `kubeflow/kubeflow` components.
+
+Release information for the overall _Kubeflow Platform_ is available on the [Kubeflow Releases](https://www.kubeflow.org/docs/releases/) page.
+
+# Changelog (pre-0.5.0)
 
 ## [v0.5.0-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.5.0-rc.0) (2019-03-28)
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1-rc.4...v0.5.0-rc.0)

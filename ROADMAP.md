@@ -1,6 +1,6 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.9 Release, Planned for release: Jul 2024
+## Kubeflow 1.9 Release, Delivered: July 2024
 The Kubeflow Community plans to deliver its v1.9 release in Jul 2024 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.9/README.md#timeline). The high level deliverables are tracked in the [v1.9 Release](https://github.com/orgs/kubeflow/projects/61) Github project board. The v1.9 release process will be managed by the v1.9 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.9/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
 ### Themes
