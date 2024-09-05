@@ -43,10 +43,13 @@ class Config(object):
     JSONIFY_PRETTYPRINT_REGULAR = True
     LOG_LEVEL = logging.INFO
     PREFIX = "/"
+    METRICS: bool = True
 
     def __init__(self):
         if os.environ.get("LOG_LEVEL_DEBUG", "false") == "true":
             self.LOG_LEVEL = logging.DEBUG
+
+        self.METRICS = bool(os.environ.get("METRICS", True))
 
 
 class DevConfig(Config):

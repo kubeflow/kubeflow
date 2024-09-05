@@ -83,3 +83,10 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
+- name: JWA_APP_ENABLE_METRICS
+  fieldref:
+    fieldPath: data.JWA_APP_ENABLE_METRICS
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters

@@ -64,3 +64,10 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
+- name: TWA_APP_ENABLE_METRICS
+  fieldref:
+    fieldPath: data.TWA_APP_ENABLE_METRICS
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters

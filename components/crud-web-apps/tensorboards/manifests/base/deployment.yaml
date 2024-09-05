@@ -20,4 +20,6 @@ spec:
           value: $(TWA_USERID_PREFIX)
         - name: APP_SECURE_COOKIES
           value: $(TWA_APP_SECURE_COOKIES)
+        - name: METRICS
+          value: $(TWA_APP_ENABLE_METRICS)
       serviceAccountName: service-account

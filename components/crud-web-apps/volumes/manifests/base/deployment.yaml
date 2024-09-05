@@ -22,6 +22,8 @@ spec:
           value: $(VWA_APP_SECURE_COOKIES)
         - name: VOLUME_VIEWER_IMAGE
           value: filebrowser/filebrowser:v2.25.0
+        - name: METRICS
+          value: $(VWA_APP_ENABLE_METRICS)
         volumeMounts: 
         - name: viewer-spec
           mountPath: /etc/config/viewer-spec.yaml
