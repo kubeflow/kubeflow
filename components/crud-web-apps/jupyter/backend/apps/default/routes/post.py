@@ -35,9 +35,10 @@ def post_pvc(namespace):
           utils.NOTEBOOK_TEMPLATE_YAML,
           name=body["name"],
           namespace=namespace,
-          isTemplate =  '\"'+body["isTemplate"]+'\"',
+          isTemplate='\"no\"',
+          creator=body["name"],
           serviceAccount="default-editor",
-          jsonStr = '\'' + data + '\'',
+          jsonStr='\'' + data + '\'',
       )
     else:
       origin_namespace = body['origin_namespace']
@@ -49,6 +50,7 @@ def post_pvc(namespace):
           name=body["name"],
           namespace=namespace,
           isTemplate =  '\"'+body["isTemplate"]+'\"',
+          creator=body["name"],
           serviceAccount="default-editor",
           templatePvcName = '\"'+newpvcname+'\"',
           jsonStr = '\'' + data + '\'',
