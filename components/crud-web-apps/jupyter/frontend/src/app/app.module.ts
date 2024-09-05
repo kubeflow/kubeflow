@@ -15,6 +15,7 @@ import {
   MAT_SNACK_BAR_DEFAULT_OPTIONS,
 } from '@angular/material/snack-bar';
 import { IndexDefaultModule } from './pages/index/index-default/index-default.module';
+import {MatDialogModule } from '@angular/material/dialog';
 
 /**
  * MAT_SNACK_BAR_DEFAULT_OPTIONS values can be found
@@ -36,6 +37,7 @@ const JwaSnackBarConfig: MatSnackBarConfig = {
     NotebookPageModule,
     FormNewModule,
     IndexDefaultModule,
+    MatDialogModule,
   ],
   providers: [
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: JwaSnackBarConfig },
