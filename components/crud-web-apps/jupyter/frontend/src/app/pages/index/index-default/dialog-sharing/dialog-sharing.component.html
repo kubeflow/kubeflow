@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!----------------------------------2024/02/14 新增scrollbar和取消按鈕平行header Start-------------------------------------------->
+  <style>
+     .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .share-notebook {
+      text-align: center;
+      flex: 1;
+    }
+
+    .dialog-container {
+      max-height: 70vh; 
+      overflow-y: auto; 
+      overflow-x: hidden;
+    }
+
+  .view-chip-list-container {
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}
+  </style>
+</head>
+<div class="dialog-header">
+  <h2 class="share-notebook" mat-dialog-title>
+    Share this notebook : "{{notebook}}"
+  </h2>
+  <button mat-icon-button color="disabled" (click)="cancel()">X</button>
+</div>
+<div class="dialog-container">
+<!----------------------------------2024/02/14 新增scrollbar和取消按鈕平行header End-------------------------------------------->
+<!----------------------------------20231217 chip in email start-------------------------------------------->
+<p style="color:#0b5299">Step 1. Add user(s):</p> 
+<mat-form-field class="example-chip-list" style="width: 600px;">
+  <mat-chip-list #chipList>
+    <mat-chip *ngFor="let useremail of useremail" [selectable]="selectable"
+             [removable]="removable" (removed)="remove(useremail)">
+      {{useremail.name}}
+      <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+    </mat-chip>
+    <input matInput placeholder="Please enter email(s)" 
+           [matChipInputFor]="chipList"
+           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+           [matChipInputAddOnBlur]="addOnBlur"
+           (matChipInputTokenEnd)="add($event)">
+
+  </mat-chip-list>
+</mat-form-field>
+<!----------------------------------20231217 chip in email end-------------------------------------------->
+
+<!----------------------------------20231217 mode selection in email start-------------------------------------------->
+<p style="color:#0b5299;margin-top:3%">Step 2. Select access:</p> 
+<mat-form-field style="width: 600px;">
+  <mat-label>Access type :</mat-label>
+  <mat-select [(value)]="selected" (selectionChange)="updateCopyLink()" >
+    <mat-option value="option1">View-Only</mat-option>
+    <mat-option value="option2">Editable</mat-option>
+  </mat-select>
+</mat-form-field>
+<br>
+<div mat-dialog-actions align="center" style="margin-top:3%;margin-bottom: 4%;"> 
+  <button mat-raised-button color="warn"  [cdkCopyToClipboard]="copylink"> Copy Link </button>
+  <button mat-raised-button color="primary" style="margin-left:10%;" (click)="onSubmit()">Add</button>
+  <button mat-raised-button color="primary" (click)="cancel()" style="margin-left:10%;" (click)="delete()">Delete all existed share</button>
+</div>
+<!--------------------------20240129 加入錯誤訊息 start----------------->
+<div *ngIf="errorMessage" style="color: red;text-align: center;">
+  {{ errorMessage }}
+</div>
+<br>
+<!--------------------------20240129 加入錯誤訊息 end----------------->
+<!----------------------------------20231217 mode selection in email end-------------------------------------------->
+
+<!----------------------------------20240109 extension panel start-------------------------------------------->
+<mat-accordion>
+<mat-expansion-panel (opened)="panelOpenState = true"
+                     (closed)="panelOpenState = false">
+    <mat-expansion-panel-header>
+      <mat-panel-title style="color:#0b5299">
+        View existed share list
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <div class="view-chip-list-container">
+      <ng-container *ngIf="viewlist && viewlist.length > 0; else viewOnlyNoData">
+      <mat-form-field class="view-chip-list" style="width: 450px; max-height: 200px;">
+        <mat-label style=" font-size: 16px;">View-Only</mat-label> 
+        <mat-chip-list #chipList>
+          <mat-chip
+            *ngFor="let viewlist of viewlist"
+            [selectable]="selectable"
+            [removable]="removable"
+            (removed)="remove1(viewlist)">
+            {{viewlist}}
+            <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-list>
+      </mat-form-field>
+      <br>
+    </ng-container>
+    
+      <ng-template #viewOnlyNoData>
+        <p style="margin-top: 10px;text-align: center;font-size: 14px;">"View-Only" doesn't have any shared users currently.</p>
+      </ng-template>
+      <br>
+    <ng-container *ngIf="editlist && editlist.length > 0; else noData">
+      <mat-form-field class="edit-chip-list"  style="width: 470px; max-height: 200px; ">
+        <mat-label style=" font-size: 16px;">Editable</mat-label> 
+        <mat-chip-list #chipList>
+          <mat-chip
+            *ngFor="let editlist of editlist"
+            [selectable]="selectable"
+            [removable]="removable"
+            (removed)="remove2(editlist)">
+           
+            {{editlist}}
+            <mat-icon matChipRemove *ngIf="removable" >cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-list>
+      </mat-form-field>
+    </ng-container>
+  
+
+  <ng-template #noData>
+    <p style="margin-top: 10px;text-align: center;font-size: 14px;">"Editable" doesn't have any shared users currently.</p>
+  </ng-template>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
+<!----------------------------------20240109 extension panel end-------------------------------------------->
+<br>
+</div>
+</html>

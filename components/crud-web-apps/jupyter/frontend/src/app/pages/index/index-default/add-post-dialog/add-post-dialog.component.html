@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>
+  Edit Template Notebook:{{ notebook.name }}
+</h2>
+
+<mat-dialog-content class="post-form">
+  <mat-form-field>
+    <input matInput placeholder="Image Name" [(ngModel)]="imageName" />
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Version" [(ngModel)]="imageVersion" />
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Course Name" [(ngModel)]="courseName" />
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button color="primary" (click)="doPost()">OK</button>
+  <button mat-button mat-dialog-close color="warn">Cancel</button>
+</mat-dialog-actions>

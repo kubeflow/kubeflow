@@ -23,6 +23,12 @@ import { isEqual } from 'lodash';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
 import { Router } from '@angular/router';
 import { ActionsService } from 'src/app/services/actions.service';
+import { getDisableTemplateDialogConfig } from 'src/app/services//config';
+
+/* Lance begin 20240906 */
+import { AddPostDialogComponent } from './add-post-dialog/add-post-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+/* Lance end 20240906 */
 
 @Component({
   selector: 'app-index-default',
@@ -70,6 +76,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     public router: Router,
     public poller: PollerService,
     public actions: ActionsService,
+    public dialog: MatDialog, // Lance
   ) {}
 
   ngOnInit(): void {
@@ -280,6 +287,114 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   // Action handling functions
 
   /* Lance - Begin 0906 */
+  public templateClicked(notebook: NotebookProcessedObject) {
+    if (notebook.isTemplate === 'yes') {
+      this.disableTemplateNotebook(notebook);
+    } else {
+      this.enableTemplateNotebook(notebook);
+    }
+  }
+
+  public enableTemplateNotebook(notebook: NotebookProcessedObject) {
+    
+    const config: SnackBarConfig = {
+      data: {
+        msg: $localize`Set Notebook as template '${notebook.name}'...`,
+        snackType: SnackType.Info,
+      },
+      duration: 1000,
+    };
+    this.snackBar.open(config);
+
+    /* Lance -0906 */
+    /*
+    this.snackBar.open(
+      $localize`Set Notebook as template '${notebook.name}'...`,
+      SnackType.Info,
+      1000,
+    );
+    */
+    notebook.status.phase = STATUS_TYPE.WAITING;
+    notebook.status.message = 'Set Notebook as template...';
+    this.updateNotebookFields(notebook);
+
+    this.backend.enableTemplateNotebook(notebook).subscribe(() => {
+      // this.poller.reset();
+      alert("enableTemplateNotebook");
+    });
+
+    this.showAddPostDialog(notebook);
+  }
+
+  public disableTemplateNotebook(notebook: NotebookProcessedObject) {
+    const stopDialogConfig = getDisableTemplateDialogConfig(notebook.name);
+    const ref = this.confirmDialog.open(notebook.name, stopDialogConfig);
+    const stopSub = ref.componentInstance.applying$.subscribe(applying => {
+      if (!applying) {
+        return;
+      }
+
+      // Close the open dialog only if the request succeeded
+      this.backend.disableTemplateNotebook(notebook).subscribe({
+        next: _ => {
+          // Lance
+          // this.poller.reset();
+          alert('disableTemplateNotebook');
+          ref.close(DIALOG_RESP.ACCEPT);
+        },
+        error: err => {
+          const errorMsg = err;
+          stopDialogConfig.error = errorMsg;
+          ref.componentInstance.applying$.next(false);
+        },
+      });
+
+      // request has succeeded
+      ref.afterClosed().subscribe(res => {
+        stopSub.unsubscribe();
+        if (res !== DIALOG_RESP.ACCEPT) {
+          return;
+        }
+
+        /* Lance - begin 20240906 */
+        const config: SnackBarConfig = {
+          data: {
+            msg: $localize`Disable Notebook as template '${notebook.name}'...`,
+            snackType: SnackType.Info,
+          },
+          duration: 1000,
+        };
+        this.snackBar.open(config);
+        /*
+        this.snackBar.open(
+          $localize`Disable Notebook as template '${notebook.name}'...`,
+          SnackType.Info,
+          1000,
+        );
+        */
+        /* Lance - end 20240906 */
+
+        notebook.status.phase = STATUS_TYPE.TERMINATING;
+        notebook.status.message = 'Preparing to disable the Notebook as template...';
+        this.updateNotebookFields(notebook);
+      });
+    });
+  }
+
+  showAddPostDialog(notebook: NotebookProcessedObject) {
+
+    this.currentName = notebook.name;
+    this.dialog.open(AddPostDialogComponent, {
+      hasBackdrop: false,
+      data: { notebook: notebook}
+    });
+
+    //this.dialog.open(AddPostDialogComponent, {
+    //  width: '600px',
+    //  panelClass: 'form--dialog-padding',
+    //});
+  }
+
   processSetTemplateActionStatus(notebook: NotebookProcessedObject) {
 
     if (notebook.jsonStr === null) 
