@@ -8,13 +8,13 @@
 ## About Kubeflow
 
 [Kubeflow](https://www.kubeflow.org/) makes artificial intelligence and machine learning simple, portable, and scalable.
-We are an _ecosystem_ of [Kubernetes](https://kubernetes.io/) based components for each stage in the [AI/ML Lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle) with support for best-in-class open source [tools and frameworks](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem).
 
+We are an _ecosystem_ of [Kubernetes](https://kubernetes.io/) based components for each stage in the [AI/ML Lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle) with support for best-in-class open source [tools and frameworks](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem).
 Please refer to the official [documentation](https://www.kubeflow.org/docs/) for more information.
 
 ## Kubeflow Components
 
-The [Kubeflow Ecosystem](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem) is composed of several projects known as [Kubeflow Components](https://www.kubeflow.org/docs/components/).
+The [Kubeflow Ecosystem](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem) is composed of several projects known as _Kubeflow Components_.
 
 The following table lists the components and their respective source code repositories:
 
