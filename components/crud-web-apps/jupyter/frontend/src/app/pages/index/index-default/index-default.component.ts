@@ -29,6 +29,9 @@ import { getDisableTemplateDialogConfig } from 'src/app/services//config';
 import { AddPostDialogComponent } from './add-post-dialog/add-post-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 /* Lance end 20240906 */
+// YCL 2023/12/03 start
+import { DialogSharing } from './dialog-sharing/dialog-sharing.component';
+// YCL 2023/12/03 end
 
 @Component({
   selector: 'app-index-default',
@@ -205,6 +208,107 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
         break;
+      case 'template':
+        this.templateClicked(a.data);
+        break;
+      case 'remove-template':
+        this.templateClicked(a.data);
+        break;
+      case 'share':
+        // this.shareClicked(a.data);
+        const dialogRef =this.dialog.open(DialogSharing,{ data: { namespace: a.data.namespace, name: a.data.name }});  
+        dialogRef.afterClosed().subscribe((result) => {
+            //const jsyaml = require('js-yaml');
+            if (result && result.useremail) {
+              const useremail = result.useremail;
+              console.log('User Email from Dialog:', useremail);
+              const selected = result.selected;
+              // if select "view" //
+              if (selected =='option1'){
+                const paths = `/notebook/${a.data.namespace}/${a.data.name}/view/*`;
+                const namevalue = `notebook-${a.data.name}-authorizationpolicy-view`;
+
+                this.backend.getAllAuthorizationPolicy(a.data.namespace).subscribe(aps => {
+                  console.log(a.data.namespace);
+                  var deletename = "notebook-" + a.data.name +"-authorizationpolicy-view";
+                  var names = aps.map((ap) => { return ap.metadata.name });
+                  var filteredNames = names.filter((name) => name.includes(deletename));
+              
+                if (filteredNames.length <= 0) {
+                  this.backend.createAuthorization(this.currNamespace,namevalue,paths,useremail).subscribe(
+                    (response) => {
+                    console.log("Success");
+                    console.log('currNamespace:', this.currNamespace);
+                    console.log('namevalue:', namevalue);
+                    console.log("paths:", paths);
+                    console.log("useremail:", useremail);
+                    console.log("selected-option:", selected);
+                    },
+                (error) => {
+                  console.error('Error creating authorization policy:', error);
+                });
+                }else {
+                  //2024/01/23 新增email功能 start
+                  this.backend.modify_authorizaiton(this.currNamespace,namevalue,useremail).subscribe(
+                    (response) => {
+                    console.log("Success for adding");
+                    console.log('currNamespace:', this.currNamespace);
+                    console.log('namevalue:', namevalue);
+                    console.log("useremail:", useremail);
+                    console.log("selected-option:", selected);
+                    },
+                    (error) => {
+                      console.log('filteredName != 0, existed');
+                  });
+              
+                }
+              });
+              //2024/01/23 新增email功能 end
+            }else{
+              // if select "editable" //
+              const paths = `/notebook/${a.data.namespace}/${a.data.name}/*`;
+              const namevalue = `notebook-${a.data.name}-authorizationpolicy-editable`;
+              this.backend.getAllAuthorizationPolicy(a.data.namespace).subscribe(aps => {
+                console.log(a.data.namespace);
+                var deletename = "notebook-" + a.data.name +"-authorizationpolicy-editable";
+                var names = aps.map((ap) => { return ap.metadata.name });
+                var filteredNames = names.filter((name) => name.includes(deletename));
+              if (filteredNames.length <= 0) {
+                this.backend.createAuthorization(this.currNamespace,namevalue,paths,useremail).subscribe(
+                (response) => {
+                  console.log("Success");
+                  console.log('currNamespace:', this.currNamespace);
+                  console.log('namevalue:', namevalue);
+                  console.log("paths:", paths);
+                  console.log("useremail:", useremail);
+                  console.log("selected-option:", selected);
+                },
+                (error) => {
+                  console.error('Error creating authorization policy:', error);
+                });
+              }else {
+                //2024/01/23 新增email功能 start
+                this.backend.modify_authorizaiton(this.currNamespace,namevalue,useremail).subscribe(
+                  (response) => {
+                  console.log("Success for adding");
+                  console.log('currNamespace:', this.currNamespace);
+                  console.log('namevalue:', namevalue);
+                  console.log("useremail:", useremail);
+                  console.log("selected-option:", selected);
+                  },
+                  (error) => {
+                    console.log('filteredName != 0, existed');
+                });
+              }
+            })};
+            //2024/01/23 新增email功能 end
+          }
+        });
+        // 2024/1/16 YC end //
+        break;
+      case 'view':
+        // this.viewClicked(a.data);
+        break;  
     }
   }
 

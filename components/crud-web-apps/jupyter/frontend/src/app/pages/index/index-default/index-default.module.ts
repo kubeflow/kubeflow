@@ -12,11 +12,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import { AddPostConfirmDialogComponent } from './add-post-confirm-dialog/add-post-confirm-dialog.component';
 import { AddPostDialogComponent } from './add-post-dialog/add-post-dialog.component';
 import { AfterPostNotifyComponent } from './after-post-notify/after-post-notify.component';
+import { DialogSharingModule } from './dialog-sharing/dialog-sharing.module';
 /* Lance end 20240906 */
 
 @NgModule({
   declarations: [IndexDefaultComponent, ServerTypeComponent, AddPostConfirmDialogComponent, AddPostDialogComponent, AfterPostNotifyComponent],
-  imports: [CommonModule, KubeflowModule, MatDialogModule, FormsModule, MatFormFieldModule],
+  imports: [CommonModule, KubeflowModule, MatDialogModule, FormsModule, MatFormFieldModule, DialogSharingModule],
   exports: [IndexDefaultComponent, ServerTypeComponent],
 })
 export class IndexDefaultModule {}
