@@ -11,6 +11,7 @@ import {
   LinkType,
   MemoryValue,
   quantityToScalar,
+  MenuValue,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
 
@@ -122,6 +123,145 @@ export const defaultConfig: TableConfig = {
           color: 'primary',
           field: 'connectAction',
           text: $localize`CONNECT`,
+        }),
+        // 2023/08/29 YCL sharing start //
+        new ActionIconValue({
+          name: 'share',
+          tooltip: $localize`Share this notebook`,
+          color: '',
+          field: 'shareAction',
+          iconReady: 'material:screen_share',
+        }),
+        // 2023/08/29 YCL sharing end //        
+        new ActionIconValue({
+          name: 'start-stop',
+          tooltipInit: $localize`Stop this notebook server`,
+          tooltipReady: $localize`Start this notebook server`,
+          color: '',
+          field: 'startStopAction',
+          iconInit: 'material:stop',
+          iconReady: 'material:play_arrow',
+        }),
+        new ActionIconValue({
+          name: 'delete',
+          tooltip: $localize`Delete this notebook server`,
+          color: '',
+          field: 'deleteAction',
+          iconReady: 'material:delete',
+        }),
+      ]),
+    },
+  ],
+};
+
+export const defaultAdvancedConfig: TableConfig = {
+  columns: [
+    {
+      matHeaderCellDef: $localize`Status`,
+      matColumnDef: 'status',
+      value: new StatusValue(),
+    },
+    {
+      matHeaderCellDef: $localize`Name`,
+      matColumnDef: 'name',
+      style: { width: '25%' },
+      value: new PropertyValue({
+        field: 'name',
+        tooltipField: 'name',
+        truncate: true,
+      }),
+    },
+    {
+      matHeaderCellDef: $localize`Type`,
+      matColumnDef: 'type',
+      value: new ComponentValue({
+        component: ServerTypeComponent,
+      }),
+    },
+    {
+      matHeaderCellDef: $localize`Age`,
+      matColumnDef: 'age',
+      style: { width: '12%' },
+      textAlignment: 'right',
+      value: new PropertyValue({ field: 'age', truncate: true }),
+    },
+    {
+      matHeaderCellDef: $localize`Last activity`,
+      matColumnDef: 'last_activity',
+      value: new DateTimeValue({ field: 'last_activity' }),
+    },
+    {
+      matHeaderCellDef: $localize`Image`,
+      matColumnDef: 'image',
+      style: { width: '30%' },
+      value: new PropertyValue({
+        field: 'shortImage',
+        popoverField: 'image',
+        truncate: true,
+        style: { maxWidth: '300px' },
+      }),
+    },
+    {
+      matHeaderCellDef: $localize`GPUs`,
+      matColumnDef: 'gpus',
+      style: { width: '8%' },
+      textAlignment: 'right',
+      value: new PropertyValue({
+        field: 'gpus.count',
+        tooltipField: 'gpus.message',
+      }),
+    },
+    {
+      matHeaderCellDef: $localize`CPUs`,
+      matColumnDef: 'cpu',
+      style: { width: '8%' },
+      textAlignment: 'right',
+      value: new PropertyValue({ field: 'cpu' }),
+    },
+    {
+      matHeaderCellDef: $localize`Memory`,
+      matColumnDef: 'memory',
+      style: { width: '8%' },
+      textAlignment: 'right',
+      value: new PropertyValue({ field: 'memory' }),
+    },
+    /* Lance */
+    {
+      matHeaderCellDef: $localize`Volumes`,
+      matColumnDef: 'volumes',
+      value: new MenuValue({ field: 'volumes', itemsIcon: 'storage' }),
+    },
+    {
+      matHeaderCellDef: '',
+      matColumnDef: 'actions',
+      value: new ActionListValue([
+        new ActionButtonValue({
+          name: 'template',
+          tooltip: $localize`set to this notebook as template`,
+          color: 'primary',
+          field: 'setTemplateAction',
+          text: $localize`SET`,
+        }),
+        new ActionButtonValue({
+          name: 'remove-template',
+          tooltip: $localize`copy to this notebook server`,
+          color: 'primary',
+          field: 'removeTemplateAction',
+          text: $localize`REMOVE`,
+        }),
+        new ActionButtonValue({
+          name: 'connect',
+          tooltip: $localize`Connect to this notebook server`,
+          color: 'primary',
+          field: 'connectAction',
+          text: $localize`CONNECT`,
+        }),
+        new ActionIconValue({
+          name: 'share',
+          tooltip: $localize`Share this notebook`,
+          color: '',
+          field: 'shareAction',
+          iconReady: 'material:screen_share',
         }),
         new ActionIconValue({
           name: 'start-stop',

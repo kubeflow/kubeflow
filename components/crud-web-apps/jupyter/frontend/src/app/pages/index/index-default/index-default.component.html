@@ -7,7 +7,16 @@
   </lib-title-actions-toolbar>
 
   <!--scrollable page content-->
-  <div class="page-padding lib-flex-grow lib-overflow-auto">
+  <div *ngIf="!isBasic" class="page-padding lib-flex-grow lib-overflow-auto">
+    <lib-table
+      [config]="configAdvance"
+      [data]="processedData"
+      [trackByFn]="notebookTrackByFn"
+      (actionsEmitter)="reactToAction($event)"
+    ></lib-table>
+  </div>
+
+  <div *ngIf="isBasic" class="page-padding lib-flex-grow lib-overflow-auto">
     <lib-table
       [config]="config"
       [data]="processedData"

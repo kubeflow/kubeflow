@@ -15,7 +15,11 @@ import {
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Subscription } from 'rxjs';
-import { defaultConfig } from './config';
+import { 
+  defaultConfig,
+  defaultAdvancedConfig, // Lance
+} from './config';
+import { isEqual } from 'lodash';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
 import { Router } from '@angular/router';
 import { ActionsService } from 'src/app/services/actions.service';
@@ -31,8 +35,19 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   nsSub = new Subscription();
   pollSub = new Subscription();
 
-  currNamespace: string | string[];
+  /* Lance - begin 0906 */
+  // currNamespace: string | string[];
+  // config = defaultConfig;
+  currNamespace = '';
+  isBasic = false;
+  configAdvance = defaultAdvancedConfig;
   config = defaultConfig;
+  // config = defaultAdvancedConfig;
+  rawData: NotebookResponseObject[] = [];
+  currentName = '';
+  currentField = '';
+  /* lance - end 0906 */
+
   processedData: NotebookProcessedObject[] = [];
   dashboardDisconnectedState = DashboardState.Disconnected;
 
@@ -60,10 +75,84 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Reset the poller whenever the selected namespace changes
     this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
-      this.currNamespace = ns;
+      this.currNamespace = ns.toString();
+      // alert("Lance 2-1 " + this.currNamespace);
+      this.backend.getManager( this.currNamespace).subscribe(manager => {
+        // alert("Lance 2 " + manager[0]);
+        if( manager[0] === "manager" )
+          this.isBasic = false;
+        else
+          this.isBasic = true;
+      });
       this.poll(ns);
       this.newNotebookButton.namespaceChanged(ns, $localize`Notebook`);
     });
+
+    this.backend.getUsername().subscribe(username => {
+
+      if (Object.keys(username).length === 0) {
+        // Don't fire on empty config
+        //console.log("NO username")
+        this.isBasic = true;
+        return;
+      }
+
+      /*
+      if( username.substring(0,1) === "D" || username.substring(0,1) === "d" )
+        this.isBasic = false;
+      else
+        this.isBasic = true;
+      */
+
+      //this.isBasic = false;  
+      // alert(username);
+      //console.log("username", username)
+    });
+
+    /*
+    // Poll for new data and reset the poller if different data is found
+    this.nsSub.add(
+      this.poller.start().subscribe(() => {
+        if (!this.currNamespace) {
+          return;
+        }
+
+        this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
+          if (!isEqual(this.rawData, notebooks)) {
+            this.rawData = notebooks;
+
+            // Update the frontend's state
+            // this.processedData = this.processIncomingData(notebooks);
+            this.processedData = this.processIncomingData(this.rawData.filter((notebook) => {
+              console.log(notebook.name);
+              return (
+                notebook.name.includes(this.currentField) ||
+                notebook.namespace.includes(this.currentField) ||
+                notebook.image.includes(this.currentField)
+              );
+            }));
+            this.poller.reset();
+          }
+        });
+      }),
+    );
+
+    // Reset the poller whenever the selected namespace changes
+    this.nsSub.add(
+      this.ns.getSelectedNamespace().subscribe(ns => {
+        this.currNamespace = ns;
+        this.poller.reset();
+
+        this.backend.getManager(this.currNamespace).subscribe(manager => {
+            // alert(manager[0]);
+            if( manager[0] === "manager" )
+              this.isBasic = false;
+            else
+              this.isBasic = true;
+        });
+      }),
+    );
+    */
   }
 
   ngOnDestroy() {
@@ -164,6 +253,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   // Data processing functions
   updateNotebookFields(notebook: NotebookProcessedObject) {
+    /* Lance - Begin 0906 */
+    notebook.setTemplateAction = this.processSetTemplateActionStatus(notebook);
+    notebook.removeTemplateAction = this.processRemoveTemplateActionStatus(notebook);
+    /* Lance - End 0906 */
     notebook.deleteAction = this.processDeletionActionStatus(notebook);
     notebook.connectAction = this.processConnectActionStatus(notebook);
     notebook.startStopAction = this.processStartStopActionStatus(notebook);
@@ -185,6 +278,40 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   }
 
   // Action handling functions
+
+  /* Lance - Begin 0906 */
+  processSetTemplateActionStatus(notebook: NotebookProcessedObject) {
+
+    if (notebook.jsonStr === null) 
+      return STATUS_TYPE.TERMINATING;
+    
+    if (notebook.isTemplate !== 'yes') {
+      return STATUS_TYPE.READY;
+    }
+
+    // Lance
+    // if (notebook.status.phase !== STATUS_TYPE.TERMINATING) {
+    //    return STATUS_TYPE.READY;
+    //  }
+
+    return STATUS_TYPE.TERMINATING;
+  }
+
+  processRemoveTemplateActionStatus(notebook: NotebookProcessedObject) {
+
+    if (notebook.isTemplate === 'yes') {
+      return STATUS_TYPE.READY;
+    }
+
+    // Lance
+    // if (notebook.status.phase !== STATUS_TYPE.TERMINATING) {
+    //    return STATUS_TYPE.READY;
+    //  }
+
+    return STATUS_TYPE.TERMINATING;
+  }
+  /* Lance - End 0906 */
+
   processDeletionActionStatus(notebook: NotebookProcessedObject) {
     if (notebook.status.phase !== STATUS_TYPE.TERMINATING) {
       return STATUS_TYPE.READY;
