@@ -35,11 +35,11 @@ The [Kubeflow Platform](https://www.kubeflow.org/docs/started/introduction/#what
 
 The following table lists the platform components and their respective source code repositories:
 
-| Component                                                                             | Source Code                                                   |
-|---------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| [Central Dashboard](https://www.kubeflow.org/docs/components/central-dash/)           | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
-| [Profile Controller](https://www.kubeflow.org/docs/components/central-dash/profiles/) | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
-| Kubeflow Manifests                                                                    | [`kubeflow/manifests`](https://github.com/kubeflow/manifests) |
+| Component                                                                                           | Source Code                                                   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| [Central Dashboard](https://www.kubeflow.org/docs/components/central-dash/)                         | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
+| [Profile Controller](https://www.kubeflow.org/docs/components/central-dash/profiles/)               | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
+| [Kubeflow Manifests](https://www.kubeflow.org/docs/started/installing-kubeflow/#kubeflow-manifests) | [`kubeflow/manifests`](https://github.com/kubeflow/manifests) |
 
 ## Kubeflow Community & Contributing
 
