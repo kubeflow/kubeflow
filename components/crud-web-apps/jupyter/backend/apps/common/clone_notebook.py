@@ -289,7 +289,7 @@ class CloneNotebook:
         time.sleep(1)
 
     # clone the pvc for home directory
-    newhomepvcname = newnotebookname + '-volume'
+    newhomepvcname = newnotebookname + '-workspace'
     self.clone_pvc(namespace,notebook['spec']['template']['spec']['volumes'][1]['persistentVolumeClaim']['claimName'],target_namespace,newhomepvcname,clone=False)
 
     # Load the template
@@ -300,13 +300,13 @@ class CloneNotebook:
     updated_template['metadata']['name'] = newnotebookname
     updated_template['metadata']['namespace'] = target_namespace
     # update the name of the jupyternotebook home directory
-    updated_template['spec']['template']['spec']['containers'][0]['volumeMounts'][1]['name'] = newnotebookname + '-volume'
+    updated_template['spec']['template']['spec']['containers'][0]['volumeMounts'][1]['name'] = newnotebookname + '-workspace'
     updated_template['spec']['template']['spec']['containers'][0]['image'] = notebook['spec']['template']['spec']['containers'][0]['image']
     # update the name of the clone container sidecar
-    updated_template['spec']['template']['spec']['containers'][1]['volumeMounts'][1]['name'] = newnotebookname + '-volume'
+    updated_template['spec']['template']['spec']['containers'][1]['volumeMounts'][1]['name'] = newnotebookname + '-workspace'
     # update the volume names
-    updated_template['spec']['template']['spec']['volumes'][1]['name'] = newnotebookname + '-volume'
-    updated_template['spec']['template']['spec']['volumes'][1]['persistentVolumeClaim']['claimName'] = newnotebookname + '-volume'
+    updated_template['spec']['template']['spec']['volumes'][1]['name'] = newnotebookname + '-workspace'
+    updated_template['spec']['template']['spec']['volumes'][1]['persistentVolumeClaim']['claimName'] = newnotebookname + '-workspace'
     updated_template['spec']['template']['spec']['volumes'][2]['persistentVolumeClaim']['claimName'] = newpvcname
 
     # Create the notebook

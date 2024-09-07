@@ -425,7 +425,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
     this.backend.enableTemplateNotebook(notebook).subscribe(() => {
       // this.poller.reset();
-      alert("enableTemplateNotebook");
+      // alert("enableTemplateNotebook");
     });
 
     this.showAddPostDialog(notebook);
@@ -444,7 +444,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         next: _ => {
           // Lance
           // this.poller.reset();
-          alert('disableTemplateNotebook');
+          // alert('disableTemplateNotebook');
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
@@ -502,9 +502,11 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   processSetTemplateActionStatus(notebook: NotebookProcessedObject) {
 
-    if (notebook.jsonStr === null) 
-      return STATUS_TYPE.TERMINATING;
+    // if (notebook.jsonStr === null) 
+    //  return STATUS_TYPE.TERMINATING;
     
+    // alert(notebook.name + ' ' + notebook.isTemplate);
+
     if (notebook.isTemplate !== 'yes') {
       return STATUS_TYPE.READY;
     }

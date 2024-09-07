@@ -87,7 +87,8 @@ export class FormNewComponent implements OnInit, OnDestroy {
         } else {
           this.currNamespace = namespace;
           this.formCtrl.controls.namespace.setValue(this.currNamespace);
-
+          this.isTeached = true;
+          
           if (this.currNamespace) {
             // this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
               this.backend.getAllNotebooks(this.currNamespace).subscribe(notebooks => {
@@ -203,7 +204,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
     }
 
     notebook.isTemplate = 'no';
-    
+
     return notebook;
   }
 
