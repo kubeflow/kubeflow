@@ -12,12 +12,40 @@ import { Router } from '@angular/router';
 import { getFormDefaults, initFormControls } from './utils';
 import { JWABackendService } from 'src/app/services/backend.service';
 
+// Lance - begin - 20230817
+import { isEqual } from 'lodash';
+import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
+import { MatDialog } from '@angular/material/dialog';
+import { AddPostDialogComponent } from '../../index/index-default/add-post-dialog/add-post-dialog.component';
+
+import {
+  defaultAdvancedConfig,
+  defaultConfig,
+  // getDeleteDialogConfig,
+  // getStopDialogConfig,
+} from '../../index/index-default/config';
+// Lance - end - 20230817
+
+
 @Component({
   selector: 'app-form-new',
   templateUrl: './form-new.component.html',
   styleUrls: ['./form-new.component.scss'],
 })
 export class FormNewComponent implements OnInit, OnDestroy {
+  /* Lance - begin - 20240907 */
+  isBasic = true;
+  isTeached = false;
+  blockSubmit = false;
+  // applying$ = new Subject <boolean>();
+  configAdvance = defaultAdvancedConfig;
+  /* Lance - end - 20240907 */
+
+  // Lance - begin - 20230817
+  rawData: NotebookResponseObject[] = [];
+  processedData: NotebookProcessedObject[] = [];
+  // Lance - end - 20230817
+
   currNamespace = '';
   formCtrl: FormGroup;
   config: Config;
@@ -31,6 +59,9 @@ export class FormNewComponent implements OnInit, OnDestroy {
     public backend: JWABackendService,
     public router: Router,
     public popup: SnackBarService,
+    /* Lance - begin - 20240907 */
+    public dialog: MatDialog,
+    /* Lance - end - 20240907 */
   ) {}
 
   ngOnInit(): void {
@@ -56,6 +87,28 @@ export class FormNewComponent implements OnInit, OnDestroy {
         } else {
           this.currNamespace = namespace;
           this.formCtrl.controls.namespace.setValue(this.currNamespace);
+
+          if (this.currNamespace) {
+            // this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
+              this.backend.getAllNotebooks(this.currNamespace).subscribe(notebooks => {
+              if (!isEqual(this.rawData, notebooks)) {
+  
+                /*
+                for ( let nb of notebooks) {
+                  if (nb.jsonStr === null) {
+                    nb.isTemplate = 'no'
+                  }
+                }
+                */
+               
+                this.rawData = notebooks;
+  
+                // Update the frontend's state
+                this.processedData = this.processIncomingData(notebooks);
+                // this.poller.reset();
+              }
+            });
+          }
         }
       }),
     );
@@ -149,6 +202,8 @@ export class FormNewComponent implements OnInit, OnDestroy {
       }
     }
 
+    notebook.isTemplate = 'no';
+    
     return notebook;
   }
 
@@ -193,4 +248,80 @@ export class FormNewComponent implements OnInit, OnDestroy {
   goToNotebooks() {
     this.router.navigate(['/']);
   }
+
+  /* Lance - begin - 20240907 */
+  onCreateNotebook(notebookCopy) {
+    // alert(notebook);
+    const notebookFormCopy = this.formCtrl.value as NotebookFormObject;
+    const notebookForm = JSON.parse(JSON.stringify(notebookFormCopy));
+
+    const notebook = JSON.parse(notebookCopy);
+    notebook.name = notebookForm.name;
+    notebook.origin_namespace = notebook.namespace
+    notebook.namespace = this.currNamespace
+    notebook.template = notebook.workspace.newPvc.metadata.name
+    notebook.workspace.newPvc.metadata.name = notebookForm.name + "-volume";
+    this.backend.createNotebook(notebook).subscribe(() => {
+      this.popup.close();
+      /* Lance */
+      /*
+      this.popup.open(
+        'Notebook created successfully.',
+        SnackType.Success,
+        3000,
+      );
+      */
+      const configSuccess: SnackBarConfig = {
+        data: {
+          msg: 'Notebook created successfully.',
+          snackType: SnackType.Success,
+        },
+      };
+      this.popup.open(configSuccess);
+      this.router.navigate(['/']);
+    });
+  }
+
+  showAddPostDialog(notebook: NotebookProcessedObject) {
+
+    const ref = this.dialog.open(AddPostDialogComponent, {
+      hasBackdrop: false,
+      data: { notebook: notebook}
+    });
+
+    ref.afterClosed().subscribe(res => {
+        window.location.reload();
+        // alert("kkkkk");
+    });
+
+    
+    //this.dialog.open(AddPostDialogComponent, {
+    //  width: '600px',
+    //  panelClass: 'form--dialog-padding',
+    //});
+  }
+
+  onAdvanced() {
+    this.isBasic = false;
+    // Lance disable temp
+    // this.applying$.next(true);
+  }
+
+  onEdit(notebook: NotebookProcessedObject) {
+    this.showAddPostDialog(notebook);
+  }
+
+  processIncomingData(notebooks: NotebookResponseObject[]) {
+    const notebooksCopy = JSON.parse(
+      JSON.stringify(notebooks),
+    ) as NotebookProcessedObject[];
+
+    for (const nb of notebooksCopy) {
+      // this.updateNotebookFields(nb);
+      if (nb.jsonStr === null) {
+      }
+    }
+    return notebooksCopy;
+  }
+  /* Lance - end - 20240907 */
 }

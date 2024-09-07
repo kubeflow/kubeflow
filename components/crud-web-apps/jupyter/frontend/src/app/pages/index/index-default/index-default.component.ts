@@ -367,6 +367,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     /* Lance - Begin 0906 */
     notebook.setTemplateAction = this.processSetTemplateActionStatus(notebook);
     notebook.removeTemplateAction = this.processRemoveTemplateActionStatus(notebook);
+    notebook.shareAction = STATUS_TYPE.READY;
     /* Lance - End 0906 */
     notebook.deleteAction = this.processDeletionActionStatus(notebook);
     notebook.connectAction = this.processConnectActionStatus(notebook);

@@ -23,6 +23,12 @@ import { FormNameModule } from './form-name/form-name.module';
 import { FormWorkspaceVolumeModule } from './form-workspace-volume/form-workspace-volume.module';
 import { FormNewComponent } from './form-new.component';
 
+// Lance - begin - 20230817
+import { MatGridListModule } from '@angular/material/grid-list'; 
+import { MatCardModule } from '@angular/material/card';
+import { KubeflowModule } from 'kubeflow';
+// Lance - end - 20230817
+
 @NgModule({
   declarations: [FormNewComponent],
   imports: [
@@ -44,6 +50,11 @@ import { FormNewComponent } from './form-new.component';
     FormImageModule,
     FormNameModule,
     FormWorkspaceVolumeModule,
+    // Lance - begin - 20230817
+    MatGridListModule,
+    MatCardModule,
+    KubeflowModule,
+    // Lance - end - 20230817    
   ],
   exports: [FormNewComponent],
 })
