@@ -6,6 +6,13 @@
     ></lib-namespace-select>
   </lib-title-actions-toolbar>
 
+  <form>
+    <mat-form-field>
+      <mat-label>Search Notebook</mat-label>
+      <input matInput placeholder="Search keyword" (input)="search($event.target.value)">
+    </mat-form-field>
+  </form>
+  
   <!--scrollable page content-->
   <div *ngIf="!isBasic" class="page-padding lib-flex-grow lib-overflow-auto">
     <lib-table

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy , Input} from '@angular/core';
 import { environment } from '@app/environment';
 import {
   NamespaceService,
@@ -30,6 +30,7 @@ import { AddPostDialogComponent } from './add-post-dialog/add-post-dialog.compon
 import { MatDialog } from '@angular/material/dialog';
 /* Lance end 20240906 */
 // YCL 2023/12/03 start
+import { AbstractControl } from '@angular/forms';
 import { DialogSharing } from './dialog-sharing/dialog-sharing.component';
 // YCL 2023/12/03 end
 
@@ -39,6 +40,9 @@ import { DialogSharing } from './dialog-sharing/dialog-sharing.component';
   styleUrls: ['./index-default.component.scss'],
 })
 export class IndexDefaultComponent implements OnInit, OnDestroy {
+  @Input()
+  searchControl: AbstractControl;
+
   env = environment;
 
   nsSub = new Subscription();
@@ -119,8 +123,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       //console.log("username", username)
     });
 
-    /*
+    
     // Poll for new data and reset the poller if different data is found
+    /*
     this.nsSub.add(
       this.poller.start().subscribe(() => {
         if (!this.currNamespace) {
@@ -146,12 +151,15 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         });
       }),
     );
+    */
 
     // Reset the poller whenever the selected namespace changes
+    /*
     this.nsSub.add(
-      this.ns.getSelectedNamespace().subscribe(ns => {
+      // this.ns.getSelectedNamespace().subscribe(ns => {
+      this.ns.getSelectedNamespace2().subscribe(ns => {
         this.currNamespace = ns;
-        this.poller.reset();
+        // this.poller.reset();
 
         this.backend.getManager(this.currNamespace).subscribe(manager => {
             // alert(manager[0]);
@@ -177,6 +185,8 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     const request = this.backend.getNotebooks(ns);
 
     this.pollSub = this.poller.exponential(request).subscribe(notebooks => {
+      // Lance
+      this.rawData = notebooks;
       this.processedData = this.processIncomingData(notebooks);
     });
   }
@@ -573,4 +583,21 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   public notebookTrackByFn(index: number, notebook: NotebookProcessedObject) {
     return `${notebook.name}/${notebook.image}`;
   }
+
+  search(event: any) {
+    
+    this.currentField = event;
+    // alert(this.currentField)
+    this.processedData = this.processIncomingData(this.rawData.filter((notebook) => {
+      console.log(notebook.name);
+      return (
+        notebook.name.includes(this.currentField) ||
+        notebook.namespace.includes(this.currentField) ||
+        notebook.image.includes(this.currentField)
+      );
+    }));
+  
+    // Lance, not sure what poller will do
+    // this.poller.reset();
+  };
 }
