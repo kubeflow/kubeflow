@@ -127,7 +127,8 @@ export const defaultConfig: TableConfig = {
         // 2023/08/29 YCL sharing start //
         new ActionIconValue({
           name: 'share',
-          tooltip: $localize`Share this notebook`,
+          tooltipInit: $localize`Share this notebook`,
+          tooltipReady: $localize`Share this notebook`,
           color: '',
           field: 'shareAction',
           iconReady: 'material:screen_share',
@@ -237,14 +238,14 @@ export const defaultAdvancedConfig: TableConfig = {
       value: new ActionListValue([
         new ActionButtonValue({
           name: 'template',
-          tooltip: $localize`set to this notebook as template`,
+          tooltip: $localize`set this notebook as template`,
           color: 'primary',
           field: 'setTemplateAction',
           text: $localize`SET`,
         }),
         new ActionButtonValue({
           name: 'remove-template',
-          tooltip: $localize`copy to this notebook server`,
+          tooltip: $localize`remove this notebook as template`,
           color: 'primary',
           field: 'removeTemplateAction',
           text: $localize`REMOVE`,
@@ -258,7 +259,8 @@ export const defaultAdvancedConfig: TableConfig = {
         }),
         new ActionIconValue({
           name: 'share',
-          tooltip: $localize`Share this notebook`,
+          tooltipInit: $localize`Share this notebook`,
+          tooltipReady: $localize`Share this notebook`,
           color: '',
           field: 'shareAction',
           iconReady: 'material:screen_share',
