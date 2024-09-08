@@ -42,3 +42,7 @@ spec:
             name: {templatePvcName}
       volumes: []
       tolerations: []
+      securityContext:
+        capabilities:
+          add:
+          - IPC_LOCK

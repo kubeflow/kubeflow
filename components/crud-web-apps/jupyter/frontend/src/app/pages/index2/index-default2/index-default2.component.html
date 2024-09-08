@@ -1,0 +1,15 @@
+<div class="lib-content-wrapper">
+    <lib-title-actions-toolbar title="Shared Notebook Auto-Start Page"  i18n-title>
+    </lib-title-actions-toolbar>
+  
+    <div *ngIf="isBasic" class="page-padding lib-flex-grow lib-overflow-auto">
+      <lib-table
+        [config]="config"
+        [data]="processedData2"
+        [trackByFn]="notebookTrackByFn2"
+        (actionsEmitter)="reactToAction($event)"
+      ></lib-table>
+    </div>
+    
+  </div>
+  
