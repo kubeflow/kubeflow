@@ -1,18 +1,13 @@
 import {KubeConfig} from '@kubernetes/client-node';
 import express, {Request, Response} from 'express';
 import {resolve} from 'path';
-import responseTime from 'response-time';
 
 import {Api, apiError} from './api';
 import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
-import {
-  startMetricsServer,
-  restHttpRequestDuration,
-  restHttpRequestTotal,
-} from './metrics';
+import {enableMetricsCollection} from './metrics';
 import {getMetricsService} from './metrics_service_factory';
 import {PrometheusMetricsService} from "./prometheus_metrics_service";
 import {PrometheusDriver} from "prometheus-query";
@@ -39,7 +34,7 @@ const {
   REGISTRATION_FLOW = "true",
   PROMETHEUS_URL = undefined,
   METRICS_DASHBOARD = undefined,
-  METRICS_PORT = 9100,
+  COLLECT_METRICS = "true",
 } = process.env;
 
 
@@ -59,16 +54,13 @@ async function main() {
 
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
-  const metricsPort: number = Number(METRICS_PORT);
+  const metrics: boolean = (COLLECT_METRICS.toLowerCase() === "true");
 
   // Custom metrics configuration
-  app.use(
-    responseTime((req: Request, res: Response, time: number) => {
-      restHttpRequestTotal.labels({ method: req.method, status: res.statusCode }).inc();
-      restHttpRequestDuration.labels(
-        { method: req.method, path: req.baseUrl, status: res.statusCode }).observe(time);
-    }),
-  );
+  if (metrics) {
+    console.info("Enabling the metrics collections to be accessible in the path `/prometheus/metrics`.");
+    enableMetricsCollection(app);
+  }
 
   app.use(express.json());
   app.use(express.static(frontEnd));
@@ -106,9 +98,6 @@ async function main() {
   app.listen(
       port,
       () => console.info(`Server listening on port http://localhost:${port} (in ${codeEnvironment} mode)`));
-
-  // Run metrics server
-  startMetricsServer(metricsPort);
 }
 
 // This will allow us to inspect uncaught exceptions around the app

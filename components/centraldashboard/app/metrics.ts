@@ -1,7 +1,7 @@
-import express, {Request, Response} from 'express';
+import express, {Request, Response} from "express";
 import client from "prom-client";
+import responseTime from "response-time";
 
-const app = express();
 const appName = require("./../package.json").name;
 const appVersion = require("./../package.json").version;
 
@@ -27,22 +27,22 @@ export const appInfo = new client.Gauge({
 });
 
 
-export function startMetricsServer(port: number) {
-  const defaultLabels = { app: appName };
-  const client = require("prom-client");
-  const collectDefaultMetrics = client.collectDefaultMetrics;
-
-  client.register.setDefaultLabels(defaultLabels);  // set default labels
-  collectDefaultMetrics();
+export function enableMetricsCollection(app: express.Application) {
+  client.register.setDefaultLabels({ app: appName });  // set default labels
+  client.collectDefaultMetrics();
 
   appInfo.labels({version: appVersion}).set(1);  // set value 1 for app_info with desired labels
 
-  app.get("/metrics", async (req: Request, res: Response) => {
+  app.get("/prometheus/metrics", async (req: Request, res: Response) => {
     res.set("Content-Type", client.register.contentType);
     return res.send(await client.register.metrics());
   });
-  app.listen(
-    port,
-    () => console.info(`Metrics server listening on port http://localhost:${port}`)
+
+  app.use(
+    responseTime((req: Request, res: Response, time: number) => {
+      restHttpRequestTotal.labels({ method: req.method, status: res.statusCode }).inc();
+      restHttpRequestDuration.labels(
+        { method: req.method, path: req.baseUrl, status: res.statusCode }).observe(time);
+    }),
   );
 }
