@@ -6,21 +6,21 @@ const appName = require("./../package.json").name;
 const appVersion = require("./../package.json").version;
 
 
-export const restHttpRequestDuration = new client.Histogram({
+const restHttpRequestDuration = new client.Histogram({
   name: "rest_http_request_duration_seconds",
   help: "REST API response time in seconds",
   labelNames: ["method", "path", "status"],
 });
 
 
-export const restHttpRequestTotal = new client.Counter({
+const restHttpRequestTotal = new client.Counter({
   name: "rest_http_request_total",
   help: "Total number of HTTP requests for REST API",
   labelNames: ["method", "status"],
 });
 
 
-export const appInfo = new client.Gauge({
+const appInfo = new client.Gauge({
   name: "app_info",
   help: "Information about application",
   labelNames: ["version"],
