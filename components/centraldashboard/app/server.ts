@@ -7,6 +7,7 @@ import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
+import {enableMetricsCollection} from './metrics';
 import {getMetricsService} from './metrics_service_factory';
 import {PrometheusMetricsService} from "./prometheus_metrics_service";
 import {PrometheusDriver} from "prometheus-query";
@@ -33,6 +34,7 @@ const {
   REGISTRATION_FLOW = "true",
   PROMETHEUS_URL = undefined,
   METRICS_DASHBOARD = undefined,
+  COLLECT_METRICS = "true",
 } = process.env;
 
 
@@ -52,6 +54,13 @@ async function main() {
 
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
+  const metrics: boolean = (COLLECT_METRICS.toLowerCase() === "true");
+
+  // Custom metrics configuration
+  if (metrics) {
+    console.info("Enabling the metrics collections to be accessible in the path `/prometheus/metrics`.");
+    enableMetricsCollection(app);
+  }
 
   app.use(express.json());
   app.use(express.static(frontEnd));
