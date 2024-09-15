@@ -655,8 +655,7 @@ export const mockPods: V1Pod[] = [
           blockOwnerDeletion: true,
           controller: true,
           kind: 'ReplicaSet',
-          name:
-            'serving-openvaccine-0-486kc-predictor-default-00001-deployment-7695bf497f',
+          name: 'serving-openvaccine-0-486kc-predictor-default-00001-deployment-7695bf497f',
           uid: 'a2b15c20-2731-4640-862e-7c3ddfd2ca49',
         },
       ],
@@ -1244,8 +1243,7 @@ export const mockPods: V1Pod[] = [
           blockOwnerDeletion: true,
           controller: true,
           kind: 'ReplicaSet',
-          name:
-            'serving-openvaccine-2786a7fd31c47d404c0bd18da10bd203-deployment-84654847dc',
+          name: 'serving-openvaccine-2786a7fd31c47d404c0bd18da10bd203-deployment-84654847dc',
           uid: 'c98ae290-16b2-4822-9d8f-f5079fdb642e',
         },
       ],

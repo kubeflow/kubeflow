@@ -116,7 +116,7 @@ You also need to add `"preserveSymlinks": true` to the app's frontend `angular.j
 
 ```dockerfile
 # --- Build the frontend kubeflow library ---
-FROM node:12 as frontend-kubeflow-lib
+FROM node:16 as frontend-kubeflow-lib
 
 WORKDIR /src
 
@@ -128,7 +128,7 @@ RUN npm run build
 
 ...
 # --- Build the frontend ---
-FROM node:12 as frontend
+FROM node:16 as frontend
 RUN npm install -g @angular/cli
 
 WORKDIR /src

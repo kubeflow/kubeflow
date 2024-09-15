@@ -17,6 +17,8 @@ describe('New notebook form', () => {
   });
 
   it('should auto update mount value when name change', () => {
+    cy.visit('/new');
+
     cy.get('[data-cy="add new volume"]').click();
 
     cy.get('.last[data-cy="data volumes"]').click();
@@ -36,6 +38,8 @@ describe('New notebook form', () => {
   });
 
   it('should not auto update mount value when it is dirty', () => {
+    cy.visit('/new');
+
     cy.get('[data-cy="add new volume"]').click();
 
     cy.get('.last[data-cy="data volumes"]').click();

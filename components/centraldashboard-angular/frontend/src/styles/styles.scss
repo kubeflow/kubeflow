@@ -8,7 +8,7 @@ body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-@import '~kubeflow/styles/fonts.scss';
+@import '../../node_modules/kubeflow/styles/fonts.scss';
 
 // Use the material icons offline
 @import '~material-icons/iconfont/material-icons.scss';

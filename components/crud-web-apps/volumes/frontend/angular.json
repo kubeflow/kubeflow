@@ -26,6 +26,10 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "allowedCommonJsDependencies": [
+              "date-fns",
+              "lodash"
+            ],
             "preserveSymlinks": true,
             "outputPath": "dist/frontend",
             "index": "src/index.html",

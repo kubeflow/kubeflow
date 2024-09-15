@@ -6,7 +6,7 @@ import { setMinutes } from 'date-fns';
 import { setSeconds } from 'date-fns';
 import { distanceInWords } from 'date-fns';
 import { differenceInSeconds } from 'date-fns';
-import memoize from 'lodash-es/memoize';
+import memoize from 'lodash/memoize.js';
 
 export const defaultDateOptions: Intl.DateTimeFormatOptions = {
   weekday: 'short',

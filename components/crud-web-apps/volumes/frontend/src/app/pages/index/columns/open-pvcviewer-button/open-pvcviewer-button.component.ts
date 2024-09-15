@@ -8,7 +8,8 @@ import { TableColumnComponent } from 'kubeflow/lib/resource-table/component-valu
 })
 export class OpenPVCViewerButtonComponent
   extends ActionComponent
-  implements TableColumnComponent, OnInit {
+  implements TableColumnComponent, OnInit
+{
   set element(data: any) {
     this.data = data;
   }
