@@ -31,6 +31,27 @@ spec:
             - /manager
           image: docker.io/kubeflownotebookswg/tensorboard-controller
           name: manager
+          env:
+            - name: ISTIO_GATEWAY
+              valueFrom:
+                configMapKeyRef:
+                  name: tensorboard-controller-config
+                  key: ISTIO_GATEWAY          
+            - name: ENABLE_CULLING
+              valueFrom:
+                configMapKeyRef:
+                  name: tensorboard-controller-config
+                  key: ENABLE_CULLING
+            - name: CULL_IDLE_TIME
+              valueFrom:
+                configMapKeyRef:
+                  name: tensorboard-controller-config
+                  key: CULL_IDLE_TIME
+            - name: IDLENESS_CHECK_PERIOD
+              valueFrom:
+                configMapKeyRef:
+                  name: tensorboard-controller-config
+                  key: IDLENESS_CHECK_PERIOD
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:

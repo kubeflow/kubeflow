@@ -9,6 +9,9 @@ configMapGenerator:
   - TENSORBOARD_IMAGE=tensorflow/tensorflow:2.5.1
   - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
   - ISTIO_HOST=*
+  - ENABLE_CULLING="false"
+  - CULL_IDLE_TIME="1440"
+  - IDLENESS_CHECK_PERIOD="1"
 patchesStrategicMerge:
 - patches/add_controller_config.yaml
 images:
