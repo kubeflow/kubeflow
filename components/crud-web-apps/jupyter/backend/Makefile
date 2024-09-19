@@ -11,12 +11,10 @@ unittest:
 
 run:
 	APP_PREFIX=/jupyter \
-	gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app
 	gunicorn \
-		-w 3 \
+		-w 1 \
 		--worker-class=gevent \
 		--bind 0.0.0.0:5000 \
-		--access-logfile - entrypoint:app
 
 run-dev:
 	UI_FLAVOR=default \
@@ -24,8 +22,7 @@ run-dev:
 	APP_SECURE_COOKIES=False \
 	APP_PREFIX=/ \
 	gunicorn \
-		-w 3 \
+		-w 1 \
 		--worker-class=gevent \
 		--bind 0.0.0.0:5000 \
 		--access-logfile - entrypoint:app
-
