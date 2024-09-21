@@ -23,6 +23,10 @@ spec:
             requests:
               cpu: "0.1"
               memory: "0.1Gi"
+          securityContext:
+            capabilities:
+              add:
+              - IPC_LOCK              
         - image: alpine
           name: clone
           resources:
@@ -42,7 +46,3 @@ spec:
             name: {templatePvcName}
       volumes: []
       tolerations: []
-      securityContext:
-        capabilities:
-          add:
-          - IPC_LOCK
