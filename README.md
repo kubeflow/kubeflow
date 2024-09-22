@@ -1,52 +1,48 @@
-<img src="https://www.kubeflow.org/images/logo.svg" width="100">
+# Kubeflow
 
-[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels)
+[![Join Kubeflow Slack](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels)
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/kubeflow/badge)](https://clomonitor.io/projects/cncf/kubeflow)
 
-The Kubeflow makes AI/ML on Kubernetes simple, portable and scalable.
+<img src="./logo/icon.svg" width="120">
 
----
+## About Kubeflow
 
-## Documentation
+[Kubeflow](https://www.kubeflow.org/) makes artificial intelligence and machine learning simple, portable, and scalable.
 
-Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
+We are an _ecosystem_ of [Kubernetes](https://kubernetes.io/) based components for each stage in the [AI/ML Lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle) with support for best-in-class open source [tools and frameworks](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem).
+Please refer to the official [documentation](https://www.kubeflow.org/docs/) for more information.
 
 ## Kubeflow Components
 
-The Kubeflow ecosystem is composed of multiple open-source projects for each stage in
-[the ML lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle).
+The [Kubeflow Ecosystem](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem) is composed of several projects known as _Kubeflow Components_.
 
-Learn more about each project in [the Kubeflow documentation](https://www.kubeflow.org/docs/components/).
+The following table lists the components and their respective source code repositories:
 
-Please use the following GitHub repositories to open issues and pull requests for
-[the different Kubeflow components](https://www.kubeflow.org/docs/started/introduction/#what-are-standalone-kubeflow-components):
+| Component                                                                                   | Source Code                                                                   |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [KServe](https://www.kubeflow.org/docs/external-add-ons/kserve/)                            | [`kserve/kserve`](https://github.com/kserve/kserve)                           |
+| [Kubeflow Katib](https://www.kubeflow.org/docs/components/katib/)                           | [`kubeflow/katib`](https://github.com/kubeflow/katib)                         |
+| [Kubeflow Model Registry](https://www.kubeflow.org/docs/components/model-registry/)         | [`kubeflow/model-registry`](https://github.com/kubeflow/model-registry)       |
+| [Kubeflow MPI Operator](https://www.kubeflow.org/docs/components/training/user-guides/mpi/) | [`kubeflow/mpi-operator`](https://github.com/kubeflow/mpi-operator)           |
+| [Kubeflow Notebooks](https://www.kubeflow.org/docs/components/notebooks/)                   | [`kubeflow/notebooks`](https://github.com/kubeflow/notebooks)                 |
+| [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/)                   | [`kubeflow/pipelines`](https://github.com/kubeflow/pipelines)                 |
+| [Kubeflow Spark Operator](https://www.kubeflow.org/docs/components/spark-operator/)         | [`kubeflow/spark-operator`](https://github.com/kubeflow/spark-operator)       |
+| [Kubeflow Training Operator](https://www.kubeflow.org/docs/components/training/)            | [`kubeflow/training-operator`](https://github.com/kubeflow/training-operator) |
 
-| Component                  | Source Code                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| KServe                     | [`kserve/kserve`](https://github.com/kserve/kserve)                           |
-| Kubeflow Katib             | [`kubeflow/katib`](https://github.com/kubeflow/katib)                         |
-| Kubeflow Model Registry    | [`kubeflow/model-registry`](https://github.com/kubeflow/model-registry)       |
-| Kubeflow MPI Operator      | [`kubeflow/mpi-operator`](https://github.com/kubeflow/mpi-operator)           |
-| Kubeflow Notebooks         | [`kubeflow/notebooks`](https://github.com/kubeflow/notebooks)                 |
-| Kubeflow Pipelines         | [`kubeflow/pipelines`](https://github.com/kubeflow/pipelines)                 |
-| Kubeflow Spark Operator    | [`kubeflow/spark-operator`](https://github.com/kubeflow/spark-operator)       |
-| Kubeflow Training Operator | [`kubeflow/training-operator`](https://github.com/kubeflow/training-operator) |
+## Kubeflow Platform
 
-If you want to open issue or pull request for the
-[Kubeflow Platform](https://www.kubeflow.org/docs/started/introduction/#what-is-kubeflow-platform)
-components:
+The [Kubeflow Platform](https://www.kubeflow.org/docs/started/introduction/#what-is-kubeflow-platform) refers to the full suite of Kubeflow Components bundled together with additional integration and management tools.
 
-- Use the [`kubeflow/manifests`](https://github.com/kubeflow/manifests) GitHub repository for
-  the Kubeflow Manifests.
-- Use the [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) GitHub repository for
-  the Kubeflow Profile Controller, Central Dashboard, CRUD Web Apps, PVC Viewer, PodDefault, and
-  Access Management components.
+The following table lists the platform components and their respective source code repositories:
 
-If you have questions about Kubeflow community or Kubeflow ecosystem, please use the
-[`kubeflow/community`](https://github.com/kubeflow/community) GitHub repository.
+| Component                                                                                           | Source Code                                                   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| [Central Dashboard](https://www.kubeflow.org/docs/components/central-dash/)                         | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
+| [Profile Controller](https://www.kubeflow.org/docs/components/central-dash/profiles/)               | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
+| [Kubeflow Manifests](https://www.kubeflow.org/docs/started/installing-kubeflow/#kubeflow-manifests) | [`kubeflow/manifests`](https://github.com/kubeflow/manifests) |
 
-## Kubeflow Community
+## Kubeflow Community & Contributing
 
-Every Kubeflow component is maintained by Kubeflow working group (WG) leads.
+Kubeflow is a community-lead project maintained by the [Kubeflow Working Groups](https://www.kubeflow.org/docs/about/community/#kubeflow-working-groups) under the guidance of the [Kubeflow Steering Committee](https://github.com/kubeflow/community/blob/master/KUBEFLOW-STEERING-COMMITTEE.md).
 
-Learn more about Kubeflow community and WG [in this guide](https://www.kubeflow.org/docs/about/community/).
+We encourage you to learn about the [Kubeflow Community](https://www.kubeflow.org/docs/about/community/) and how to [contribute](https://www.kubeflow.org/docs/about/contributing/) to the project!

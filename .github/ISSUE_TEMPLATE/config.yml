@@ -2,37 +2,56 @@ blank_issues_enabled: false
 contact_links:
   - name: Kubeflow Documentation
     url: https://www.kubeflow.org/
-    about: The official Kubeflow documentation
-  - name: Issues related to KServe
-    url: https://github.com/kserve/kserve/issues/new/choose
-    about: Create issue in kserve/kserve repository
-  - name: Issues related to Kubeflow Katib
-    url: https://github.com/kubeflow/katib/issues/new/choose
-    about: Create issue in kubeflow/katib repository
-  - name: Issues related to Kubeflow Model Registry
-    url: https://github.com/kubeflow/model-registry/issues/new/choose
-    about: Create issue in kubeflow/model-registry repository
-  - name: Issues related to Kubeflow MPI Operator
-    url: https://github.com/kubeflow/mpi-operator/issues/new/choose
-    about: Create issue in kubeflow/mpi-operator repository
-  - name: Issues related to Kubeflow Notebooks
-    url: https://github.com/kubeflow/notebooks/issues/new/choose
-    about: Create issue in kubeflow/notebooks repository
-  - name: Issues related to Kubeflow Pipelines
-    url: https://github.com/kubeflow/pipelines/issues/new/choose
-    about: Create issue in kubeflow/pipelines repository
-  - name: Issues related to Kubeflow Spark Operator
-    url: https://github.com/kubeflow/spark-operator/issues/new/choose
-    about: Create issue in kubeflow/spark-operator repository
-  - name: Issues related to Kubeflow Training Operator
-    url: https://github.com/kubeflow/training-operator/issues/new/choose
-    about: Create issue in kubeflow/training-operator repository
-  - name: Issues related to Kubeflow Platform Manifests
-    url: https://github.com/kubeflow/manifests/issues/new/choose
-    about: Create issue in kubeflow/manifests repository
-  - name: Issues related to other Kubeflow Platform components
-    url: https://github.com/kubeflow/dashboard/issues/new/choose
-    about: Create issue in kubeflow/dashboard repository
-  - name: Issues related to Kubeflow community or Kubeflow ecosystem
-    url: https://github.com/kubeflow/community/issues/new/choose
-    about: Create issue in kubeflow/community repository
+    about: Official Kubeflow Documentation
+
+  - name: Kubeflow Slack
+    url: https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels
+    about: Join the Kubeflow Slack
+
+  - name: Issues - Community & Governance
+    url: https://github.com/kubeflow/community/issues
+    about: Please use the `kubeflow/community` repository
+
+  - name: Issues - KServe
+    url: https://github.com/kserve/kserve/issues
+    about: Please use the `kserve/kserve` repository
+
+  - name: Issues - Kubeflow Katib
+    url: https://github.com/kubeflow/katib/issues
+    about: Please use the `kubeflow/katib` repository
+
+  - name: Issues - Kubeflow Model Registry
+    url: https://github.com/kubeflow/model-registry/issues
+    about: Please use the `kubeflow/model-registry` repository
+
+  - name: Issues - Kubeflow MPI Operator
+    url: https://github.com/kubeflow/mpi-operator/issues
+    about: Please use the `kubeflow/mpi-operator` repository
+
+  - name: Issues - Kubeflow Notebooks
+    url: https://github.com/kubeflow/notebooks/issues
+    about: Please use the `kubeflow/notebooks` repository
+
+  - name: Issues - Kubeflow Pipelines
+    url: https://github.com/kubeflow/pipelines/issues
+    about: Please use the `kubeflow/pipelines` repository
+
+  - name: Issues - Kubeflow Spark Operator
+    url: https://github.com/kubeflow/spark-operator/issues
+    about: Please use the `kubeflow/spark-operator` repository
+
+  - name: Issues - Kubeflow Training Operator
+    url: https://github.com/kubeflow/training-operator/issues
+    about: Please use the `kubeflow/training-operator` repository
+
+  - name: Issues - Kubeflow Platform - Central Dashboard
+    url: https://github.com/kubeflow/dashboard/issues
+    about: Please use the `kubeflow/dashboard` repository
+
+  - name: Issues - Kubeflow Platform - Profile Controller
+    url: https://github.com/kubeflow/dashboard/issues
+    about: Please use the `kubeflow/dashboard` repository
+
+  - name: Issues - Kubeflow Platform - Kubeflow Manifests
+    url: https://github.com/kubeflow/manifests/issues
+    about: Please use the `kubeflow/manifests` repository
