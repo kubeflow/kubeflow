@@ -164,6 +164,9 @@ COPY --chown=${NB_USER}:users requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && rm -f /tmp/requirements.txt
 
+# install - note about Gaudi workloads and hugepages
+COPY README.md "${HOME}"
+
 # s6 - 01-copy-tmp-home
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
 #       this is a workaround because a PVC will be mounted at $HOME
