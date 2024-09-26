@@ -9,6 +9,8 @@ IMAGE_FOLDERS ?= \
 	jupyter-pytorch-full \
 	jupyter-pytorch-cuda \
 	jupyter-pytorch-cuda-full \
+	jupyter-pytorch-gaudi \
+	jupyter-pytorch-gaudi-full \
 	jupyter-tensorflow \
 	jupyter-tensorflow-full \
 	jupyter-tensorflow-cuda \
