@@ -316,6 +316,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
   }
   public connectClicked() {
     let url: string;
+    console.log("connectClicked " + this.currNamespace1 + " " + this.notebookName);
     if (window.location.href.includes('/view')) {
         url = `/notebook/${this.currNamespace1}/${this.notebookName}/view`;
     } else {
