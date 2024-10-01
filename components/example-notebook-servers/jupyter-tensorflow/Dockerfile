@@ -6,6 +6,7 @@ ARG BASE_IMG=<jupyter>
 FROM $BASE_IMG
 
 # args - software versions
+# https://github.com/tensorflow/tensorflow/releases
 ARG TENSORFLOW_VERSION=2.15.1
 
 # install - h5py

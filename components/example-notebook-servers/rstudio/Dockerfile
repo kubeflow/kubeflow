@@ -8,15 +8,18 @@ FROM $BASE_IMG
 ARG TARGETARCH
 
 # args - software versions (python)
-ARG MINIFORGE_VERSION=24.3.0-0
-ARG PIP_VERSION=24.0
-ARG PYTHON_VERSION=3.11.9
+ARG MINIFORGE_VERSION=24.7.1-2
+ARG PIP_VERSION=24.2
+ARG PYTHON_VERSION=3.11.10
 
 # args - software versions (R)
 # https://dailies.rstudio.com/release/
-ARG RSTUDIO_VERSION=2024.04.1-748
-ARG R_BASE_VERSION=4.3.3
-ARG R_RETICULATE_VERSION=1.37.0
+# https://cran.r-project.org/doc/manuals/r-release/NEWS.html
+# https://github.com/rstudio/reticulate/releases
+# https://www.rforge.net/png/news.html
+ARG RSTUDIO_VERSION=2024.09.0-375
+ARG R_BASE_VERSION=4.4.1
+ARG R_RETICULATE_VERSION=1.39.0
 ARG R_PNG_VERSION=0.1_8
 
 USER root
@@ -105,7 +108,7 @@ USER root
 
 # install - rstudio-server
 RUN case "${TARGETARCH}" in \
-      amd64) RSTUDIO_DEB_URL="https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb" ;; \
+      amd64) RSTUDIO_DEB_URL="https://s3.amazonaws.com/rstudio-ide-build/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb" ;; \
       arm64) RSTUDIO_DEB_URL="https://s3.amazonaws.com/rstudio-ide-build/server/jammy/arm64/rstudio-server-${RSTUDIO_VERSION}-arm64.deb" ;; \
       *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
     esac \

@@ -8,12 +8,13 @@ FROM $BASE_IMG
 ARG TARGETARCH
 
 # args - software versions
-ARG CODESERVER_VERSION=v4.89.1
+# https://github.com/coder/code-server/releases
+ARG CODESERVER_VERSION=4.93.1
 
 USER root
 
 # install - code-server
-RUN curl -fsSL "https://github.com/coder/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_${TARGETARCH}.deb" -o /tmp/code-server.deb \
+RUN curl -fsSL "https://github.com/coder/code-server/releases/download/v${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION}_${TARGETARCH}.deb" -o /tmp/code-server.deb \
  && dpkg -i /tmp/code-server.deb \
  && rm -f /tmp/code-server.deb
 
