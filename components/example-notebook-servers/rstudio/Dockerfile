@@ -56,6 +56,8 @@ RUN mkdir -pv ${CONDA_DIR} \
 ENV R_HOME ${CONDA_DIR}/lib/R
 
 # rstudio logs to a file by default, but we need to see them in the container logs
+# NOTE: we leave log-level as the default (WARN) because it also affects the user-facing console
+#       and there are some confusing messages at INFO level that are not useful to the user
 ENV RS_LOG_LEVEL WARN
 ENV RS_LOGGER_TYPE stderr
 
