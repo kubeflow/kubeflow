@@ -33,4 +33,5 @@ exec /usr/lib/rstudio-server/bin/rserver \
   --www-port=8888 \
   --auth-none=1 \
   --rsession-which-r="$(which R)" \
-  --rsession-path=/opt/rsession.sh
+  --rsession-path=/opt/rsession.sh \
+  --rsession-ld-library-path=/opt/conda/lib

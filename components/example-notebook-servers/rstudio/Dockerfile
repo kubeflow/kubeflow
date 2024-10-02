@@ -99,8 +99,8 @@ RUN echo "r-base ==${R_BASE_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda clean -a -f -y
 
 # set default CRAN repo to RSPM (it has pre-compiled R packages, increasing user install speed)
-RUN echo 'options(repos=c(CRAN="https://packagemanager.rstudio.com/all/__linux__/jammy/latest"))' >> ${R_HOME}/etc/Rprofile.site \
- && echo 'options(HTTPUserAgent=sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))' >> ${R_HOME}/etc/Rprofile.site
+RUN echo 'options(repos=c(CRAN="https://packagemanager.posit.co/all/__linux__/jammy/latest"))' >> ${R_HOME}/etc/Rprofile.site \
+ && echo 'options(HTTPUserAgent=sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version["platform"], R.version["arch"], R.version["os"])))' >> ${R_HOME}/etc/Rprofile.site
 
 # R needs TZ set
 ENV TZ Etc/UTC
