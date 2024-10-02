@@ -1,5 +1,5 @@
 # kubeflow packages
-kfp==2.7.0
+kfp==2.9.0
 
 # jupyterlab extensions
 jupyterlab-git==0.50.1

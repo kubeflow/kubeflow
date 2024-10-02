@@ -6,6 +6,7 @@ ARG BASE_IMG=<rstudio>
 FROM $BASE_IMG
 
 # args - software versions
+# https://github.com/tidyverse/tidyverse/releases
 ARG R_TIDYVERSE_VERSION="2.0.0"
 
 # install - r-tidyverse
