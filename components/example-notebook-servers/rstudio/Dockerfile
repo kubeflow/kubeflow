@@ -8,16 +8,21 @@ FROM $BASE_IMG
 ARG TARGETARCH
 
 # args - software versions (python)
-ARG MINIFORGE_VERSION=24.3.0-0
-ARG PIP_VERSION=24.0
-ARG PYTHON_VERSION=3.11.9
+ARG MINIFORGE_VERSION=24.7.1-2
+ARG PIP_VERSION=24.2
+ARG PYTHON_VERSION=3.11.10
 
 # args - software versions (R)
-# https://dailies.rstudio.com/release/
-ARG RSTUDIO_VERSION=2024.04.1-748
-ARG R_BASE_VERSION=4.3.3
-ARG R_RETICULATE_VERSION=1.37.0
+# - rstudio: https://dailies.rstudio.com/release/
+# - r-base: https://cran.r-project.org/doc/manuals/r-release/NEWS.html
+# - r-png: https://www.rforge.net/png/news.html
+# - r-reticulate: https://github.com/rstudio/reticulate/releases
+# - r-shiny: https://github.com/rstudio/shiny/releases
+ARG RSTUDIO_VERSION=2024.09.0-375
+ARG R_BASE_VERSION=4.4.1
 ARG R_PNG_VERSION=0.1_8
+ARG R_RETICULATE_VERSION=1.39.0
+ARG R_SHINY_VERSION=1.9.1
 
 USER root
 
@@ -53,6 +58,8 @@ RUN mkdir -pv ${CONDA_DIR} \
 ENV R_HOME ${CONDA_DIR}/lib/R
 
 # rstudio logs to a file by default, but we need to see them in the container logs
+# NOTE: we leave log-level as the default (WARN) because it also affects the user-facing console
+#       and there are some confusing messages at INFO level that are not useful to the user
 ENV RS_LOG_LEVEL WARN
 ENV RS_LOGGER_TYPE stderr
 
@@ -89,13 +96,14 @@ RUN case "${TARGETARCH}" in \
 RUN echo "r-base ==${R_BASE_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     r-base=${R_BASE_VERSION} \
-    r-reticulate=${R_RETICULATE_VERSION} \
     r-png=${R_PNG_VERSION} \
+    r-reticulate=${R_RETICULATE_VERSION} \
+    r-shiny=${R_SHINY_VERSION} \
  && conda clean -a -f -y
 
 # set default CRAN repo to RSPM (it has pre-compiled R packages, increasing user install speed)
-RUN echo 'options(repos=c(CRAN="https://packagemanager.rstudio.com/all/__linux__/jammy/latest"))' >> ${R_HOME}/etc/Rprofile.site \
- && echo 'options(HTTPUserAgent=sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))' >> ${R_HOME}/etc/Rprofile.site
+RUN echo 'options(repos=c(CRAN="https://packagemanager.posit.co/all/__linux__/jammy/latest"))' >> ${R_HOME}/etc/Rprofile.site \
+ && echo 'options(HTTPUserAgent=sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version["platform"], R.version["arch"], R.version["os"])))' >> ${R_HOME}/etc/Rprofile.site
 
 # R needs TZ set
 ENV TZ Etc/UTC
@@ -105,7 +113,7 @@ USER root
 
 # install - rstudio-server
 RUN case "${TARGETARCH}" in \
-      amd64) RSTUDIO_DEB_URL="https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb" ;; \
+      amd64) RSTUDIO_DEB_URL="https://s3.amazonaws.com/rstudio-ide-build/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb" ;; \
       arm64) RSTUDIO_DEB_URL="https://s3.amazonaws.com/rstudio-ide-build/server/jammy/arm64/rstudio-server-${RSTUDIO_VERSION}-arm64.deb" ;; \
       *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
     esac \

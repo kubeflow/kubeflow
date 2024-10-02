@@ -1,5 +1,7 @@
 #!/command/with-contenv bash
 
-# rstudio terminal cant see environment variables set by the container runtime
-# (which breaks kubectl, to fix this we store the KUBERNETES_* env vars in Renviron.site)
-env | grep KUBERNETES_ >> ${R_HOME}/etc/Renviron.site
+# rstudio terminal cant see environment variables set by the container runtime,
+# this breaks kubectl, so we store the KUBERNETES_* env vars in Renviron.site
+# NOTE: the `|| true` is needed because `grep` will exit with non-zero status for no matches
+echo "INFO: adding KUBERNETES_* env vars to '${R_HOME}/etc/Renviron.site'..."
+env | grep KUBERNETES_ >> "${R_HOME}/etc/Renviron.site" || true

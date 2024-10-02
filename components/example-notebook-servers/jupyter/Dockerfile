@@ -10,12 +10,14 @@ ARG TARGETARCH
 USER root
 
 # args - software versions
-ARG JUPYTERLAB_VERSION=4.2.1
-ARG JUPYTER_VERSION=7.2.0
-ARG MINIFORGE_VERSION=24.3.0-0
+# https://github.com/jupyterlab/jupyterlab/releases
+# https://github.com/jupyter/notebook/releases
+ARG JUPYTERLAB_VERSION=4.2.5
+ARG JUPYTER_VERSION=7.2.2
+ARG MINIFORGE_VERSION=24.7.1-2
 ARG NODE_MAJOR_VERSION=20
-ARG PIP_VERSION=24.0
-ARG PYTHON_VERSION=3.11.9
+ARG PIP_VERSION=24.2
+ARG PYTHON_VERSION=3.11.10
 
 # install -- node.js
 RUN export DEBIAN_FRONTEND=noninteractive \
