@@ -80,9 +80,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return podGroups;
   }
 
-  private getPodDetails(
-    pod: V1Pod,
-  ): {
+  private getPodDetails(pod: V1Pod): {
     podName: string;
     groupName: string;
     namespace: string;

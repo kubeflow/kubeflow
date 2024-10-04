@@ -9,14 +9,21 @@
     "experimentalDecorators": true,
     "module": "es2020",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "importHelpers": true,
     "target": "es2015",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2018",
+      "dom",
+      "es2019"
+    ],
     "paths": {
       "@shared/*": ["../../angular-frontend-shared/*"],
       "@app/environment": ["src/environments/environment"]
     },
-    "typeRoots": ["node_modules/@types"],
-    "lib": ["es2018", "dom"],
     "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
