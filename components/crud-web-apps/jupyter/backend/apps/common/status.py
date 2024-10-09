@@ -49,6 +49,7 @@ def process_status(notebook):
     status_event, reason_event = get_status_from_events(notebook_events)
     if status_event is not None:
         status_phase, status_message = status_event, reason_event
+        return status.create_status(status_phase, status_message)
 
     # In case there no Events available, show a generic message
     status_phase = status.STATUS_PHASE.WARNING
