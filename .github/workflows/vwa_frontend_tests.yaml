@@ -4,6 +4,9 @@ on:
     paths:
       - components/crud-web-apps/volumes/frontend/**
 
+permissions:
+  contents: read
+
 jobs:
   frontend-format-lint-check:
     name: Check code format and lint
