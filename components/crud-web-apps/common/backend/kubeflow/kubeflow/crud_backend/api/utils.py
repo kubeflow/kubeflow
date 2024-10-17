@@ -26,6 +26,29 @@ def failed_response(msg, error_code):
     return resp, error_code
 
 
+def label_selector_matches(label_selector, labels):
+    """Check if a label_selector matches a label from the provided labels."""
+    if "=" not in label_selector:
+        raise ValueError("Provided label_selector does not have = operator: %s"
+                         % (label_selector))
+
+    selector_key = label_selector.split("=")[0]
+    selector_value = label_selector.split("=")[1]
+
+    for label in labels:
+        if label != selector_key:
+            continue
+
+        # label key matched, checking for value
+        if labels[label] != selector_value:
+            continue
+
+        return True
+
+    # the label_selector did not match
+    return False
+
+
 def events_field_selector(kind, name):
     return "involvedObject.kind=%s,involvedObject.name=%s" % (kind, name)
 
