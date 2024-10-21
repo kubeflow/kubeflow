@@ -1,79 +1,71 @@
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
-
-import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/paper-button/paper-button.js';
 
 /**
  * Logout button component.
- * Handles the logout requests and post-logout redirects.
- *
+ * Triggers a GET request to the logout URL and handles post-logout redirection.
  */
-
 export class LogoutButton extends PolymerElement {
     static get template() {
         return html`
-            <paper-button id="logout-button" on-tap="logout">
-                <iron-icon icon='kubeflow:logout' title="Logout">
-                </iron-icon>
-            </paper-button>
-            <iron-ajax
-                    id='logout'
-                    url$='{{logoutUrl}}'
-                    method='post'
-                    handle-as='json'
-                    headers='{{headers}}'
-                    on-response='_postLogout'>
-            </iron-ajax>
+            <a href="#" on-click="logout">
+                <paper-button id="logout-button">
+                    <iron-icon icon="kubeflow:logout" 
+                               title="Logout">
+                    </iron-icon>
+                </paper-button>
+            </a>
         `;
     }
 
     static get properties() {
         return {
-            headers: {
-                type: Object,
-                computed: '_setHeaders()',
-            },
+            /**
+             * The URL to trigger the logout process.
+             */
             logoutUrl: {
                 type: String,
+                value: '', // Default to avoid undefined URL errors.
+            },
+            /**
+             * The URL to redirect to after a successful logout.
+             */
+            afterLogoutURL: {
+                type: String,
+                value: '/', // Default redirect if none is provided.
             },
         };
     }
 
     /**
-     * After successful logout, redirects user to `afterLogoutURL`,
-     * received from the backend.
+     * Handles logout by navigating to the logout URL.
+     * If the backend returns an 'afterLogoutURL', the user is redirected there.
+     * Otherwise, it defaults to the provided `afterLogoutURL`.
      *
-     * @param {{Event}} event
-     * @private
+     * @param {Event} event - The click event triggered by the logout link.
      */
-    _postLogout(event) {
-        window.location.replace(event.detail.response['afterLogoutURL']);
-    }
+    logout(event) {
+        event.preventDefault(); // Prevent default anchor behavior.
 
-    /**
-     * Call logout endpoint.
-     */
-    logout() {
-        // call iron-ajax
-        this.$.logout.generateRequest();
-    }
-
-    /**
-     * Set 'Authorization' header based on the existing cookie.
-     * Currently, the logout method only accepts authorization header, see:
-     * https://github.com/arrikto/oidc-authservice/blob/master/server.go#L386
-     *
-     * @return {{Object}} headers
-     * @private
-     */
-    _setHeaders() {
-        const cookie = ('; ' + document.cookie)
-            .split(`; authservice_session=`)
-            .pop()
-            .split(';')[0];
-        return {
-            'Authorization': `Bearer ${cookie}`,
-        };
+        // Perform the logout request via a GET request.
+        fetch(this.logoutUrl, {
+            method: 'GET',
+            credentials: 'include',
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Logout failed');
+            })
+            .then((data) => {
+                const redirectUrl =
+                    data.afterLogoutURL || this.afterLogoutURL;
+                window.location.replace(redirectUrl);
+            })
+            .catch((error) => {
+                window.location.replace(this.afterLogoutURL);
+            });
     }
 }
 
