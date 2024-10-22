@@ -54,7 +54,7 @@ Make sure you have installed node 16!
     - Kubeflow Pipelines: `kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8087:80`
     - See [`webpack.config.js`](https://github.com/kubeflow/kubeflow/blob/master/components/centraldashboard/webpack.config.js) for more details.
 6. Open your browser to `http://localhost:8080` to see the dashboard:
-    - You will need to inject your requrests with a `kubeflow-userid` header
+    - You will need to inject your requests with a `kubeflow-userid` header
     - You can do this in Chrome by using the [Header Editor](https://chromewebstore.google.com/detail/eningockdidmgiojffjmkdblpjocbhgh) extension
     - For example, set the `kubeflow-userid` header to `user@example.com`
 
