@@ -41,7 +41,7 @@ spec:
         - name: DASHBOARD_CONFIGMAP
           value: CD_CONFIGMAP_NAME_PLACEHOLDER
         - name: LOGOUT_URL
-          value: '/authservice/logout'
+          value: '/oauth2/sign_out'
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
