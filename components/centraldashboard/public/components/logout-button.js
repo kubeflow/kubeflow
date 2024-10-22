@@ -8,7 +8,7 @@ import '@polymer/paper-button/paper-button.js';
 export class LogoutButton extends PolymerElement {
     static get template() {
         return html`
-            <a href="#" on-click="logout">
+            <a href="{{logoutUrl}}" on-click="logout">
                 <paper-button id="logout-button">
                     <iron-icon icon="kubeflow:logout" 
                                title="Logout">
