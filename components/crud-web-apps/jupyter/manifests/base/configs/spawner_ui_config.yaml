@@ -45,6 +45,7 @@ spawnerFormDefaults:
       - kubeflownotebookswg/jupyter-pytorch-full:latest
       - kubeflownotebookswg/jupyter-pytorch-cuda-full:latest
       - kubeflownotebookswg/jupyter-pytorch-gaudi-full:latest
+      - kubeflownotebookswg/jupyter-pytorch-rocm-full:latest
       - kubeflownotebookswg/jupyter-tensorflow-full:latest
       - kubeflownotebookswg/jupyter-tensorflow-cuda-full:latest
 
