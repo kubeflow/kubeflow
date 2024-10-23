@@ -1,10 +1,11 @@
-@use '~@angular/material' as mat;
+@use '@angular/material' as mat;
 @import './kubeflow.css';
 @import './variables.scss';
 
 // Define the primary palette for the color that appears most
 // frequently throughout your application.
 $kubeflow-primary-palette: (
+  100: $kubeflow-blue-hue-1,
   400: $kubeflow-blue-hue-1,
   500: $kubeflow-blue-hue-2,
   600: $kubeflow-blue-hue-3,
@@ -54,7 +55,7 @@ $kubeflow-typography-config: mat.define-typography-config(
 $kubeflow-theme: mat.define-light-theme(
   (
     color: (
-      primary: mat.define-palette($kubeflow-primary-palette, 700),
+      primary: mat.define-palette($kubeflow-primary-palette, 500),
       accent: mat.define-palette(mat.$pink-palette, A200, A100, A400),
     ),
   )

@@ -26,28 +26,30 @@ describe('MainPageComponent', () => {
   let fixture: ComponentFixture<MainPageComponent>;
   let router: Router;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [MainPageComponent, NamespaceSelectorComponent],
-      imports: [
-        NoopAnimationsModule,
-        LayoutModule,
-        MatButtonModule,
-        MatIconModule,
-        MatIconTestingModule,
-        MatListModule,
-        MatSidenavModule,
-        MatToolbarModule,
-        RouterTestingModule,
-        HttpClientTestingModule,
-        MatSnackBarModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        FormsModule,
-      ],
-    }).compileComponents();
-    router = TestBed.inject(Router);
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [MainPageComponent, NamespaceSelectorComponent],
+        imports: [
+          NoopAnimationsModule,
+          LayoutModule,
+          MatButtonModule,
+          MatIconModule,
+          MatIconTestingModule,
+          MatListModule,
+          MatSidenavModule,
+          MatToolbarModule,
+          RouterTestingModule,
+          HttpClientTestingModule,
+          MatSnackBarModule,
+          MatFormFieldModule,
+          MatSelectModule,
+          FormsModule,
+        ],
+      }).compileComponents();
+      router = TestBed.inject(Router);
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MainPageComponent);

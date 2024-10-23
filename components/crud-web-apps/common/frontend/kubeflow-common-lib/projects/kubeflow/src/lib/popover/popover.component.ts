@@ -47,7 +47,7 @@ export class PopoverComponent {
   }
   private hideTimeoutId: number;
   private showTimeoutId: number;
-  private readonly onHide: Subject<any> = new Subject();
+  private readonly onHide: Subject<void> = new Subject<void>();
   @HostListener('mouseenter')
   OnMouseEnter() {
     if (this.hideTimeoutId) {
@@ -83,7 +83,7 @@ export class PopoverComponent {
     this.hideTimeoutId = window.setTimeout(() => {
       // TODO: When we start to use @angular/animations move the
       // "onHide.next()" method to animation's finished callback
-      this.onHide.next();
+      this.onHide.next(undefined);
       this.visibilityPrv = 'hidden';
       // Mark for check in case the parent has set ChangeDetectionStrategy
       // to OnPush.

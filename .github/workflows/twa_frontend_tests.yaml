@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Format tensorboards web app
         run: |
@@ -36,10 +36,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node version to 12
+      - name: Setup node version to 16
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Install Kubeflow common library dependecies
         run: |
@@ -63,10 +63,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node version to 12
+      - name: Setup node version to 16
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Install Kubeflow common library dependecies
         run: |
@@ -82,5 +82,5 @@ jobs:
       - name: Serve UI & run Cypress tests in Chrome and Firefox
         run: |
           cd components/crud-web-apps/tensorboards/frontend
-          npm run serve & npx wait-on http://localhost:4200
+          npm run serve > serve.log 2>&1 & npx wait-on http://localhost:4200
           npm run ui-test-ci-all
