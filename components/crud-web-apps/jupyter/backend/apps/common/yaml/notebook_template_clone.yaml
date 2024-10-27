@@ -40,7 +40,7 @@ spec:
           - /bin/sh
           args:
           - -c
-          - if [ ! -f /home/jovyan/.clonedone ]; then cp -a /source/* /home/jovyan; touch /home/jovyan/.clonedone; sleep 365d; else sleep 365d; fi
+          - if [ ! -f /home/jovyan/.clonedone ]; then cp -a /source/.[a-zA-Z]* /home/jovyan; touch /home/jovyan/.clonedone; sleep 365d; else sleep 365d; fi
           volumeMounts:
           - mountPath: /source
             name: {templatePvcName}
