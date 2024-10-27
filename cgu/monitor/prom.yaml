@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-resource-monitor
+  namespace: cgu  # 确保指定了正确的命名空间
+  labels:
+    app: node-resource-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-resource-monitor
+  template:
+    metadata:
+      labels:
+        app: node-resource-monitor
+    spec:
+      serviceAccountName: prom-service-account  # 使用新创建的 ServiceAccount
+      containers:
+        - name: node-resource-monitor
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          image: docker.io/twentyfouritaiwan/cgu-monitor:v0.1.01 #your-docker-username/your-repository:your-tag  #  替换为您打包的 Python 应用的 Docker 镜像名称。
+          ports:
+          - containerPort: 8080  # Prometheus 客户端暴露的端口
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-resource-monitor
+  namespace: cgu  # 指定命名空间
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: prom-app
+  namespaceSelector:
+    matchNames:
+      - cgu  # 指定要监控的命名空间
+  endpoints:
+  - port: metrics
+    interval: 60s
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prom-app
+  namespace: cgu
+  labels:
+    app: prom-app
+spec:
+  type: NodePort
+  selector:
+    app: node-resource-monitor
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prom-service-account
+  namespace: cgu
+  labels:
+    app: prom-app
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: node-access
+rules:
+- apiGroups: [""]
+  resources: ["nodes","pods","namespaces"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+ name: node-access-binding
+subjects:
+- kind: ServiceAccount
+  name: prom-service-account
+  namespace: cgu
+roleRef:
+ kind: ClusterRole
+ name: node-access
+ apiGroup: rbac.authorization.k8s.io
+
+
