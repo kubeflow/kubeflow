@@ -10,4 +10,5 @@ exec /usr/bin/code-server \
   --disable-workspace-trust \
   --disable-getting-started-override \
   --auth none \
+  --trusted-origins "*" \
   "${HOME}"
