@@ -1,4 +1,4 @@
-import { get as getAttributeValue } from 'lodash';
+import { get as getAttributeValue } from 'lodash-es';
 
 export interface MenuConfig {
   field: string;

@@ -1,4 +1,4 @@
-import { get as getAttributeValue } from 'lodash';
+import { get as getAttributeValue } from 'lodash-es';
 import { STATUS_TYPE, Status } from '../status/types';
 
 export interface StatusConfig {

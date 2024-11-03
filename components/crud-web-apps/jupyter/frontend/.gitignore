@@ -48,6 +48,6 @@ Thumbs.db
 # Fonts Files
 /src/assets/fonts
 
-# Cypress
-cypress/screenshots
+# Playwright
+tests/screenshots
 

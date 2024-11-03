@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { never, Observable, of } from 'rxjs';
 import { expand, delay, tap, concatMap, filter } from 'rxjs/operators';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 
 @Injectable({
   providedIn: 'root',

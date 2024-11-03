@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "format": "prettier --write './**/*.{ts,html,css}'",
@@ -16,9 +17,9 @@
     "test:prod": "ng test --browsers=ChromeHeadless --watch=false",
     "lint-check": "ng lint",
     "lint": "ng lint --fix",
-    "ui-test": "cypress open . --e2e",
-    "ui-test-ci": "cypress run . --e2e",
-    "ui-test-ci-all": "cypress run . --e2e --browser=chrome && cypress run . --e2e --browser=firefox"
+    "ui-test": "playwright test --headed",
+    "ui-test-ci": "playwright test",
+    "ui-test-ci-all": "playwright test --project=Chromium && playwright test --project=Firefox"
   },
   "private": true,
   "dependencies": {
@@ -60,12 +61,12 @@
     "@angular/cli": "~14.2.13",
     "@angular/compiler-cli": "~14.3.0",
     "@angular/language-service": "~14.3.0",
+    "@playwright/test": "~1.37.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "^2.0.9",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
-    "cypress": "~13.14.0",
     "eslint": "^7.26.0",
     "eslint-plugin-import": "latest",
     "eslint-plugin-jsdoc": "^34.0.0",

@@ -7,7 +7,7 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "module": "es2020",
+    "module": "esnext",
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2015",
@@ -15,9 +15,9 @@
       "@shared/*": ["../../angular-frontend-shared/*"],
       "@app/environment": ["src/environments/environment"]
     },
-
     "typeRoots": ["node_modules/@types"],
     "lib": ["es2018", "dom", "es2019"],
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
