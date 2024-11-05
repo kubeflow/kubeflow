@@ -1,5 +1,26 @@
 # Kubeflow Roadmap
 
+## Kubeflow 1.10 Release, Planned for release: Mar 2025
+The Kubeflow Community plans to deliver its v1.10 release in Mar 2025 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.10/README.md#timeline). The high level deliverables are tracked in the [v1.10 Release](https://github.com/orgs/kubeflow/projects/73) Github project board. The v1.10 release process will be managed by the v1.10 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.10/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
+
+### Themes
+* Model Registry UI
+* Spark Operator as a core Kubeflow component
+* Training Operator v2
+* Notebooks 2.0
+* Kubeflow Pipelines 2.4.0
+* Switch from Istio to Istio-cni and enable Pod Security standards
+
+### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
+* [Training Operators](https://github.com/kubeflow/training-operator/issues/2169)
+* [KServe](https://github.com/kserve/kserve/releases/tag/v0.14.0)
+* [Katib](https://github.com/kubeflow/katib/issues/2386)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/milestone/12)
+* [Notebooks](https://github.com/kubeflow/notebooks/milestone/1)
+* [Platform (Manifests+Security)](https://github.com/kubeflow/manifests/issues/2763)
+* [Model Registry](https://github.com/kubeflow/model-registry/issues/175)
+* [Spark Operator](https://github.com/kubeflow/spark-operator/issues/2193)
+
 ## Kubeflow 1.9 Release, Delivered: July 2024
 The Kubeflow Community plans to deliver its v1.9 release in Jul 2024 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.9/README.md#timeline). The high level deliverables are tracked in the [v1.9 Release](https://github.com/orgs/kubeflow/projects/61) Github project board. The v1.9 release process will be managed by the v1.9 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.9/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
