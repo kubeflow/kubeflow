@@ -8,6 +8,9 @@ on:
       - components/tensorboard-controller/**
       - releasing/version/VERSION
 
+permissions:
+  contents: read
+
 env:
   DOCKER_USER: kubeflownotebookswg
   IMG: kubeflownotebookswg/tensorboard-controller
