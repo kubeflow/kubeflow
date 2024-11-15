@@ -6,9 +6,9 @@ require (
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
 	github.com/onsi/gomega v1.27.10
 	golang.org/x/net v0.13.0
-	k8s.io/api v0.28.1
-	k8s.io/apimachinery v0.28.1
-	k8s.io/client-go v0.28.1
+	k8s.io/api v0.31.2
+	k8s.io/apimachinery v0.31.2
+	k8s.io/client-go v0.31.2
 	k8s.io/klog v0.3.0
 	sigs.k8s.io/controller-runtime v0.16.2
 )
