@@ -25,6 +25,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 )
@@ -74,15 +75,19 @@ var _ = Describe("Notebook controller", func() {
 			*/
 			By("By checking that the Notebook has statefulset")
 			Eventually(func() (bool, error) {
-				sts := &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{
-					Name:      Name,
-					Namespace: Namespace,
-				}}
-				err := k8sClient.Get(ctx, notebookLookupKey, sts)
+				namespacedStatefulSets := &appsv1.StatefulSetList{}
+
+				err := k8sClient.List(ctx, namespacedStatefulSets, client.InNamespace(Namespace))
 				if err != nil {
 					return false, err
 				}
-				return true, nil
+
+				for _, sts := range namespacedStatefulSets.Items {
+					if metav1.IsControlledBy(&sts, createdNotebook) {
+						return true, nil
+					}
+				}
+				return false, nil
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
