@@ -1,5 +1,5 @@
 # --- Build the backend ---
-FROM node:16-bullseye-slim as backend
+FROM node:16.20.2-bullseye as backend
 
 COPY ./centraldashboard-angular/backend/ ./src
 WORKDIR /src
@@ -9,7 +9,7 @@ RUN npm ci && \
     npm prune --production
 
 # --- Build the frontend kubeflow library ---
-FROM node:16-bullseye-slim as frontend-kubeflow-lib
+FROM node:16.20.2-bullseye as frontend-kubeflow-lib
 
 WORKDIR /src
 
@@ -24,7 +24,7 @@ COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/tsconfig.json .
 RUN npm run build
 
 # --- Build the frontend ---
-FROM node:16-bullseye-slim as frontend
+FROM node:16.20.2-bullseye as frontend
 
 ARG kubeflowversion
 ENV BUILD_VERSION=$kubeflowversion
