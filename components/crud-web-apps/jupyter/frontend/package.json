@@ -5,9 +5,9 @@
   "scripts": {
     "ng": "ng",
     "format": "prettier --write './**/*.{ts,html,css}'",
-    "build": "npm run copyLibAssets && ng build --base-href /jupyter/",
-    "build:fr": "npm run copyLibAssets && ng build --base-href /jupyter/ --configuration=fr",
-    "build:watch": "npm run copyLibAssets && ng build --watch --outputPath ../backend/apps/default/static/ --outputHashing all",
+    "build": "npm run copyLibAssets && ng build --base-href /jupyter/ --deploy-url static/",
+    "build:fr": "npm run copyLibAssets && ng build --base-href /jupyter/ --deploy-url static/ --configuration=fr",
+    "build:watch": "npm run copyLibAssets && ng build --watch --deploy-url static/ --outputPath ../backend/apps/default/static/ --outputHashing all",
     "serve": "npm run copyLibAssets && ng serve --proxy-config=src/proxy.conf.json",
     "copyLibAssets": "cp -r ./node_modules/kubeflow/assets/* ./src/assets/",
     "format:check": "prettier --check 'src/**/*.{js,ts,html,scss,css}' || node scripts/check-format-error.js",
