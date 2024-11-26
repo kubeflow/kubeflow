@@ -138,7 +138,7 @@ export function createMetadataFormGroupFromPvc(
   if (metadata.annotations) {
     group.addControl('annotations', new FormGroup({}));
 
-    const annotationsGroup = group.get('annotations') as FormGroup;
+    const annotationsGroup = group.get('annotations') as unknown as FormGroup;
     for (const [key, val] of Object.entries(metadata.annotations)) {
       annotationsGroup.addControl(key, new FormControl(val, []));
     }
@@ -147,7 +147,7 @@ export function createMetadataFormGroupFromPvc(
   if (metadata.labels) {
     group.addControl('labels', new FormGroup({}));
 
-    const labelsGroup = group.get('labels') as FormGroup;
+    const labelsGroup = group.get('labels') as unknown as FormGroup;
     for (const [key, val] of Object.entries(metadata.labels)) {
       labelsGroup.addControl(key, new FormControl(val, []));
     }
@@ -212,7 +212,7 @@ export function createNewPvcFormGroupFromVolume(
 }
 
 export function createFormGroupFromVolume(volume: Volume): FormGroup {
-  const group = new FormGroup({
+  const group = new FormGroup<{ [key: string]: AbstractControl }>({
     mount: new FormControl(volume.mount, [Validators.required]),
   });
 

@@ -1,5 +1,5 @@
 import { ChipDescriptor } from '../../details-list/types';
-import { get as getAttributeValue } from 'lodash';
+import { get as getAttributeValue } from 'lodash-es';
 
 export interface ChipsListConfig {
   field?: string;

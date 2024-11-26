@@ -1,4 +1,4 @@
-import { get as getAttributeValue } from 'lodash';
+import { get as getAttributeValue } from 'lodash-es';
 import { formatBytes, quantityToScalar } from '../table/utils';
 
 export interface MemoryConfig {

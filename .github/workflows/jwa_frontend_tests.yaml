@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Check frontend formatting
         run: |
@@ -36,10 +36,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node version to 12
+      - name: Setup node version to 16
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Install Kubeflow common library dependecies
         run: |
@@ -58,15 +58,15 @@ jobs:
           npm run test:prod
 
   run-ui-tests:
-    name: UI tests with Cypress
+    name: UI tests with Playwright
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node version to 12
+      - name: Setup node version to 16
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Install Kubeflow common library dependecies
         run: |
@@ -79,8 +79,9 @@ jobs:
           cd components/crud-web-apps/jupyter/frontend
           npm i
           npm link kubeflow
-      - name: Serve UI & run Cypress tests in Chrome and Firefox
+      - name: Serve UI & run Playwright tests in Chrome and Firefox
         run: |
           cd components/crud-web-apps/jupyter/frontend
-          npm run serve & npx wait-on http://localhost:4200
+          npm run serve > serve.log 2>&1 & npx wait-on http://localhost:4200
+          npx playwright install
           npm run ui-test-ci-all

@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
-import { parse } from 'date-fns';
-import { isEqual } from 'date-fns';
-import { setHours } from 'date-fns';
-import { setMinutes } from 'date-fns';
-import { setSeconds } from 'date-fns';
-import { distanceInWords } from 'date-fns';
-import { differenceInSeconds } from 'date-fns';
-import memoize from 'lodash-es/memoize';
+import pkg from 'date-fns';
+import memoize from 'lodash/memoize.js';
 
+const {
+  parse,
+  isEqual,
+  setHours,
+  setMinutes,
+  setSeconds,
+  distanceInWords,
+  differenceInSeconds,
+} = pkg;
 export const defaultDateOptions: Intl.DateTimeFormatOptions = {
   weekday: 'short',
   year: 'numeric',

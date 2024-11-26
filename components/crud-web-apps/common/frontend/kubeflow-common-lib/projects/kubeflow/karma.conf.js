@@ -31,7 +31,7 @@ module.exports = function (config) {
       '/static/assets/': '/base/projects/kubeflow/src/assets/',
     },
     client: {
-      clearContext: false, // leave Jasmine Spec Runner output visible in browser
+      clearContext: true,
     },
     coverageIstanbulReporter: {
       dir: require('path').join(__dirname, '../../coverage/kubeflow'),

@@ -1,5 +1,5 @@
 # --- Build the backend ---
-FROM node:12-buster-slim as backend
+FROM node:16.20.2-bullseye as backend
 
 COPY ./centraldashboard-angular/backend/ ./src
 WORKDIR /src
@@ -9,7 +9,7 @@ RUN npm ci && \
     npm prune --production
 
 # --- Build the frontend kubeflow library ---
-FROM node:12-buster-slim as frontend-kubeflow-lib
+FROM node:16.20.2-bullseye as frontend-kubeflow-lib
 
 WORKDIR /src
 
@@ -24,7 +24,7 @@ COPY ./crud-web-apps/common/frontend/kubeflow-common-lib/tsconfig.json .
 RUN npm run build
 
 # --- Build the frontend ---
-FROM node:12-buster-slim as frontend
+FROM node:16.20.2-bullseye as frontend
 
 ARG kubeflowversion
 ENV BUILD_VERSION=$kubeflowversion
@@ -39,7 +39,7 @@ COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
 RUN npm run build -- --output-path=./dist/default --configuration=production
 
 # Step 2: Packages assets for serving
-FROM node:12.22.12-alpine AS serve
+FROM node:16.20.2-alpine AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
@@ -50,4 +50,3 @@ COPY --from=frontend /src/dist/default/assets/dashboard_lib.bundle.js.map ./dist
 
 EXPOSE 8082
 ENTRYPOINT ["npm", "start"]
-

@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Check frontend code formatting
         run: |
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Install Kubeflow common library dependecies
         run: |
           cd components/crud-web-apps/common/frontend/kubeflow-common-lib
@@ -53,14 +53,14 @@ jobs:
 
   run-ui-tests:
     name: UI tests in chrome and firefox
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node version to 12
+      - name: Setup node version to 16
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Install KinD
         run: ./components/testing/gh-actions/install_kind.sh
