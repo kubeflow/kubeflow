@@ -248,9 +248,7 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	IncRequestCounter("", "", action, r.URL.Path)
-	if writeResponse(w, result) {
-		w.WriteHeader(http.StatusOK)
-	} else {
+	if !writeResponse(w, result) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -269,7 +267,6 @@ func (c *KfamV1Alpha1Client) QueryClusterAdmin(w http.ResponseWriter, r *http.Re
 	queryUser := queries.Get("user")
 	if writeResponse(w, []byte(strconv.FormatBool(c.isClusterAdmin(queryUser)))) {
 		IncRequestCounter("", "", action, r.URL.Path)
-		w.WriteHeader(http.StatusOK)
 	} else {
 		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
 			SEVERITY_MAJOR)
