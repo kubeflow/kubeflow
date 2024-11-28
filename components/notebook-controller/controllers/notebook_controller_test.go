@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
-
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -74,11 +74,11 @@ func TestNbNameFromInvolvedObject(t *testing.T) {
 			expectedNbName: "test-notebook",
 		},
 	}
-	objects := []runtime.Object{testPod, testSts}
+	objects := []client.Object{testPod, testSts}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := fake.NewFakeClientWithScheme(scheme.Scheme, objects...)
+			c := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(objects...).Build()
 			nbName, err := nbNameFromInvolvedObject(c, &test.event.InvolvedObject)
 			if err != nil {
 				t.Fatalf("Unexpected error: %v", err)

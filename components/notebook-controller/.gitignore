@@ -6,6 +6,7 @@
 *.so
 *.dylib
 bin
+notebook-controller
 
 # Test binary, build with `go test -c`
 *.test
@@ -25,3 +26,6 @@ bin
 
 gcb_build/**
 testbin/*
+
+# macOS operating system
+.DS_Store
