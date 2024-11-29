@@ -12,7 +12,7 @@
   }
 
   .mat-button-toggle-checked {
-    border: 2px solid $kubeflow-blue-primary-hue;
+    box-shadow: inset 0 0 0 2px $kubeflow-blue-primary-hue;
     background-color: white;
   }
 
