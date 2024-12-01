@@ -8,8 +8,8 @@ import {
     ERRORS,
 } from './api';
 
-// From: https://www.w3resource.com/javascript/form/email-validation.php
-const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+// From: https://regex101.com/library/SOgUIV
+const EMAIL_RGX = /^((?!\.)[\w-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/;
 
 // Valid actions for handling a contributor
 type ContributorActions = 'create' | 'remove';
