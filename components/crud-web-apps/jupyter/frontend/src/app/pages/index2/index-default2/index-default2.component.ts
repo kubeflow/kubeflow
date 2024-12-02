@@ -69,9 +69,9 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     public route: ActivatedRoute,
     public http: HttpClient
   ) {}
-  currNamespace1: string;
+  // currNamespace1: string;
   notebookName: string;
-  currNamespace2:string;
+  // currNamespace2:string;
   url1 :string;
   ngOnInit(): void {
         
@@ -108,7 +108,8 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     // Reset the poller whenever the selected namespace changes
     this.subs.add(
       this.ns.getSelectedNamespace().subscribe(ns => {
-        this.currNamespace = ns;
+        // Lance
+        // this.currNamespace = ns;
         this.poller.reset();
 
         this.backend.getManager(this.currNamespace).subscribe(manager => {
@@ -122,7 +123,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     );
     this.route.params.subscribe(params => {
       // 從路由參數中獲取 namespace 和 notebook_name
-      this.currNamespace1 = params['namespace'];
+      this.currNamespace = params['namespace'];
       this.notebookName = params['notebook_name'];
       this.url1 = this.router.url
       //this.currNamespace2 = 'm1161002-2'
@@ -136,7 +137,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
       }
 
 
-      this.backend.getNotebooksaccess(this.currNamespace1,this.notebookName,this.url1).subscribe(values => {
+      this.backend.getNotebooksaccess(this.currNamespace,this.notebookName,this.url1).subscribe(values => {
         console.log('Values:', values);
         if (Array.isArray(values)) {
           this.backend.getProfiles(this.currNamespace).subscribe(email => {
@@ -144,7 +145,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
             // 檢查 email 是否在 values 陣列中
             if (values.includes(email)) {
               console.log('Email is in the array.');
-              this.backend.getsharedNotebooks(this.currNamespace1, this.notebookName).subscribe(notebooks => {
+              this.backend.getsharedNotebooks(this.currNamespace, this.notebookName).subscribe(notebooks => {
               if (!isEqual(this.rawData, notebooks)) {
                 this.rawData = notebooks;
                 // Update the frontend's state
@@ -316,11 +317,11 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
   }
   public connectClicked() {
     let url: string;
-    console.log("connectClicked " + this.currNamespace1 + " " + this.notebookName);
+    console.log("connectClicked " + this.currNamespace + " " + this.notebookName);
     if (window.location.href.includes('/view')) {
-        url = `/notebook/${this.currNamespace1}/${this.notebookName}/view`;
+        url = `/notebook/${this.currNamespace}/${this.notebookName}/view`;
     } else {
-        url = `/notebook/${this.currNamespace1}/${this.notebookName}/`;
+        url = `/notebook/${this.currNamespace}/${this.notebookName}/`;
     }
     // Open new tab to work on the Notebook
     window.open(url)

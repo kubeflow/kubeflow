@@ -207,8 +207,9 @@ def get_notebooks_access(namespace,notebook,url1):
 @bp.route("/api/namespaces/<namespace>/aps-2")
 def get_profile1(namespace):
     profiles = api.get_profile(namespace)
-    annotations_json = json.loads(profiles['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration'])
-    email = annotations_json['spec']['owner']['name']
+    # Lance
+    # annotations_json = json.loads(profiles['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration'])
+    email = profiles['spec']['owner']['name']
     print(email)
     return api.success_response("email", email)
 #2024 YC get profile end#

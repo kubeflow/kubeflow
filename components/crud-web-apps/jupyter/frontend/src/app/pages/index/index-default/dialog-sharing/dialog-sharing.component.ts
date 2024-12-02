@@ -152,11 +152,11 @@ export class DialogSharing implements OnInit {
   console.log('href without pathname:', window.location.href.replace(window.location.pathname, ''));
 
   if (this.selected == 'option1') {
-    this.copylink = `${window.location.href.replace(window.location.pathname, '')}/notebook/${this.namespace}/${this.notebook}/view/`;
+    this.copylink = `${window.location.href.replace(window.location.pathname, '')}/notebook/auto-start/${this.namespace}/${this.notebook}/view/`;
   } else if(this.selected == 'option2') {
-    this.copylink = `${window.location.href.replace(window.location.pathname, '')}/notebook/${this.namespace}/${this.notebook}/`;
+    this.copylink = `${window.location.href.replace(window.location.pathname, '')}/notebook/auto-start/${this.namespace}/${this.notebook}/`;
   } else{
-    this.copylink = `${window.location.href.replace(window.location.pathname, '')}/notebook/${this.namespace}/${this.notebook}/`;
+    this.copylink = `${window.location.href.replace(window.location.pathname, '')}/notebook/auto-start/${this.namespace}/${this.notebook}/`;
   }
   console.log('copylink:', this.copylink);
 }
