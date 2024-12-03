@@ -33,6 +33,9 @@ graph TD
   Jupyter --> PyTorchGaudi[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-gaudi'>PyTorch Gaudi</a>]
   PyTorchGaudi --> PyTorchGaudiFull[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-gaudi-full'>PyTorch Gaudi Full</a>]
 
+  Jupyter --> PyTorchRocm[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-rocm'>PyTorch ROCm</a>]
+  PyTorchRocm --> PyTorchRocmFull[<a href='https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers/jupyter-pytorch-rocm-full'>PyTorch ROCm Full</a>]
+
 ```
 
 ### Base Images
@@ -60,6 +63,8 @@ Dockerfile | Container Registry | Notes
 [`./jupyter-pytorch-cuda-full`](./jupyter-pytorch-cuda-full) | [`kubeflownotebookswg/jupyter-pytorch-cuda-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-cuda-full) | JupyterLab + PyTorch + CUDA + Common Packages
 [`./jupyter-pytorch-gaudi`](./jupyter-pytorch-gaudi) | [`kubeflownotebookswg/jupyter-pytorch-gaudi`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-gaudi) | JupyterLab + PyTorch + Intel Gaudi
 [`./jupyter-pytorch-gaudi-full`](./jupyter-pytorch-gaudi-full) | [`kubeflownotebookswg/jupyter-pytorch-gaudi-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-gaudi-full) | JupyterLab + PyTorch + Intel Gaudi + Common Packages
+[`./jupyter-pytorch-rocm`](./jupyter-pytorch-rocm) | [`kubeflownotebookswg/jupyter-pytorch-rocm`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-rocm) | JupyterLab + PyTorch + AMD ROCm
+[`./jupyter-pytorch-rocm-full`](./jupyter-pytorch-rocm-full) | [`kubeflownotebookswg/jupyter-pytorch-rocm-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-rocm-full) | JupyterLab + PyTorch + AMD ROCm + Common Packages
 [`./jupyter-scipy`](./jupyter-scipy) | [`kubeflownotebookswg/jupyter-scipy`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-scipy) | JupyterLab + Common Packages
 [`./jupyter-tensorflow`](./jupyter-tensorflow) | [`kubeflownotebookswg/jupyter-tensorflow`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow) | JupyterLab + TensorFlow
 [`./jupyter-tensorflow-full`](./jupyter-tensorflow-full) | [`kubeflownotebookswg/jupyter-tensorflow-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow-full) | JupyterLab + TensorFlow + Common Packages
