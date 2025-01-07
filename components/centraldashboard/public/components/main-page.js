@@ -381,7 +381,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             }
         }
         window.history.replaceState(null, null, l.toString());
-        this.set('routeHash.path', window.location.hash.substr(1));
     }
 
     /**
