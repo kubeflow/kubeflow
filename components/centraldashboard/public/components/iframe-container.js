@@ -54,7 +54,11 @@ export class IframeContainer extends PolymerElement {
         // Adds a click handler to be able to capture navigation events from
         // the captured iframe and set the page property which notifies
         const iframe = this.$.iframe;
-        iframe.addEventListener('load', () => {
+        iframe.addEventListener('load', (event) => {
+            const nextLocation = event.target.contentWindow.location;
+            const nextIframePage = nextLocation.href.slice(
+                nextLocation.origin.length);
+            this.page = nextIframePage;
             const syncIframePage = () => {
                 const iframeLocation = iframe.contentWindow.location;
                 const newIframePage = iframeLocation.href.slice(
