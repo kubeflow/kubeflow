@@ -109,6 +109,8 @@ Plugin owners have full control over plugin spec struct and implementation.
         ### Boolean which defaults to false. If set to true IAM roles and policy will not be mutated
         annotateOnly: true 
   ```
+  To attach default role ARN to all profiles that don't have the AWS plugin provide Environment variable with name "DEFAULT_AWS_IAM_ROLE_ARN" and value of the Role ARN.
+
 # Deployment
 
 Install the `profiles.kubeflow.org` CRD:

@@ -123,6 +123,43 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		return reconcile.Result{}, err
 	}
 
+	// Add default plugin for AwsIamForServiceAccount if not present
+	awsIamRole := GetEnvDefault("DEFAULT_AWS_IAM_ROLE_ARN", "")
+	if awsIamRole != "" {
+		existingPlugin := false
+		for _, plugin := range instance.Spec.Plugins {
+			if plugin.Kind == "AwsIamForServiceAccount" {
+				existingPlugin = true
+				break
+			}
+		}
+
+		if !existingPlugin {
+			pluginSpec := map[string]interface{}{
+				"awsIamRole":   awsIamRole,
+				"annotateOnly": true,
+			}
+			pluginSpecRaw, err := json.Marshal(pluginSpec)
+			if err != nil {
+				logger.Error(err, "error marshalling AwsIamForServiceAccount plugin spec")
+				return reconcile.Result{}, err
+			}
+
+			instance.Spec.Plugins = append(instance.Spec.Plugins, profilev1.Plugin{
+				TypeMeta: metav1.TypeMeta{
+					Kind: "AwsIamForServiceAccount",
+				},
+				Spec: &runtime.RawExtension{
+					Raw: pluginSpecRaw,
+				},
+			})
+			if err := r.Update(ctx, instance); err != nil {
+				logger.Error(err, "error adding AwsIamForServiceAccount plugin to Profile")
+				return reconcile.Result{}, err
+			}
+		}
+	}
+
 	// Update namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
