@@ -7,18 +7,32 @@ class TestStatusFromContainerState(unittest.TestCase):
     """Test the different cases of status from containerState"""
 
     def test_terminating_container_state(self):
-        container_state = {"status": {"containerState": {"terminating": {}}}}
+        container_state = {
+            "status": {
+                "containerState": {
+                    "terminating": {}
+                }
+            }
+        }
 
         self.assertEqual(
             status.get_status_from_container_state(container_state),
-            (None, None))
+            (None, None)
+        )
 
     def test_ready_container_state(self):
-        container_state = {"status": {"containerState": {"running": {}}}}
+        container_state = {
+            "status": {
+                "containerState": {
+                    "running": {}
+                }
+            }
+        }
 
         self.assertEqual(
             status.get_status_from_container_state(container_state),
-            (None, None))
+            (None, None)
+        )
 
     def test_no_message_container_state(self):
         container_state = {
@@ -34,8 +48,8 @@ class TestStatusFromContainerState(unittest.TestCase):
         self.assertEqual(
             status.get_status_from_container_state(container_state),
             ("warning",
-             "PodInitializing: No available message for container state."))
-
+             "PodInitializing: No available message for container state.")
+        )
 
 class TestStatusFromConditions(unittest.TestCase):
     """Test the different cases of status from conditions"""
