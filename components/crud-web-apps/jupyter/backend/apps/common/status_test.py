@@ -54,8 +54,16 @@ class TestStatusFromContainerState(unittest.TestCase):
 class TestStatusFromConditions(unittest.TestCase):
     """Test the different cases of status from conditions"""
 
-    def test_no_conditions(self):
+    def test_no_status(self):
         conditions = {}
+
+        self.assertEqual(status.get_status_from_conditions(conditions),
+                         (None, None))
+
+    def test_no_conditions(self):
+        conditions = {
+            "status": {}
+        }
 
         self.assertEqual(status.get_status_from_conditions(conditions),
                          (None, None))
