@@ -159,7 +159,9 @@ def get_status_from_conditions(notebook):
         # The status will be warning with a "reason: message" showing on hover
         if "reason" in condition:
             status_phase = status.STATUS_PHASE.WARNING
-            status_message = condition["reason"] + ': ' + condition["message"]
+            reason = condition["reason"]
+            message = condition.get("message", "No available message.") # noqa: E501
+            status_message = '%s: %s' % (reason, message)
             return status_phase, status_message
 
     return None, None
