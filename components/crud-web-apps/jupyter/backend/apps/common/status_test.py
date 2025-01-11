@@ -55,21 +55,21 @@ class TestStatusFromConditions(unittest.TestCase):
     """Test the different cases of status from conditions"""
 
     def test_no_status(self):
-        conditions = {}
+        notebook = {}
 
-        self.assertEqual(status.get_status_from_conditions(conditions),
+        self.assertEqual(status.get_status_from_conditions(notebook),
                          (None, None))
 
     def test_no_conditions(self):
-        conditions = {
+        notebook = {
             "status": {}
         }
 
-        self.assertEqual(status.get_status_from_conditions(conditions),
+        self.assertEqual(status.get_status_from_conditions(notebook),
                          (None, None))
 
     def test_no_reason_conditions(self):
-        conditions = {
+        notebook = {
             "status": {
                 "conditions": [{
                     "status": "True",
@@ -78,11 +78,11 @@ class TestStatusFromConditions(unittest.TestCase):
             }
         }
 
-        self.assertEqual(status.get_status_from_conditions(conditions),
+        self.assertEqual(status.get_status_from_conditions(notebook),
                          (None, None))
 
     def test_conditions_with_reason_and_message(self):
-        conditions = {
+        notebook = {
             "status": {
                 "conditions": [{
                     "status": "False",
@@ -94,11 +94,11 @@ class TestStatusFromConditions(unittest.TestCase):
         }
 
         self.assertEqual(
-            status.get_status_from_conditions(conditions),
+            status.get_status_from_conditions(notebook),
             ("warning", "FailedScheduling: 0/1 nodes are available."))
 
     def test_conditions_with_reason_no_message(self):
-        conditions = {
+        notebook = {
             "status": {
                 "conditions": [{
                     "status": "False",
@@ -108,5 +108,5 @@ class TestStatusFromConditions(unittest.TestCase):
             }
         }
 
-        self.assertEqual(status.get_status_from_conditions(conditions),
+        self.assertEqual(status.get_status_from_conditions(notebook),
                          ("warning", "PodFailed: No available message."))
