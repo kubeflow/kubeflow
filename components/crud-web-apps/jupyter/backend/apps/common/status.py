@@ -160,7 +160,7 @@ def get_status_from_conditions(notebook):
         if "reason" in condition:
             status_phase = status.STATUS_PHASE.WARNING
             reason = condition["reason"]
-            message = condition.get("message", "No available message.") # noqa: E501
+            message = condition.get("message", "No available message.")
             status_message = '%s: %s' % (reason, message)
             return status_phase, status_message
 
