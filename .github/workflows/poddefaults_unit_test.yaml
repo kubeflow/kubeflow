@@ -4,6 +4,9 @@ on:
     paths:
       - components/admission-webhook/**
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

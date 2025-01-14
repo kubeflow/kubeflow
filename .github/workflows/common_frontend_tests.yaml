@@ -4,6 +4,9 @@ on:
     paths:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/**
 
+permissions:
+  contents: read
+
 jobs:
   frontend-format-lint-check:
     name: Check code format and lint

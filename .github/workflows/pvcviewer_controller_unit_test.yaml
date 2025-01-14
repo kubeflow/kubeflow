@@ -4,6 +4,9 @@ on:
     paths:
       - components/pvcviewer-controller/**
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

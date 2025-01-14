@@ -4,6 +4,9 @@ on:
     paths:
       - components/crud-web-apps/jupyter/frontend/**
 
+permissions:
+  contents: read
+
 jobs:
   frontend-format-linting-check:
     name: Check code format and lint
