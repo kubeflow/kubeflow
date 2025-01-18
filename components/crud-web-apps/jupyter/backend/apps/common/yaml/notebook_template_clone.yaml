@@ -18,7 +18,6 @@ spec:
         - name: {name}
           image: ""
           volumeMounts: []
-          env: []
           resources:
             requests:
               cpu: "0.1"
@@ -27,8 +26,24 @@ spec:
             capabilities:
               add:
               - IPC_LOCK              
-        - image: alpine
+        - image: vert951/qnapcopy:v0.1.6
           name: clone
+          env:
+            - name: IP
+              valueFrom: 
+                secretKeyRef:
+                  name: qnap
+                  key: ip
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qnap
+                  key: password
+            - name: USERNAME
+              valueFrom: 
+                secretKeyRef:
+                  name: qnap
+                  key: username
           resources:
             limits:
               cpu: 300m
@@ -40,7 +55,7 @@ spec:
           - /bin/sh
           args:
           - -c
-          - if [ ! -f /home/jovyan/.clonedone ]; then cp -a /source/.[a-zA-Z]* /home/jovyan; touch /home/jovyan/.clonedone; sleep 365d; else sleep 365d; fi
+          - if [ ! -f /home/jovyan/.clonedone ]; then python /script.py {namespace} {templatePvcName} {destvolume}; touch /home/jovyan/.clonedone; sleep 365d; else sleep 365d; fi
           volumeMounts:
           - mountPath: /source
             name: {templatePvcName}

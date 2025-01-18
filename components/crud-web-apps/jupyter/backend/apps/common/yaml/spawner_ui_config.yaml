@@ -281,7 +281,7 @@ spawnerFormDefaults:
     readOnly: false
 
     # the default state of the "Enable Shared Memory" toggle
-    value: true
+    value: false
 
   ################################################################
   # PodDefaults

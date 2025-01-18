@@ -1,4 +1,4 @@
-POD=jupyter-web-app-deployment-688dc8bb8c-27952
+POD=`kubectl get -n kubeflow pods -l app=jupyter-web-app --no-headers -o custom-columns=":metadata.name"`
 cp -a dist dist2
 rm -rf dist/frontend/assets/logos
 tar czvf ff.tgz dist/frontend

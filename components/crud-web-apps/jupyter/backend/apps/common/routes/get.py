@@ -88,7 +88,12 @@ def get_all_notebooks(namespace):
     log.info("Get %s allnotebooks", namespace)
 
     notebooks = api.list_all_notebooks(namespace)["items"]
+    log.info("Get %s allnotebooks 1", namespace)
+    for nb in notebooks:
+        print(nb["metadata"]["namespace"],nb["metadata"]["name"])
+
     contents = [utils.notebook_dict_from_k8s_obj(nb) for nb in notebooks]
+    log.info("Get allnotebooks done")
 
     return api.success_response("notebooks", contents)
 

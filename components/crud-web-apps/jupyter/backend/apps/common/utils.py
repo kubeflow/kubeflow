@@ -1,6 +1,7 @@
 import os
 import random
 import string
+import traceback
 
 from cachetools.func import ttl_cache
 from kubeflow.kubeflow.crud_backend import helpers, logging
@@ -202,7 +203,14 @@ def notebook_dict_from_k8s_obj(notebook):
         customerCourseName = annotations.get("customerCourseName")
 
     log.info("Got customerCourseName: %s" % customerCourseName)
-
+    log.info("Got last_activity: %s for %s" % (notebook["metadata"]["name"],get_notebook_last_activity(notebook)))
+    
+    try:
+      st = status.process_status(notebook)
+    except:
+      print(traceback.format_exc())
+      st = {'phase': 'stopped', 'message': 'No Pods are currently running for this Notebook Server.', 'state': ''}
+      raise 
     return {
         "name": notebook["metadata"]["name"],
         "namespace": notebook["metadata"]["namespace"],
@@ -215,7 +223,7 @@ def notebook_dict_from_k8s_obj(notebook):
         "gpus": process_gpus(cntr),
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": volumeMounts,
-        "status": status.process_status(notebook),
+        "status": st,
         "metadata": notebook["metadata"],
         "isTemplate": isTemplate,
         "jsonStr": jsonStr,
