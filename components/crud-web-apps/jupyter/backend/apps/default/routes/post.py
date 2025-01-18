@@ -54,6 +54,7 @@ def post_pvc(namespace):
           creator=body["name"],
           serviceAccount="default-editor",
           templatePvcName = '\"'+newpvcname+'\"',
+          destvolume = '\"'+body["name"]+'-volume\"',
           jsonStr = '\'' + data + '\'',
       )
 
