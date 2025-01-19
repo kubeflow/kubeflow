@@ -6,6 +6,7 @@ import {
   ActionEvent,
   STATUS_TYPE,
   DialogConfig,
+  PollerService,
   ConfirmDialogService,
   SnackBarConfig,
   SnackBarService,
@@ -41,7 +42,6 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
   searchControl: AbstractControl;
 
   env = environment;
-  poller: ExponentialBackoff;
 
   currNamespace = '';
   origNamespace = '';
@@ -49,6 +49,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
   configAdvance = defaultAdvancedConfig;
   config = defaultConfig;
   subs = new Subscription();
+  pollSub = new Subscription();
 
   currentName = '';
   
@@ -65,6 +66,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     public backend: JWABackendService,
     public confirmDialog: ConfirmDialogService,
     public snackBar: SnackBarService,
+    public poller: PollerService,
     public router: Router,
     public dialog: MatDialog,
     public route: ActivatedRoute,
@@ -76,7 +78,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
   url1 :string;
   ngOnInit(): void {
         
-    this.poller = new ExponentialBackoff({ interval: 1000, retries: 3 });
+    //this.poller = new ExponentialBackoff({ interval: 1000, retries: 3 });
         
     this.backend.getUsername().subscribe(username => {
 
@@ -97,21 +99,13 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
       //console.log("username", username)
     });
 
-    // Poll for new data and reset the poller if different data is found
-    this.subs.add(
-      this.poller.start().subscribe(() => {
-        if (!this.currNamespace) {
-          return;
-        }})
-
-    );
 
     // Reset the poller whenever the selected namespace changes
     this.subs.add(
       this.ns.getSelectedNamespace().subscribe(ns => {
         // Lance
         this.origNamespace = ns;
-        this.poller.reset();
+        //this.poller.reset();
 
         this.backend.getManager(this.origNamespace).subscribe(manager => {
             // alert(manager[0]);
@@ -140,6 +134,14 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
         this.url1 = 'editable'
         console.log('The URL does not contain "/view"');
       }
+      const request = this.backend.getsharedNotebooks(this.origNamespace, this.currNamespace,this.notebookName);
+
+      this.pollSub = this.poller.exponential(request).subscribe(notebooks => {
+          // Lance
+          this.rawData = notebooks;
+          this.processedData2 = this.processIncomingData(notebooks);
+      });
+    
 
 
       this.backend.getsharedNotebooks(this.origNamespace, this.currNamespace, this.notebookName).subscribe(notebooks => {
@@ -147,7 +149,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
           this.rawData = notebooks;
           // Update the frontend's state
           this.processedData2 = this.processIncomingData(notebooks);
-          this.poller.reset();
+          //this.poller.reset();
         }
         console.log('User success');
         console.log(this.currNamespace)
@@ -157,7 +159,9 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-    this.poller.stop();
+    //this.poller.stop();
+    this.pollSub.unsubscribe();
+
   }
  
   
@@ -211,7 +215,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     this.updateNotebookFields(notebook);
 
     this.backend.enableTemplateNotebook(notebook).subscribe(() => {
-      this.poller.reset();
+      //this.poller.reset();
     });
 
     this.showAddPostDialog(notebook);
@@ -228,7 +232,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
       // Close the open dialog only if the request succeeded
       this.backend.disableTemplateNotebook(notebook).subscribe({
         next: _ => {
-          this.poller.reset();
+          //this.poller.reset();
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
@@ -283,7 +287,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
       // Close the open dialog only if the DELETE request succeeded
       this.backend.deleteNotebook(this.currNamespace, notebook.name).subscribe({
         next: _ => {
-          this.poller.reset();
+          //this.poller.reset();
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
@@ -354,7 +358,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     // this.backend.startNotebook(notebook).subscribe(() => {
     this.backend.startSharedNotebook(this.origNamespace, notebook.namespace, this.notebookName).subscribe(() => {
     /* Lance - end 20240908 */  
-      this.poller.reset();
+      //this.poller.reset();
     });
   }
 
@@ -372,7 +376,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
       this.backend.stopSharedNotebook(this.origNamespace,notebook.namespace, notebook.name).subscribe({
       /* Lance - end 20240908 */
         next: _ => {
-          this.poller.reset();
+          //this.poller.reset();
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
