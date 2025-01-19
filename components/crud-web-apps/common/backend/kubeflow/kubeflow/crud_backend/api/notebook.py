@@ -10,6 +10,11 @@ def get_notebook(notebook, namespace):
         "kubeflow.org", "v1beta1", namespace, "notebooks", notebook
     )
 
+def get_notebook_unsafe(notebook, namespace):
+    return custom_api.get_namespaced_custom_object(
+        "kubeflow.org", "v1beta1", namespace, "notebooks", notebook
+    )
+
 
 def create_notebook(notebook, namespace, dry_run=False):
     authz.ensure_authorized(
@@ -28,6 +33,7 @@ def list_notebooks(namespace):
     return custom_api.list_namespaced_custom_object(
         "kubeflow.org", "v1beta1", namespace, "notebooks"
     )
+
 
 
 def delete_notebook(notebook, namespace):
@@ -52,6 +58,10 @@ def patch_notebook(notebook, namespace, body):
     return custom_api.patch_namespaced_custom_object(
         "kubeflow.org", "v1beta1", namespace, "notebooks", notebook, body
     )
+def patch_notebook_unsafe(notebook, namespace, body):
+    return custom_api.patch_namespaced_custom_object(
+        "kubeflow.org", "v1beta1", namespace, "notebooks", notebook, body
+    )
 
 
 def list_notebook_events(notebook, namespace):
@@ -70,9 +80,9 @@ def list_all_notebooks(namespace):
 
 #2024 YC get notebook access start#
 def get_notebooks_access(namespace,notebook,url1):
-    authz.ensure_authorized(
-        "list", "security.istio.io", "v1beta1", "authorizationpolicies", namespace
-    )
+    #authz.ensure_authorized(
+    #    "list", "security.istio.io", "v1beta1", "authorizationpolicies", namespace
+    #)
     authorization_policies = custom_api.list_namespaced_custom_object(
         "security.istio.io", "v1beta1", namespace, "authorizationpolicies"
     )

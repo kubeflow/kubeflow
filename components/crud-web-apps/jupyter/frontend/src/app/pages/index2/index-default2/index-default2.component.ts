@@ -44,6 +44,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
   poller: ExponentialBackoff;
 
   currNamespace = '';
+  origNamespace = '';
   isBasic = false;
   configAdvance = defaultAdvancedConfig;
   config = defaultConfig;
@@ -109,18 +110,22 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     this.subs.add(
       this.ns.getSelectedNamespace().subscribe(ns => {
         // Lance
-        // this.currNamespace = ns;
+        this.origNamespace = ns;
         this.poller.reset();
 
-        this.backend.getManager(this.currNamespace).subscribe(manager => {
+        this.backend.getManager(this.origNamespace).subscribe(manager => {
             // alert(manager[0]);
             if( manager[0] === "manager" )
               this.isBasic = false;
             else
               this.isBasic = true;
+            this.loadPage();
         });
-      }),
+      })
     );
+  }
+
+  loadPage() {
     this.route.params.subscribe(params => {
       // 從路由參數中獲取 namespace 和 notebook_name
       this.currNamespace = params['namespace'];
@@ -132,37 +137,23 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
         this.url1 = 'view'
         console.log('The URL contains "/view"');
       } else {
-        this.url1 = 'no'
+        this.url1 = 'editable'
         console.log('The URL does not contain "/view"');
       }
 
 
-      this.backend.getNotebooksaccess(this.currNamespace,this.notebookName,this.url1).subscribe(values => {
-        console.log('Values:', values);
-        if (Array.isArray(values)) {
-          this.backend.getProfiles(this.currNamespace).subscribe(email => {
-            console.log('Email:', email);
-            // 檢查 email 是否在 values 陣列中
-            if (values.includes(email)) {
-              console.log('Email is in the array.');
-              this.backend.getsharedNotebooks(this.currNamespace, this.notebookName).subscribe(notebooks => {
-              if (!isEqual(this.rawData, notebooks)) {
-                this.rawData = notebooks;
-                // Update the frontend's state
-                this.processedData2 = this.processIncomingData(notebooks);
-                this.poller.reset();
-              }
-              console.log('User success');
-              console.log(this.currNamespace)
-              
-            });
-            } else {
-        
-        console.log('User is not authorized to access the notebook.');
-        alert('Access denied! Please contact notebook owner.');
-        }})}})})
-
-    }
+      this.backend.getsharedNotebooks(this.origNamespace, this.currNamespace, this.notebookName).subscribe(notebooks => {
+        if (!isEqual(this.rawData, notebooks)) {
+          this.rawData = notebooks;
+          // Update the frontend's state
+          this.processedData2 = this.processIncomingData(notebooks);
+          this.poller.reset();
+        }
+        console.log('User success');
+        console.log(this.currNamespace)
+      });
+    });
+  }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
@@ -361,7 +352,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
     this.updateNotebookFields(notebook);
     /* Lance - begin 20240908 */
     // this.backend.startNotebook(notebook).subscribe(() => {
-    this.backend.startNotebook(notebook.namespace, this.notebookName).subscribe(() => {
+    this.backend.startSharedNotebook(this.origNamespace, notebook.namespace, this.notebookName).subscribe(() => {
     /* Lance - end 20240908 */  
       this.poller.reset();
     });
@@ -378,7 +369,7 @@ export class IndexDefaultComponent2 implements OnInit, OnDestroy {
       // Close the open dialog only if the request succeeded
       /* Lance - begin 20240908 */
       // this.backend.stopNotebook(notebook).subscribe({
-      this.backend.stopNotebook(notebook.namespace, notebook.name).subscribe({
+      this.backend.stopSharedNotebook(this.origNamespace,notebook.namespace, notebook.name).subscribe({
       /* Lance - end 20240908 */
         next: _ => {
           this.poller.reset();

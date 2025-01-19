@@ -161,6 +161,24 @@ export class JWABackendService extends BackendService {
     );
   }
 
+  public stopSharedNotebook(orig:string, namespace: string, name: string): Observable<string> {
+    const url = `api/namespaces/${orig}/${namespace}/sharednotebooks/${name}`;
+
+    return this.http.patch<JWABackendResponse>(url, { stopped: true }).pipe(
+      catchError(error => this.handleError(error, false)),
+      map(_ => 'stopped'),
+    );
+  }
+
+  public startSharedNotebook(orig:string, namespace: string, name: string): Observable<string> {
+    const url = `api/namespaces/${orig}/${namespace}/sharednotebooks/${name}`;
+
+    return this.http.patch<JWABackendResponse>(url, { stopped: false }).pipe(
+      catchError(error => this.handleError(error)),
+      map(_ => 'started'),
+    );
+  }
+
   public stopNotebook(namespace: string, name: string): Observable<string> {
     const url = `api/namespaces/${namespace}/notebooks/${name}`;
 
@@ -169,6 +187,8 @@ export class JWABackendService extends BackendService {
       map(_ => 'stopped'),
     );
   }
+
+
 
   // DELETE
   public deleteNotebook(namespace: string, name: string) {
@@ -231,14 +251,14 @@ export class JWABackendService extends BackendService {
   }
 
   //2024 show autostart page notebook start//
-  public getsharedNotebooks(namespace: string,notebook_name:string): Observable<NotebookResponseObject[]> {
-    const url = `api/namespaces/${namespace}/notebooks`;
-    console.log('Requesting notebooks:', namespace);
+  public getsharedNotebooks(orig: string, namespace: string,notebook_name:string): Observable<NotebookResponseObject[]> {
+    const url = `api/namespaces/${orig}/${namespace}/sharednotebooks/${notebook_name}`;
+    console.log('Requesting notebooks:', url);
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map((resp: JWABackendResponse) => {
-        const filteredNotebooks = resp.notebooks.filter(notebook => notebook.name.includes(notebook_name));
-        return filteredNotebooks;
+        const filteredNotebooks = resp.notebooks;
+        return resp.notebooks;
       }),
     );
   }

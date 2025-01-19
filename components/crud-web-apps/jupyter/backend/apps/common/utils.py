@@ -210,7 +210,7 @@ def notebook_dict_from_k8s_obj(notebook):
     except:
       print(traceback.format_exc())
       st = {'phase': 'stopped', 'message': 'No Pods are currently running for this Notebook Server.', 'state': ''}
-      raise 
+      # raise 
     return {
         "name": notebook["metadata"]["name"],
         "namespace": notebook["metadata"]["namespace"],

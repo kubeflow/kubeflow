@@ -82,6 +82,45 @@ def get_notebooks(namespace):
 
     return api.success_response("notebooks", contents)
 
+@bp.route("/api/namespaces/<orig>/<namespace>/sharednotebooks/<notebook>")
+def get_sharednotebooks(orig, namespace,notebook):
+    log.info('XXXXXXXXXXXXXXXXXXXXXXXXX')
+    aps = api.get_notebooks_access(namespace,notebook,'')
+    profiles = api.get_profile(orig)
+    email = profiles['spec']['owner']['name']
+
+    authorization_name_view = f"notebook-{notebook}-authorizationpolicy-view"
+    authorization_name_editable = f"notebook-{notebook}-authorizationpolicy-editable"
+
+    target_ap = None
+    for ap in aps:
+        if not isinstance(ap, dict):
+            print("Received unexpected data format for an item in the list:", type(ap))
+            continue
+        if ap.get("metadata", {}).get("name") == authorization_name_view:
+            target_ap = ap
+            break
+        if ap.get("metadata", {}).get("name") == authorization_name_editable:
+            target_ap = ap
+            break
+
+    if target_ap is not None:
+        values = target_ap["spec"]["rules"][0]["when"][0]["values"]
+        log.info(values)
+        log.info(email)
+        if email in values:
+          print(values)
+          print("##############################")
+          nb = api.get_notebook_unsafe(notebook,namespace)
+          contents = [utils.notebook_dict_from_k8s_obj(nb)]
+          return api.success_response("notebooks", contents)
+        else:
+          return api.success_response("notebooks", [])
+    else:
+        log.info('no ap is defined')
+        return api.success_response("notebooks", [])
+
+
 @bp.route("/api/namespaces/<namespace>/allnotebooks")
 def get_all_notebooks(namespace):
 

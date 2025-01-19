@@ -166,11 +166,13 @@ export const defaultAdvancedConfig: TableConfig = {
       matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
       style: { width: '25%' },
-      value: new PropertyValue({
-        field: 'name',
-        tooltipField: 'name',
+      value: new LinkValue({
+        field: 'link',
+        popoverField: 'name',
         truncate: true,
+        linkType: LinkType.Internal,
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Type`,
