@@ -752,6 +752,23 @@ func serveMutatePods(w http.ResponseWriter, r *http.Request) {
 	serve(w, r, mutatePods)
 }
 
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	// Check the health of the server and return a status code accordingly
+	if serverIsHealthy() {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "Server is healthy")
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Server is not healthy")
+	}
+}
+
+func serverIsHealthy() bool {
+	// Check the health of the server and return true or false accordingly.
+	// This serves as preparation for future logic.
+	return true
+}
+
 func main() {
 	var config Config
 	var port int
@@ -763,6 +780,7 @@ func main() {
 	ctrl.SetLogger(zap.New())
 
 	http.HandleFunc("/apply-poddefault", serveMutatePods)
+	http.HandleFunc("/healthz", healthzHandler)
 
 	server := &http.Server{
 		Addr:      fmt.Sprintf(":%d", port),
