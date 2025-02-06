@@ -37,7 +37,7 @@ metadata:
   name: node-resource-monitor
   namespace: cgu  # 指定命名空间
   labels:
-    release: kube-prometheus-stack
+    release: kube-prome-stack
 spec:
   selector:
     matchLabels:
