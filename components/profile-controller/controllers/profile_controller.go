@@ -60,6 +60,7 @@ const PROFILEFINALIZER = "profile-finalizer"
 const USER = "user"
 const ROLE = "role"
 const ADMIN = "admin"
+const OWNER = "owner"
 
 // Kubeflow default role names
 // TODO: Make kubeflow roles configurable (krishnadurai)
@@ -73,6 +74,8 @@ const (
 
 const DEFAULT_EDITOR = "default-editor"
 const DEFAULT_VIEWER = "default-viewer"
+
+const hijackAnnotation = "transferToKubeflow"
 
 type Plugin interface {
 	// Called when profile CR is created / updated
@@ -104,7 +107,6 @@ type ProfileReconciler struct {
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("profile", request.NamespacedName)
-	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
 
 	// Fetch the Profile instance
 	instance := &profilev1.Profile{}
@@ -123,78 +125,10 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 		return reconcile.Result{}, err
 	}
 
-	// Update namespace
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
-			// inject istio sidecar to all pods in target namespace by default.
-			Labels: map[string]string{
-				istioInjectionLabel: "enabled",
-			},
-			Name: instance.Name,
-		},
-	}
-	setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
-	logger.Info("List of labels to be added to namespace", "labels", ns.Labels)
-	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
-		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
-		logger.Error(err, "error setting ControllerReference")
-		return reconcile.Result{}, err
-	}
-	foundNs := &corev1.Namespace{}
-	err = r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			logger.Info("Creating Namespace: " + ns.Name)
-			err = r.Create(ctx, ns)
-			if err != nil {
-				IncRequestErrorCounter("error creating namespace", SEVERITY_MAJOR)
-				logger.Error(err, "error creating namespace")
-				return reconcile.Result{}, err
-			}
-			// wait 15 seconds for new namespace creation.
-			err = backoff.Retry(
-				func() error {
-					return r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
-				},
-				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
-			if err != nil {
-				IncRequestErrorCounter("error namespace create completion", SEVERITY_MAJOR)
-				logger.Error(err, "error namespace create completion")
-				return r.appendErrorConditionAndReturn(ctx, instance,
-					"Owning namespace failed to create within 15 seconds")
-			}
-			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
-		} else {
-			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
-			logger.Error(err, "error reading namespace")
-			return reconcile.Result{}, err
-		}
-	} else {
-		// Check exising namespace ownership before move forward
-		owner, ok := foundNs.Annotations["owner"]
-		if ok && owner == instance.Spec.Owner.Name {
-			oldLabels := map[string]string{}
-			for k, v := range foundNs.Labels {
-				oldLabels[k] = v
-			}
-			setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
-			logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
-			if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
-				err = r.Update(ctx, foundNs)
-				if err != nil {
-					IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
-					logger.Error(err, "error updating namespace label")
-					return reconcile.Result{}, err
-				}
-			}
-		} else {
-			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-				instance.Spec.Owner.Name))
-			IncRequestCounter("reject profile taking over existing namespace")
-			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
-				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
-		}
+	// Update the namespace, owned by profile
+	if err := r.updateNamespace(ctx, instance, logger); err != nil {
+		logger.Error(err, "updateNamespace")
+		return r.appendErrorConditionAndReturn(ctx, instance, err.Error())
 	}
 
 	// Update Istio AuthorizationPolicy
@@ -331,6 +265,144 @@ func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request)
 	}
 	IncRequestCounter("reconcile")
 	return ctrl.Result{}, nil
+}
+
+func (r *ProfileReconciler) updateNamespace(ctx context.Context, instance *profilev1.Profile, logger logr.Logger) error {
+	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
+
+	// Update namespace
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{OWNER: instance.Spec.Owner.Name},
+			// inject istio sidecar to all pods in target namespace by default.
+			Labels: map[string]string{
+				istioInjectionLabel: "enabled",
+			},
+			Name: instance.Name,
+		},
+	}
+	setNamespaceLabels(ns, defaultKubeflowNamespaceLabels)
+	logger.Info("List of labels to be added to namespace", "labels", ns.Labels)
+	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
+		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
+		logger.Error(err, "error setting ControllerReference")
+		return err
+	}
+	foundNs := &corev1.Namespace{}
+	err := r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("Creating Namespace: " + ns.Name)
+			err = r.Create(ctx, ns)
+			if err != nil {
+				IncRequestErrorCounter("error creating namespace", SEVERITY_MAJOR)
+				logger.Error(err, "error creating namespace")
+				return err
+			}
+			// wait 15 seconds for new namespace creation.
+			err = backoff.Retry(
+				func() error {
+					return r.Get(ctx, types.NamespacedName{Name: ns.Name}, foundNs)
+				},
+				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
+			if err != nil {
+				IncRequestErrorCounter("error namespace create completion", SEVERITY_MAJOR)
+				logger.Error(err, "error namespace create completion")
+				return fmt.Errorf("Owning namespace failed to create within 15 seconds")
+			}
+			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
+		} else {
+			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
+			logger.Error(err, "error reading namespace")
+			return err
+		}
+	} else {
+		// Check exising namespace ownership before move forward
+		ownerMatch := false
+		profileOwner := false
+		owners := foundNs.GetOwnerReferences()
+		for _, a := range owners {
+			if a.APIVersion == instance.APIVersion && a.Kind == instance.Kind {
+				profileOwner = true
+				if a.Name == instance.Name {
+					ownerMatch = true
+				}
+				break
+			}
+		}
+		if !ownerMatch && !profileOwner {
+			if v, ok := foundNs.Annotations[hijackAnnotation]; ok {
+				if v == "true" {
+					logger.Info(fmt.Sprintf("namespace already exist, going to be transferred to profile %v", instance.Name))
+					block := true
+					controller := true
+					owner := []metav1.OwnerReference{
+						{
+							APIVersion:         instance.APIVersion,
+							Kind:               instance.Kind,
+							Name:               instance.Name,
+							BlockOwnerDeletion: &block,
+							Controller:         &controller,
+							UID:                instance.GetUID(),
+						},
+					}
+					foundNs.SetOwnerReferences(owner)
+					ownerMatch = true
+					delete(foundNs.Annotations, hijackAnnotation)
+				}
+			}
+		}
+
+		if !ownerMatch {
+			IncRequestErrorCounter("reject profile taking over existing namespace", SEVERITY_MAJOR)
+			return fmt.Errorf("namespace already exist, but not owned by profile %v", instance.Name)
+
+		}
+
+		// Update the Namespace owner
+		updateNs := updateAnnotations(&ns.Annotations, &foundNs.Annotations, []string{OWNER})
+
+		// Update the Namespace labels
+		oldLabels := map[string]string{}
+		for k, v := range foundNs.Labels {
+			oldLabels[k] = v
+		}
+		setNamespaceLabels(foundNs, defaultKubeflowNamespaceLabels)
+		logger.Info("List of labels to be added to found namespace", "labels", ns.Labels)
+		if !reflect.DeepEqual(oldLabels, foundNs.Labels) {
+			updateNs = true
+		}
+		// Update the Namespace
+		if updateNs {
+			err = r.Update(ctx, foundNs)
+			if err != nil {
+				IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
+				logger.Error(err, "error updating namespace label")
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func updateAnnotations(src *map[string]string, dst *map[string]string, labels []string) bool {
+	updated := false
+	for _, l := range labels {
+		val_src, ok_src := (*src)[l]
+		val_dst, ok_dest := (*dst)[l]
+		if ok_src {
+			if !ok_dest || val_src != val_dst {
+				updated = true
+				(*dst)[l] = val_src
+			}
+		} else {
+			if ok_dest {
+				delete(*dst, l)
+				updated = true
+			}
+		}
+	}
+	return updated
 }
 
 // appendErrorConditionAndReturn append failure status to profile CR and mark Reconcile done. If update condition failed, request will be requeued.
@@ -542,8 +614,15 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 			return err
 		}
 	} else {
+
+		update := updateAnnotations(&istioAuth.Annotations, &foundAuthorizationPolicy.Annotations, []string{ROLE, USER})
+
 		if !reflect.DeepEqual(*istioAuth.Spec.DeepCopy(), *foundAuthorizationPolicy.Spec.DeepCopy()) {
 			foundAuthorizationPolicy.Spec = *istioAuth.Spec.DeepCopy()
+			update = true
+		}
+
+		if update {
 			logger.Info("Updating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
 			err = r.Update(context.TODO(), foundAuthorizationPolicy)
@@ -657,9 +736,15 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 			return err
 		}
 	} else {
+		update := updateAnnotations(&roleBinding.Annotations, &found.Annotations, []string{ROLE, USER})
+
 		if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
 			found.RoleRef = roleBinding.RoleRef
 			found.Subjects = roleBinding.Subjects
+			update = true
+		}
+
+		if update {
 			logger.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
 			err = r.Update(context.TODO(), found)
 			if err != nil {
