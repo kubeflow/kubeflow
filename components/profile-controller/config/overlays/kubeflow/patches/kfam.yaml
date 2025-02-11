@@ -33,4 +33,12 @@ spec:
         - containerPort: 8081
           name: kfam-http
           protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
       serviceAccountName: controller-service-account
