@@ -17,7 +17,7 @@ env:
 jobs:
   push_to_registry:
     name: Build & Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
       uses: actions/checkout@v3
