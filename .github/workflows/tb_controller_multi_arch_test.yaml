@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - components/tensorboard-controller/**
+      - releasing/version/VERSION
     branches:
       - master
       - v*-branch

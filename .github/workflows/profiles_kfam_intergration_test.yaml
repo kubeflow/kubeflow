@@ -4,6 +4,7 @@ on:
     paths:
       - components/profile-controller/**
       - components/access-management/**
+      - releasing/version/VERSION
     branches:
       - master
       - v*-branch

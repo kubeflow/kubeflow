@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/centraldashboard-angular/frontend/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   frontend-format-lint-check:
