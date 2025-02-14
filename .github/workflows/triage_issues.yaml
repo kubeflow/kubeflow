@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Update Kanban
         uses: kubeflow/code-intelligence/Issue_Triage/action@master
