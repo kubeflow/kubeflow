@@ -10,10 +10,10 @@ ARG TARGETARCH
 # args - software versions
 #  - TensorFlow CUDA version matrix: https://www.tensorflow.org/install/source#gpu
 #  - Extra PyPi from NVIDIA (for TensorRT): https://pypi.nvidia.com/
-#  - TODO: it seems like TensorRT will be removed from TensorFlow in 2.18.0
-#          when updating past that version, remember to remove all TensorRT
-#          related packages and configs in this Dockerfile
-ARG TENSORFLOW_VERSION=2.15.1
+#  - TODO: TensorRT will be removed from TensorFlow in 2.18.0
+#          when updating past that version, either remove all TensorRT related packages,
+#          or investigate if there is a way to keep TensorRT support
+ARG TENSORFLOW_VERSION=2.17.1
 ARG TENSORRT_VERSION=8.6.1.post1
 ARG TENSORRT_LIBS_VERSION=8.6.1
 ARG TENSORRT_BINDINGS_VERSION=8.6.1
@@ -22,10 +22,12 @@ ARG TENSORRT_BINDINGS_VERSION=8.6.1
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
-ENV NVIDIA_REQUIRE_CUDA "cuda>=12.2"
+ENV NVIDIA_REQUIRE_CUDA "cuda>=12.3"
 
 # install - tensorflow
-#  - About '[and-cuda]' option: https://github.com/tensorflow/tensorflow/blob/v2.15.1/tensorflow/tools/pip_package/setup.py#L166-L177
+#  - About '[and-cuda]' option: https://github.com/tensorflow/tensorflow/blob/v2.17.1/tensorflow/tools/pip_package/setup.py#L153-L164
+#  - TODO: when updating TensorRT, you might need to change `tensorrt`, `tensorrt-libs`, and `tensorrt-bindings`
+#          to `tensorrt-cu12`, `tensorrt-cu12-libs`, and `tensorrt-cu12-bindings` respectively
 RUN python3 -m pip install --quiet --no-cache-dir --extra-index-url https://pypi.nvidia.com \
     tensorflow[and-cuda]==${TENSORFLOW_VERSION} \
     tensorrt==${TENSORRT_VERSION} \
@@ -34,8 +36,9 @@ RUN python3 -m pip install --quiet --no-cache-dir --extra-index-url https://pypi
 
 # create symlinks for TensorRT libs
 #  - https://github.com/tensorflow/tensorflow/issues/61986#issuecomment-1880489731
-#  - libnvinfer.so.8.6.1 -> libnvinfer.so.8
-#  - libnvinfer_plugin.so.8.6.1 -> libnvinfer_plugin.so.8
+#  - We are creating symlinks for the following libs, as this is where TF looks for them:
+#     - libnvinfer.so.8.6.1 -> libnvinfer.so.8
+#     - libnvinfer_plugin.so.8.6.1 -> libnvinfer_plugin.so.8
 ENV PYTHON_SITE_PACKAGES /opt/conda/lib/python3.11/site-packages
 ENV TENSORRT_LIBS ${PYTHON_SITE_PACKAGES}/tensorrt_libs
 RUN ln -s ${TENSORRT_LIBS}/libnvinfer.so.${TENSORRT_LIBS_VERSION%%.*} ${TENSORRT_LIBS}/libnvinfer.so.${TENSORRT_LIBS_VERSION} \

@@ -12,12 +12,12 @@ USER root
 # args - software versions
 # https://github.com/jupyterlab/jupyterlab/releases
 # https://github.com/jupyter/notebook/releases
-ARG JUPYTERLAB_VERSION=4.2.5
-ARG JUPYTER_VERSION=7.2.2
-ARG MINIFORGE_VERSION=24.7.1-2
+ARG JUPYTERLAB_VERSION=4.3.5
+ARG JUPYTER_VERSION=7.3.2
+ARG MINIFORGE_VERSION=24.11.3-0
 ARG NODE_MAJOR_VERSION=20
-ARG PIP_VERSION=24.2
-ARG PYTHON_VERSION=3.11.10
+ARG PIP_VERSION=24.3.1
+ARG PYTHON_VERSION=3.11.11
 
 # install -- node.js
 RUN export DEBIAN_FRONTEND=noninteractive \
