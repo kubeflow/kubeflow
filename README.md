@@ -2,6 +2,8 @@
 Kubeflow the cloud-native platform for machine learning operations - pipelines, training and deployment.
 
 ---
+Currently, the working branch is cgu-1.8. **PLEASE DO NOT USE THE MASTER BRANCH.**
+
 
 ## Documentation
 Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
