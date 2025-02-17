@@ -8,18 +8,18 @@ FROM $BASE_IMG
 # install - conda packages
 # NOTE: we use mamba to speed things up
 RUN mamba install -y -q \
-    bokeh==3.3.4 \
-    cloudpickle==2.2.1 \
-    dill==0.3.8 \
-    ipympl==0.9.4 \
-    matplotlib==3.8.4 \
-    numpy==1.24.4 \
-    pandas==2.1.4 \
-    scikit-image==0.22.0 \
-    scikit-learn==1.3.2 \
-    scipy==1.11.3 \
+    bokeh==3.6.3 \
+    cloudpickle==3.1.1 \
+    dill==0.3.9 \
+    ipympl==0.9.6 \
+    matplotlib==3.10.0 \
+    numpy==1.26.4 \
+    pandas==2.2.3 \
+    scikit-image==0.25.1 \
+    scikit-learn==1.6.1 \
+    scipy==1.15.1 \
     seaborn==0.13.2 \
-    xgboost==1.7.6 \
+    xgboost==2.1.4 \
  && mamba clean -a -f -y
 
 # install - requirements.txt
