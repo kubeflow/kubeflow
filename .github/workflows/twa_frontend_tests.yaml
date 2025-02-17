@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/crud-web-apps/tensorboards/frontend/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   frontend-format-linting-check:

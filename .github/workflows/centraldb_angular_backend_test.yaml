@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/centraldashboard-angular/backend/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   run-backend-unittests:

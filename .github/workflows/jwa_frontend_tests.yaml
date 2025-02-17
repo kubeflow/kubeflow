@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/crud-web-apps/jupyter/frontend/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   frontend-format-linting-check:

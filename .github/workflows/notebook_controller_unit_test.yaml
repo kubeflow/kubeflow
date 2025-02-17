@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/notebook-controller/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   build:

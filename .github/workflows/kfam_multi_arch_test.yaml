@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - components/access-management/**
+      - releasing/version/VERSION
     branches:
       - master
       - v*-branch

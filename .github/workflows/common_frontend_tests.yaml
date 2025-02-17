@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   frontend-format-lint-check:

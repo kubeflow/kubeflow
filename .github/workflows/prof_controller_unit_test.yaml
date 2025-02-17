@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - components/profile-controller/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   build:
