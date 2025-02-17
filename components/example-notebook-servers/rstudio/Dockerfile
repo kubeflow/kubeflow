@@ -8,9 +8,9 @@ FROM $BASE_IMG
 ARG TARGETARCH
 
 # args - software versions (python)
-ARG MINIFORGE_VERSION=24.7.1-2
-ARG PIP_VERSION=24.2
-ARG PYTHON_VERSION=3.11.10
+ARG MINIFORGE_VERSION=24.11.3-0
+ARG PIP_VERSION=24.3.1
+ARG PYTHON_VERSION=3.11.11
 
 # args - software versions (R)
 # - rstudio: https://dailies.rstudio.com/release/
@@ -18,11 +18,11 @@ ARG PYTHON_VERSION=3.11.10
 # - r-png: https://www.rforge.net/png/news.html
 # - r-reticulate: https://github.com/rstudio/reticulate/releases
 # - r-shiny: https://github.com/rstudio/shiny/releases
-ARG RSTUDIO_VERSION=2024.09.0-375
-ARG R_BASE_VERSION=4.4.1
+ARG RSTUDIO_VERSION=2024.12.1-563
+ARG R_BASE_VERSION=4.4.2
 ARG R_PNG_VERSION=0.1_8
-ARG R_RETICULATE_VERSION=1.39.0
-ARG R_SHINY_VERSION=1.9.1
+ARG R_RETICULATE_VERSION=1.40.0
+ARG R_SHINY_VERSION=1.10.0
 
 USER root
 
