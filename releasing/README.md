@@ -53,7 +53,7 @@ git push origin $RELEASE_BRANCH
 ```sh
 VERSION="v1.10.0-rc.0" # for a release candidate
 # VERSION="v1.10.0" # for a final release
-releasing/update-manifests-images $TAG
+releasing/update-manifests-images $VERSION
 ```
 
 2. Bump version in `releasing/version/VERSION` file:
