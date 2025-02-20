@@ -13,6 +13,7 @@ import (
 type Metrics struct {
 	cli                      client.Client
 	runningNotebooks         *prometheus.GaugeVec
+	totalNotebooks           *prometheus.GaugeVec
 	NotebookCreation         *prometheus.CounterVec
 	NotebookFailCreation     *prometheus.CounterVec
 	NotebookCullingCount     *prometheus.CounterVec
@@ -26,6 +27,13 @@ func NewMetrics(cli client.Client) *Metrics {
 			prometheus.GaugeOpts{
 				Name: "notebook_running",
 				Help: "Current running notebooks in the cluster",
+			},
+			[]string{"namespace"},
+		),
+		totalNotebooks: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: "notebook_total",
+				Help: "Current created (stopped and running) notebooks in the cluster",
 			},
 			[]string{"namespace"},
 		),
@@ -66,6 +74,7 @@ func NewMetrics(cli client.Client) *Metrics {
 // Describe implements the prometheus.Collector interface.
 func (m *Metrics) Describe(ch chan<- *prometheus.Desc) {
 	m.runningNotebooks.Describe(ch)
+	m.totalNotebooks.Describe(ch)
 	m.NotebookCreation.Describe(ch)
 	m.NotebookFailCreation.Describe(ch)
 }
@@ -74,6 +83,7 @@ func (m *Metrics) Describe(ch chan<- *prometheus.Desc) {
 func (m *Metrics) Collect(ch chan<- prometheus.Metric) {
 	m.scrape()
 	m.runningNotebooks.Collect(ch)
+	m.totalNotebooks.Collect(ch)
 	m.NotebookCreation.Collect(ch)
 	m.NotebookFailCreation.Collect(ch)
 }
@@ -85,15 +95,20 @@ func (m *Metrics) scrape() {
 	if err != nil {
 		return
 	}
-	stsCache := make(map[string]float64)
+	runningCount := make(map[string]float64)
+	totalCount := make(map[string]float64)
 	for _, v := range stsList.Items {
 		name, ok := v.Spec.Template.GetLabels()["notebook-name"]
 		if ok && name == v.Name {
-			stsCache[v.Namespace] += 1
+			runningCount[v.Namespace] += float64(*v.Spec.Replicas)
+			totalCount[v.Namespace] += 1
 		}
 	}
 
-	for ns, v := range stsCache {
+	for ns, v := range runningCount {
 		m.runningNotebooks.WithLabelValues(ns).Set(v)
+	}
+	for ns, v := range totalCount {
+		m.totalNotebooks.WithLabelValues(ns).Set(v)
 	}
 }
