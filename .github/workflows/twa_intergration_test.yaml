@@ -4,6 +4,7 @@ on:
     paths:
       - components/crud-web-apps/tensorboards/**
       - components/crud-web-apps/common/**
+      - releasing/version/VERSION
     branches:
       - master
       - v*-branch
@@ -18,10 +19,10 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Build TWA Image
       run: |

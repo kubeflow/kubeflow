@@ -3,17 +3,21 @@ on:
   pull_request:
     paths:
       - components/centraldashboard-angular/frontend/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   frontend-format-lint-check:
     name: Check code format and lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
 
@@ -31,19 +35,22 @@ jobs:
 
   run-frontend-unittests:
     name: Unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
+
       - name: Install Kubeflow common library dependecies
         run: |
           cd components/crud-web-apps/common/frontend/kubeflow-common-lib
           npm i
           npm run build
           npm link ./dist/kubeflow
+
       - name: Run unit tests
         run: |
           cd components/centraldashboard-angular/frontend/
@@ -53,12 +60,13 @@ jobs:
 
   run-ui-tests:
     name: UI tests in chrome and firefox
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Setup node version to 16
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
 

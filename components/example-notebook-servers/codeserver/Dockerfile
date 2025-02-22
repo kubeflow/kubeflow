@@ -9,7 +9,7 @@ ARG TARGETARCH
 
 # args - software versions
 # https://github.com/coder/code-server/releases
-ARG CODESERVER_VERSION=4.93.1
+ARG CODESERVER_VERSION=4.96.4
 
 USER root
 

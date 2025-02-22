@@ -4,6 +4,7 @@ on:
     paths:
       - components/profile-controller/**
       - components/access-management/**
+      - releasing/version/VERSION
     branches:
       - master
       - v*-branch
@@ -19,13 +20,13 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
 
     - name: Build Profile Controller Image
       run: |

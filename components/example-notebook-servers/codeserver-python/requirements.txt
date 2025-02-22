@@ -1,2 +1,2 @@
 # kubeflow packages
-kfp==2.9.0
+kfp==2.11.0

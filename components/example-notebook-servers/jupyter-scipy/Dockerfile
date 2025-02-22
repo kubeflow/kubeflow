@@ -22,32 +22,34 @@ USER $NB_UID
 # NOTE: we use mamba to speed things up
 RUN mamba install -y -q \
     altair \
-    beautifulsoup4==4.12.3 \
-    bokeh==3.3.4 \
+    beautifulsoup4==4.13.3 \
+    bokeh==3.6.3 \
     bottleneck \
     brotli \
     cloudpickle \
-    dask==2024.5.1 \
+    dask==2024.12.1 \
     dill \
     h5py \
     ipympl \
-    matplotlib==3.8.4 \
+    matplotlib==3.10.0 \
     numba \
     numexpr \
-    openblas==0.3.25 \
+    numpy==1.26.4 \
+    openblas==0.3.28 \
     openpyxl \
-    pandas==2.1.4 \
+    pandas==2.2.3 \
     patsy \
     protobuf \
-    pytables==3.9.2 \
-    scikit-image==0.22.0 \
-    scikit-learn==1.3.2 \
-    scipy==1.11.3 \
+    pytables==3.10.2 \
+    scikit-image==0.25.1 \
+    scikit-learn==1.6.1 \
+    scipy==1.15.1 \
     seaborn==0.13.2 \
-    sqlalchemy==2.0.30 \
+    sqlalchemy==2.0.38 \
     statsmodels \
     sympy \
     vincent \
+    xgboost==2.1.4 \
     xlrd \
  && mamba clean -a -f -y
 

@@ -6,24 +6,24 @@ ARG BASE_IMG=<jupyter>
 FROM $BASE_IMG
 
 # Content below is based on the scripts/Dockerfiles here:
-# https://github.com/HabanaAI/Setup_and_Install/blob/1.17.1/dockerfiles/base/Dockerfile.ubuntu22.04
-# https://github.com/HabanaAI/Setup_and_Install/blob/1.17.1/dockerfiles/pytorch/Dockerfile.ubuntu
+# https://github.com/HabanaAI/Setup_and_Install/blob/1.19.0/dockerfiles/base/Dockerfile.ubuntu22.04
+# https://github.com/HabanaAI/Setup_and_Install/blob/1.19.0/dockerfiles/pytorch/Dockerfile.ubuntu
 
 # args - gaudi version
-ARG GAUDI_VERSION=1.17.1
-ARG GAUDI_REVISION=40
+ARG GAUDI_VERSION=1.19.2
+ARG GAUDI_REVISION=32
 
 # args - software versions
 # see this support matrix for compatible versions:
 # https://docs.habana.ai/en/latest/Support_Matrix/Support_Matrix.html
-ARG AWS_EFA_VERSION=1.29.0
+ARG AWS_EFA_VERSION=1.34.0
 ARG HCCL_OFI_WRAPPER_VERSION=1.18.0
-ARG LIBFABRIC_VERSION=1.20.0
-ARG PYTORCH_VERSION=2.3.1
+ARG LIBFABRIC_VERSION=1.22.0
+ARG PYTORCH_VERSION=2.5.1
 
-# Gaudi 1.17 does not currently support Python 3.11, so we downgrade to 3.10
+# Gaudi 1.19 does not currently support Python 3.11, so we downgrade to 3.10
 # https://docs.habana.ai/en/latest/Support_Matrix/Support_Matrix.html
-ARG PYTHON_VERSION=3.10.14
+ARG PYTHON_VERSION=3.10.16
 RUN sed -i "s/python ==.*/python ==${PYTHON_VERSION}/" ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     python==${PYTHON_VERSION} \
@@ -164,8 +164,8 @@ COPY --chown=${NB_USER}:users requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && rm -f /tmp/requirements.txt
 
-# install - note about Gaudi workloads and hugepages
-COPY README.md "${HOME}"
+# home - pre-populate home with files for this image
+COPY --chown=${NB_USER}:${NB_GID} home/. ${HOME}/
 
 # s6 - 01-copy-tmp-home
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime

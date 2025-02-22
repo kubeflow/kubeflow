@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - components/centraldashboard-angular/**
+      - releasing/version/VERSION
     branches:
       - master
       - v*-branch
@@ -17,10 +18,10 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 

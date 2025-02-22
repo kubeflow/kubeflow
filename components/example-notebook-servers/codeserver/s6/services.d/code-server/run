@@ -1,6 +1,13 @@
 #!/command/with-contenv bash
 
-cd "${HOME}"
+# many tools default to using the home directory for runtime data.
+# as we mount a PVC to the home directory, these files might have the wrong permissions.
+# to avoid this, we set the runtime directory to a path that is NOT a persistent volume.
+export XDG_RUNTIME_DIR="/tmp/runtime-${NB_USER}"
+mkdir -p "${XDG_RUNTIME_DIR}"
+chmod 700 "${XDG_RUNTIME_DIR}"
+
+cd "${HOME}" || { echo "ERROR: failed to cd to ${HOME}"; exit 1; }
 echo "INFO: starting code-server..."
 exec 2>&1
 exec /usr/bin/code-server \

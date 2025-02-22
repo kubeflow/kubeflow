@@ -3,18 +3,22 @@ on:
   pull_request:
     paths:
       - components/notebook-controller/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.17'
+        go-version: "1.17"
         check-latest: true
 
     - name: Run unit tests

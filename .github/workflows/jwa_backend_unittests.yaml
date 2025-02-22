@@ -3,25 +3,34 @@ on:
   pull_request:
     paths:
       - components/crud-web-apps/jupyter/backend/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   run-backend-unittests:
     name: Unittests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Install KinD
         run: ./components/testing/gh-actions/install_kind.sh
+
       - name: Create KinD Cluster
         run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
-      - uses: actions/setup-python@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.7'
+          python-version: "3.7"
+
       - name: Setup Python environment
         run: |
           cd components/crud-web-apps/jupyter/backend
           make install-deps
+
       - name: Run unittests
         run: |
           cd components/crud-web-apps/jupyter/backend

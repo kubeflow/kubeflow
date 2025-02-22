@@ -3,18 +3,22 @@ on:
   pull_request:
     paths:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/**
+      - releasing/version/VERSION
+    branches:
+      - master
+      - v*-branch
 
 jobs:
   frontend-format-lint-check:
     name: Check code format and lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
 
@@ -23,6 +27,7 @@ jobs:
           cd components/crud-web-apps/common/frontend/kubeflow-common-lib
           npm i
           npm run format:check
+
       - name: Check frontend code linting
         run: |
           cd components/crud-web-apps/common/frontend/kubeflow-common-lib
@@ -30,13 +35,14 @@ jobs:
           npm run lint-check
 
   frontend-unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Unit tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Setup node version to 16
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
 

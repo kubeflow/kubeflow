@@ -10,11 +10,15 @@ ARG TARGETARCH
 USER root
 
 # args - software versions
-# https://github.com/microsoft/vscode-python/releases
-ARG CODESERVER_PYTHON_VERSION=2024.14.1
-ARG MINIFORGE_VERSION=24.7.1-2
-ARG PIP_VERSION=24.2
-ARG PYTHON_VERSION=3.11.10
+# https://open-vsx.org/extension/ms-python/python
+# https://open-vsx.org/extension/ms-toolsai/jupyter
+# https://github.com/ipython/ipykernel/releases
+ARG CODESERVER_PYTHON_VERSION=2025.0.0
+ARG CODESERVER_JUPYTER_VERSION=2024.11.0
+ARG IPYKERNEL_VERSION=6.29.5
+ARG MINIFORGE_VERSION=24.11.3-0
+ARG PIP_VERSION=24.3.1
+ARG PYTHON_VERSION=3.11.11
 
 # setup environment for conda
 ENV CONDA_DIR /opt/conda
@@ -52,6 +56,13 @@ RUN case "${TARGETARCH}" in \
  && conda update -y -q --all \
  && conda clean -a -f -y
 
+# install - ipykernel
+# NOTE: we need this for jupyter codeserver extension to work
+RUN echo "ipykernel ==${IPYKERNEL_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && conda install -y -q \
+    ipykernel==${IPYKERNEL_VERSION} \
+ && conda clean -a -f -y
+
 # install - requirements.txt
 COPY --chown=${NB_USER}:${NB_GID} requirements.txt /tmp
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
@@ -59,7 +70,11 @@ RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
 
 # install - codeserver extensions
 RUN code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSION}" --force \
+ && code-server --install-extension "ms-toolsai.jupyter@${CODESERVER_JUPYTER_VERSION}" --force \
  && code-server --list-extensions --show-versions
+
+# home - pre-populate home with files for this image
+COPY --chown=${NB_USER}:${NB_GID} home/. ${HOME}/
 
 # s6 - 01-copy-tmp-home
 # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
