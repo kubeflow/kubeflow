@@ -94,6 +94,17 @@ jobs:
         jupyter-pytorch-gaudi
         jupyter-pytorch-gaudi-full
 
+  jupyter_pytorch_rocm_images:
+    name: Build & Push - Jupyter (PyTorch + ROCm)
+    uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
+    needs: [ jupyter_images ]
+    secrets: inherit
+    with:
+      build_arch: linux/amd64
+      image_folders: |
+        jupyter-pytorch-rocm
+        jupyter-pytorch-rocm-full
+
   jupyter_tensorflow_images:
     name: Build & Push - Jupyter (TensorFlow)
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
