@@ -25,7 +25,7 @@ spec:
             requests:
               cpu: 200m
               memory: 256Mi
-          image: docker.io/twentyfouritaiwan/cgu-monitor:v0.1.01 #your-docker-username/your-repository:your-tag  #  替换为您打包的 Python 应用的 Docker 镜像名称。
+          image: markjiang10/cgu-monitor:v53 #your-docker-username/your-repository:your-tag  
           ports:
           - containerPort: 8080  # Prometheus 客户端暴露的端口
 
@@ -37,11 +37,11 @@ metadata:
   name: node-resource-monitor
   namespace: cgu  # 指定命名空间
   labels:
-    release: kube-prome-stack
+    release: kube-prom-stack
 spec:
   selector:
     matchLabels:
-      app: prom-app
+      app: node-resource-monitor
   namespaceSelector:
     matchNames:
       - cgu  # 指定要监控的命名空间
@@ -53,10 +53,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: prom-app
+  name: node-resource-monitor
   namespace: cgu
   labels:
-    app: prom-app
+    app: node-resource-monitor
 spec:
   type: NodePort
   selector:
@@ -74,7 +74,7 @@ metadata:
   name: prom-service-account
   namespace: cgu
   labels:
-    app: prom-app
+    app: node-resource-monitor
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -82,17 +82,10 @@ kind: ClusterRole
 metadata:
  name: node-access
 rules:
-- apiGroups: [""]
-  resources: ["nodes","pods","namespaces"]
-  verbs: ["get", "list", "watch"]
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - profiles
-  verbs:
-  - get
-  - list
-  - update
+- apiGroups: ["kubeflow.org"]
+  resources: ["nodes","pods","namespaces","profiles"]
+  verbs: ["get", "list", "watch", "patch","update"]
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
