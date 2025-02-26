@@ -1,0 +1,87 @@
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  annotations:
+    jsonStr: '{"name": "copy", "namespace": "dm1261010", "image": "cguaicadmin/newlab-newpytorch:V1.0.23",
+      "allowCustomImage": true, "imagePullPolicy": "IfNotPresent", "customImage":
+      "", "customImageCheck": false, "serverType": "jupyter", "cpu": "8", "cpuLimit":
+      "9.6", "memory": "15.8Gi", "memoryLimit": "19.0Gi", "gpus": {"vendor": "nvidia.com/gpu",
+      "num": "1"}, "affinityConfig": "", "tolerationGroup": "", "shm": true, "configurations":
+      [], "workspace": {"mount": "/home/jovyan", "newPvc": {"metadata": {"name": "copy-volume"},
+      "spec": {"accessModes": ["ReadWriteOnce"], "resources": {"requests": {"storage":
+      "5Gi"}}}}}, "datavols": [], "isTemplate": "no", "origin_namespace": "dm1261010",
+      "template": "handwrite-workspace"}'
+    kubeflow-resource-stopped: "true"
+    notebooks.kubeflow.org/creator: copy
+    notebooks.kubeflow.org/server-type: jupyter
+  creationTimestamp: "2024-12-02T08:56:04Z"
+  generation: 6
+  labels:
+    app: copy
+    isTemplateName: "no"
+  name: copy
+  namespace: dm1261010
+  resourceVersion: "84650885"
+  uid: ad5d9f2e-68bb-4829-9019-3d6488142a21
+spec:
+  template:
+    spec:
+      containers:
+      - env: []
+        image: cguaicadmin/newlab-newpytorch:V1.0.23
+        imagePullPolicy: IfNotPresent
+        name: copy
+        resources:
+          limits:
+            cpu: "9.6"
+            memory: 19.0Gi
+            nvidia.com/gpu: "1"
+          requests:
+            cpu: "8"
+            memory: 15.8Gi
+        securityContext:
+          capabilities:
+            add:
+            - IPC_LOCK
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /home/jovyan
+          name: copy-volume
+      - args:
+        - -c
+        - if [ ! -f /home/jovyan/.clonedone ]; then python /script.py dm1261010 copy-source-volume
+          copy-volume ; touch /home/jovyan/.clonedone; sleep 365d; else sleep 365d;
+          fi
+        command:
+        - /bin/sh
+        image: vert951/qnapcopy:v0.1.3
+        name: clone
+        resources:
+          limits:
+            cpu: 300m
+            memory: 1Gi
+          requests:
+            cpu: 300m
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /source
+          name: copy-source-volume
+        - mountPath: /home/jovyan
+          name: copy-volume
+      serviceAccountName: default-editor
+      tolerations: []
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: dshm
+      - name: copy-volume
+        persistentVolumeClaim:
+          claimName: copy-volume
+      - name: copy-source-volume
+        persistentVolumeClaim:
+          claimName: copy-source-volume
+status:
+  conditions: []
+  containerState: {}
+  readyReplicas: 0
