@@ -25,7 +25,7 @@ spec:
             requests:
               cpu: 200m
               memory: 256Mi
-          image: markjiang10/cgu-monitor:v53 #your-docker-username/your-repository:your-tag  
+          image: markjiang10/cgu-monitor:v62 #your-docker-username/your-repository:your-tag  
           ports:
           - containerPort: 8080  # Prometheus 客户端暴露的端口
 
@@ -41,7 +41,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: node-resource-monitor
+      app: prom-app
   namespaceSelector:
     matchNames:
       - cgu  # 指定要监控的命名空间
@@ -53,10 +53,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: node-resource-monitor
+  name: prom-app
   namespace: cgu
   labels:
-    app: node-resource-monitor
+    app: prom-app
 spec:
   type: NodePort
   selector:
@@ -74,7 +74,7 @@ metadata:
   name: prom-service-account
   namespace: cgu
   labels:
-    app: node-resource-monitor
+    app: prom-app
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1

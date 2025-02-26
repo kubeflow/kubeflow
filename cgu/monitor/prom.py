@@ -6,7 +6,7 @@ import os
 from kubernetes import client, config
 from prometheus_client import start_http_server, Gauge
 from kubernetes.client.rest import ApiException
-from kubernetes.client import CustomObjectsApi  # 新增導入
+from kubernetes.client import CustomObjectsApi  
 
 
 try:
