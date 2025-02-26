@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daemonset-watcher
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: daemonset-watcher
+  template:
+    metadata:
+      labels:
+        app: daemonset-watcher
+    spec:
+      serviceAccountName: daemonset-watcher-sa
+      containers:
+        - name: daemonset-watcher
+          image: cguaicadmin/daemonset-watcher:V1.0.5
+          imagePullPolicy: Always

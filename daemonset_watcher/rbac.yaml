@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: daemonset-watcher-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: daemonset-watcher-role
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "daemonsets"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: daemonset-watcher-binding
+subjects:
+  - kind: ServiceAccount
+    name: daemonset-watcher-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: daemonset-watcher-role
+  apiGroup: rbac.authorization.k8s.io
