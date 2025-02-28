@@ -15,3 +15,9 @@ docker-push:
 
 image: docker-build docker-push
 
+docker-run: docker-build
+	@echo "Running Docker container on port 8082..."
+	@docker run -it --rm \
+		-p 8082:8082 \
+		-e NODE_ENV=development \
+		$(IMG):$(TAG)
