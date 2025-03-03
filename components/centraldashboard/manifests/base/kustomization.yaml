@@ -81,3 +81,16 @@ replacements:
       kind: Deployment
       name: centraldashboard
       version: v1
+- source:
+    fieldPath: data.CD_COLLECT_METRICS
+    kind: ConfigMap
+    name: centraldashboard-parameters
+    version: v1
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.0.env.7.value
+    select:
+      group: apps
+      kind: Deployment
+      name: centraldashboard
+      version: v1
