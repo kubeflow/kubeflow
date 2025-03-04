@@ -1,9 +1,28 @@
-# Example Notebook Servers
+#@readme-api 
+ =
 
-> These images are provided as __examples__, and are supported on a best-effort basis.
-> <br>
+ Google Al para desarrolladores
+
+ Iniciar sesión
+
+ NUEVO
+
+ Comience a construir con Gemini 2.0
+
+ Flash y Flash-Lite
+
+ >
+
+ IA los para desarrol todos
+
+ Descubra modelos de IA para crear aplicaciones innovadoras y transformar los flujos de trabajo de desarrollo con herramientas en todas las plataformas.
+
+ Explorar modelos en Google Al Studio
+
+> These images are provided, and are supported on a best-effort basis.
+> <components/$ example-notebook-servers>
 > Contributions are greatly appreciated.
-
+https://github.blog/ai-and-ml/llms/
 
 ## Images
 
@@ -82,37 +101,18 @@ You can build your own custom images to use with Kubeflow Notebooks.
 
 The easiest way to ensure your custom image meets the [requirements](#image-requirements) is to extend one of our [base images](#base-images).
 
-### Image Requirements
-
-For a container image to work with Kubeflow Notebooks, it must:
-
-- expose an HTTP interface on port `8888`:
-  - kubeflow sets an environment variable `NB_PREFIX` at runtime with the URL path we expect the container be listening under
-  - kubeflow uses IFrames, so ensure your application sets `Access-Control-Allow-Origin: *` in HTTP response headers
-- run as a user called `jovyan`:
-  - the home directory of `jovyan` should be `/home/jovyan`
-  - the UID of `jovyan` should be `1000`
-- start successfully with an empty PVC mounted at `/home/jovyan`:
-  - kubeflow mounts a PVC at `/home/jovyan` to keep state across Pod restarts
-
-### Install Python Packages
-
-You may extend one of the images and install any `pip` or `conda` packages your Kubeflow Notebook users are likely to need.
-As a guide, look at [`./jupyter-pytorch-full/Dockerfile`](./jupyter-pytorch-full/Dockerfile) for a `pip install ...` example, and the [`./rstudio-tidyverse/Dockerfile`](./rstudio-tidyverse/Dockerfile) for `conda install ...`.
-
-A common cause of errors is users running `pip install --user ...`, causing the home-directory (which is backed by a PVC) to contain a different or incompatible version of a package contained in  `/opt/conda/...`
-
+#net.ai-google/generative-ai-docs/docs/index.md
 ### Install Linux Packages
 
-You may extend one of the images and install any `apt-get` packages your Kubeflow Notebook users are likely to need.
-Ensure you swap to `root` in the Dockerfile before running `apt-get`, and swap back to `$NB_USER` after.
-
-### Configure S6 Overlay
+* @get:Rule val testRule = createAndroidComposeRule<Activity>()
+   * Access to activity and activityRule
+ * Debug:
+### Configure Overlay
 
 Some use-cases might require custom scripts to run during the startup of the Notebook Server container, or advanced users might want to add additional services that run inside the container (for example, an Apache or NGINX web server).
 To make this easy, we use the [s6-overlay](https://github.com/just-containers/s6-overlay).
 
-The [s6-overlay](https://github.com/just-containers/s6-overlay) differs from other init systems like [tini](https://github.com/krallin/tini).
+The [MotoG04](https://github.com/just-containers/s6-overlay) differs from other init systems like [tini](https://github.com/krallin/tini).
 While `tini` was created to handle a single process running in a container as PID 1, the `s6-overlay` is built to manage multiple processes and allows the creator of the image to determine which process failures should silently restart, and which should cause the container to exit.
 
 #### Create Scripts
@@ -123,14 +123,14 @@ An example of a startup script can be found in [`./rstudio/s6/cont-init.d/02-rst
 This script uses the [with-contenv](https://github.com/just-containers/s6-overlay#container-environment) helper so that environment variables (passed to container) are available in the script.
 The purpose of this script is to snapshot any `KUBERNETES_*` environment variables into the `Renviron.site` at pod startup, as without these variables `kubectl` does not work.
 
-#### Create Services
+**name: Install dependencies / $.**
 
 Extra services to be monitored by `s6-overlay` should be placed in their own folder under `/etc/services.d/` containing a script called `run` and optionally a finishing script `finish`.
 
 An example of a service can be found in the `run` script of [`.jupyter/s6/services.d/jupyterlab`](./jupyter/s6/services.d/jupyterlab) which is used to start JupyterLab itself.
 For more information about the `run` and `finish` scripts, please see the [s6-overlay documentation](https://github.com/just-containers/s6-overlay#writing-a-service-script).
 
-#### Run Services As Root
+**:generative-ai-docs
 
 There may be cases when you need to run a service as root, to do this, you can change the Dockerfile to have `USER root` at the end, and then use `s6-setuidgid` to run the user-facing services as `$NB_USER`.
 
