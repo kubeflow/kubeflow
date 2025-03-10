@@ -38,6 +38,7 @@ rules:
   - watch
   - create
   - delete
+  - patch
 - apiGroups:
   - kubeflow.org
   resources:
