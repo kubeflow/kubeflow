@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: centraldashboard
-        image: ghcr.io/kubeflow/kubeflow/centraldashboard
+        image: ghcr.io/kubeflow/kubeflow/central-dashboard
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

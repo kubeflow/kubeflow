@@ -63,8 +63,8 @@ apps = [
         "kustomization": "components/centraldashboard/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "ghcr.io/kubeflow/kubeflow/centraldashboard",
-                "newName": "ghcr.io/kubeflow/kubeflow/centraldashboard",
+                "name": "ghcr.io/kubeflow/kubeflow/central-dashboard",
+                "newName": "ghcr.io/kubeflow/kubeflow/central-dashboard",
             },
         ],
     },
