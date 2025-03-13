@@ -14,9 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PROFILE_IMG: profile-controller
-  KFAM_IMG: kfam
-  TAG: intergration-test
+  PROFILE_IMG: ghcr.io/kubeflow/kubeflow/profile-controller
+  KFAM_IMG: ghcr.io/kubeflow/kubeflow/kfam
+  TAG: integration-test
 
 jobs:
   build:
@@ -60,10 +60,10 @@ jobs:
         cd components/profile-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_PROFILE_IMAGE="docker.io/kubeflownotebookswg/${PROFILE_IMG}"
+        export CURRENT_PROFILE_IMAGE="${PROFILE_IMG}"
         export PR_PROFILE_IMAGE="${PROFILE_IMG}:${TAG}"
 
-        export CURRENT_KFAM_IMAGE="docker.io/kubeflownotebookswg/${KFAM_IMG}"
+        export CURRENT_KFAM_IMAGE="${KFAM_IMG}"
         export PR_KFAM_IMAGE="${KFAM_IMG}:${TAG}"
 
         # escape "." in the image names, as it is a special characters in sed

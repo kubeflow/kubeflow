@@ -215,7 +215,7 @@ export const mockPods: V1Pod[] = [
               value: 'cluster.local',
             },
           ],
-          image: 'docker.io/istio/proxyv2:1.9.6',
+          image: 'gcr.io/istio-release/proxyv2:1.24.3',
           imagePullPolicy: 'Never',
           name: 'istio-proxy',
           ports: [
@@ -348,7 +348,7 @@ export const mockPods: V1Pod[] = [
             '-d',
             '15090,15021,15020',
           ],
-          image: 'docker.io/istio/proxyv2:1.9.6',
+          image: 'gcr.io/istio-release/proxyv2:1.24.3',
           imagePullPolicy: 'Never',
           name: 'istio-init',
           resources: {
@@ -581,7 +581,7 @@ export const mockPods: V1Pod[] = [
         {
           containerID:
             'docker://178d0538f16b6bea8ffaaf47d574a452eb1e1df0fcec7174832099f77c4a3872',
-          image: 'istio/proxyv2:1.9.6',
+          image: 'gcr.io/istio-release/proxyv2:1.24.3',
           imageID:
             'docker-pullable://istio/proxyv2@sha256:87a9db561d2ef628deea7a4cbd0adf008a2f64355a2796e3b840d445b7e9cd3e',
           lastState: {},

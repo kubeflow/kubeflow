@@ -14,8 +14,8 @@ commonLabels:
   app.kubernetes.io/component: poddefaults
   app.kubernetes.io/name: poddefaults
 images:
-- name: docker.io/kubeflownotebookswg/poddefaults-webhook
-  newName: docker.io/kubeflownotebookswg/poddefaults-webhook
+- name: ghcr.io/kubeflow/kubeflow/poddefaults-webhook
+  newName: ghcr.io/kubeflow/kubeflow/poddefaults-webhook
   newTag: latest
 namespace: kubeflow
 generatorOptions:

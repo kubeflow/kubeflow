@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: poddefaults-webhook
+  IMG: ghcr.io/kubeflow/kubeflow/poddefaults-webhook
 
 jobs:
   build:

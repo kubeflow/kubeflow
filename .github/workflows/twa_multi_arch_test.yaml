@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: tensorboards-web-app
+  IMG: ghcr.io/kubeflow/kubeflow/tensorboards-web-app
 
 jobs:
   build:

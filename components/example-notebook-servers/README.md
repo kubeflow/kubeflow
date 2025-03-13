@@ -156,7 +156,7 @@ cd components/example-notebook-servers/jupyter-scipy
 
 # configure the image registry
 #  full image name: {REGISTRY}/{IMAGE_NAME}:{TAG}
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # build and push (current CPU architecture)
 make docker-build-dep
@@ -173,7 +173,7 @@ cd components/example-notebook-servers/jupyter-scipy
 #export TAG="X.Y.Z-patch.N"
 
 # configure the image registry
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # define the image build cache
 #  - sets the following build args:
@@ -206,7 +206,7 @@ cd components/example-notebook-servers
 #export TAG="X.Y.Z-patch.N"
 
 # configure the image registry
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # build and push (current CPU architecture)
 make docker-build
@@ -223,7 +223,7 @@ cd components/example-notebook-servers
 #export TAG="X.Y.Z-patch.N"
 
 # configure the image registry
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # define the image build cache
 export CACHE_IMAGE="ghcr.io/kubeflow/kubeflow/notebook-servers/build-cache"

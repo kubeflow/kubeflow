@@ -11,8 +11,8 @@ resources:
 - service.yaml
 - configmap.yaml
 images:
-- name: docker.io/kubeflownotebookswg/centraldashboard
-  newName: docker.io/kubeflownotebookswg/centraldashboard
+- name: ghcr.io/kubeflow/kubeflow/centraldashboard
+  newName: ghcr.io/kubeflow/kubeflow/centraldashboard
   newTag: latest
 configMapGenerator:
 - envs:

@@ -12,7 +12,7 @@ on:
         type: string
 
 env:
-  REGISTRY: docker.io/kubeflownotebookswg
+  REGISTRY: ghcr.io/kubeflow/
   CACHE_IMAGE: ghcr.io/${{ github.repository }}/notebook-servers/build-cache
 
 jobs:
@@ -47,12 +47,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: kubeflownotebookswg
-          password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
       - name: Build and Push Notebook Server images
         env:

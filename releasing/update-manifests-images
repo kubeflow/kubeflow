@@ -53,8 +53,8 @@ apps = [
         "kustomization": "components/admission-webhook/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/poddefaults-webhook",
-                "newName": "docker.io/kubeflownotebookswg/poddefaults-webhook",
+                "name": "ghcr.io/kubeflow/kubeflow/poddefaults-webhook",
+                "newName": "ghcr.io/kubeflow/kubeflow/poddefaults-webhook",
             },
         ],
     },
@@ -63,8 +63,8 @@ apps = [
         "kustomization": "components/centraldashboard/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/centraldashboard",
-                "newName": "docker.io/kubeflownotebookswg/centraldashboard",
+                "name": "ghcr.io/kubeflow/kubeflow/centraldashboard",
+                "newName": "ghcr.io/kubeflow/kubeflow/centraldashboard",
             },
         ],
     },
@@ -73,8 +73,8 @@ apps = [
         "kustomization": "components/crud-web-apps/jupyter/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/jupyter-web-app",
-                "newName": "docker.io/kubeflownotebookswg/jupyter-web-app",
+                "name": "ghcr.io/kubeflow/kubeflow/jupyter-web-app",
+                "newName": "ghcr.io/kubeflow/kubeflow/jupyter-web-app",
 
             },
         ],
@@ -84,8 +84,8 @@ apps = [
         "kustomization": "components/crud-web-apps/tensorboards/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/tensorboards-web-app",
-                "newName": "docker.io/kubeflownotebookswg/tensorboards-web-app",
+                "name": "ghcr.io/kubeflow/kubeflow/tensorboards-web-app",
+                "newName": "ghcr.io/kubeflow/kubeflow/tensorboards-web-app",
             },
         ],
     },
@@ -94,8 +94,8 @@ apps = [
         "kustomization": "components/crud-web-apps/volumes/manifests/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/volumes-web-app",
-                "newName": "docker.io/kubeflownotebookswg/volumes-web-app",
+                "name": "ghcr.io/kubeflow/kubeflow/volumes-web-app",
+                "newName": "ghcr.io/kubeflow/kubeflow/volumes-web-app",
             },
         ],
     },
@@ -104,8 +104,8 @@ apps = [
         "kustomization": "components/notebook-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/notebook-controller",
-                "newName": "docker.io/kubeflownotebookswg/notebook-controller",
+                "name": "ghcr.io/kubeflow/kubeflow/notebook-controller",
+                "newName": "ghcr.io/kubeflow/kubeflow/notebook-controller",
             },
         ],
     },
@@ -114,8 +114,8 @@ apps = [
         "kustomization": "components/tensorboard-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/tensorboard-controller",
-                "newName": "docker.io/kubeflownotebookswg/tensorboard-controller",
+                "name": "ghcr.io/kubeflow/kubeflow/tensorboard-controller",
+                "newName": "ghcr.io/kubeflow/kubeflow/tensorboard-controller",
             },
         ],
     },
@@ -124,8 +124,8 @@ apps = [
         "kustomization": "components/profile-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/profile-controller",
-                "newName": "docker.io/kubeflownotebookswg/profile-controller",
+                "name": "ghcr.io/kubeflow/kubeflow/profile-controller",
+                "newName": "ghcr.io/kubeflow/kubeflow/profile-controller",
             },
         ],
     },
@@ -134,8 +134,8 @@ apps = [
         "kustomization": "components/pvcviewer-controller/config/base/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/pvcviewer-controller",
-                "newName": "docker.io/kubeflownotebookswg/pvcviewer-controller",
+                "name": "ghcr.io/kubeflow/kubeflow/pvcviewer-controller",
+                "newName": "ghcr.io/kubeflow/kubeflow/pvcviewer-controller",
             },
         ],
     },
@@ -144,8 +144,8 @@ apps = [
         "kustomization": "components/profile-controller/config/overlays/kubeflow/kustomization.yaml",
         "images": [
             {
-                "name": "docker.io/kubeflownotebookswg/kfam",
-                "newName": "docker.io/kubeflownotebookswg/kfam",
+                "name": "ghcr.io/kubeflow/kubeflow/kfam",
+                "newName": "ghcr.io/kubeflow/kubeflow/kfam",
             },
         ],
     },

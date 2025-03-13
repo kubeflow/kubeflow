@@ -1,4 +1,4 @@
-name: JWA Intergration Test
+name: JWA Integration Test
 on:
   pull_request:
     paths:
@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: jupyter-web-app
-  TAG: intergration-test
+  IMG: ghcr.io/kubeflow/kubeflow/jupyter-web-app
+  TAG: integration-test
 
 jobs:
   build:
@@ -53,7 +53,7 @@ jobs:
         cd components/crud-web-apps/jupyter/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_IMAGE="docker.io/kubeflownotebookswg/${IMG}"
+        export CURRENT_IMAGE="${IMG}"
         export PR_IMAGE="${IMG}:${TAG}"
 
         # escape "." in the image names, as it is a special characters in sed

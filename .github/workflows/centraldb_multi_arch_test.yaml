@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: centraldashboard
+  IMG: ghcr.io/kubeflow/kubeflow/central-dashboard
 
 jobs:
   build:

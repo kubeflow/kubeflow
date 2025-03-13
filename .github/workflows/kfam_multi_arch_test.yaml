@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: kfam
+  IMG: ghcr.io/kubeflow/kubeflow/kfam
 
 jobs:
   build:

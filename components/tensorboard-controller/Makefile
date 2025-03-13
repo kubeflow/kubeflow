@@ -1,5 +1,5 @@
 # Image URL to use all building/pushing image targets
-IMG ?= tensorboard-controller
+IMG ?= ghcr.io/kubeflow/kubeflow/tensorboard-controller
 TAG ?= $(shell git describe --tags --always --dirty)
 ARCH ?= linux/amd64
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)

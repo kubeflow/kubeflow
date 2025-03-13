@@ -9,8 +9,8 @@ on:
       - releasing/version/VERSION
 
 env:
-  DOCKER_USER: kubeflownotebookswg
-  IMG: kubeflownotebookswg/kfam
+  DOCKER_USER: kubeflow
+  IMG: ghcr.io/kubeflow/kubeflow/kfam
   ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
 jobs:
@@ -29,11 +29,12 @@ jobs:
           version:
             - 'releasing/version/VERSION'
 
-    - name: Login to DockerHub
+    - name: Login to GHCR
       uses: docker/login-action@v3
       with:
-        username: ${{ env.DOCKER_USER }}
-        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v3

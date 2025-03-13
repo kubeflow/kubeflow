@@ -9,13 +9,13 @@ on:
       - releasing/version/VERSION
 
 env:
-  DOCKER_USER: kubeflownotebookswg
-  IMG: kubeflownotebookswg/centraldashboard
+  DOCKER_USER: kubeflow
+  IMG: ghcr.io/kubeflow/kubeflow/central-dashboard
   ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
 jobs:
   push_to_registry:
-    name: Build & Push Docker image to Docker Hub
+    name: Build & Push Docker image to GHCR
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
@@ -29,11 +29,12 @@ jobs:
           version:
             - 'releasing/version/VERSION'
 
-    - name: Login to DockerHub
+    - name: Login to GHCR
       uses: docker/login-action@v3
       with:
-        username: ${{ env.DOCKER_USER }}
-        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v3

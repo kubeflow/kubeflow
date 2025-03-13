@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: pvcviewer-controller
+  IMG: ghcr.io/kubeflow/kubeflow/pvcviewer-controller
 
 jobs:
   build:

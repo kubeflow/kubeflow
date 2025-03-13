@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: notebook-controller
+  IMG: ghcr.io/kubeflow/kubeflow/notebook-controller
 
 jobs:
   build:
