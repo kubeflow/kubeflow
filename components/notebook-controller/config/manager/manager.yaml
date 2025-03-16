@@ -16,6 +16,9 @@ spec:
         app: notebook-controller
         kustomize.component: notebook-controller
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: manager
         image: ghcr.io/kubeflow/kubeflow/notebook-controller
@@ -70,4 +73,11 @@ spec:
             port: 8081
           initialDelaySeconds: 5
           periodSeconds: 10
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
       serviceAccountName: service-account
