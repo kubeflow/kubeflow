@@ -1,4 +1,4 @@
-name: TWA Intergration Test
+name: TWA Integration Test
 on:
   pull_request:
     paths:

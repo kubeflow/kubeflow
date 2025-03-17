@@ -1,4 +1,4 @@
-name: VWA Intergration Test
+name: VWA Integration Test
 on:
   pull_request:
     paths:

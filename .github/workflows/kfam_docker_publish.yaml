@@ -15,7 +15,7 @@ env:
 
 jobs:
   push_to_registry:
-    name: Build & Push Docker image to Docker Hub
+    name: Build & Push Docker image to GHCR
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
