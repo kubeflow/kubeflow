@@ -12,7 +12,7 @@ on:
         type: string
 
 env:
-  REGISTRY: ghcr.io/kubeflow/
+  REGISTRY: ghcr.io/kubeflow/kubeflow/notebook-servers
   CACHE_IMAGE: ghcr.io/${{ github.repository }}/notebook-servers/build-cache
 
 jobs:

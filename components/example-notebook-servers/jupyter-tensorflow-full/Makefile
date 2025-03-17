@@ -15,7 +15,7 @@
 GIT_COMMIT     := $(shell git rev-parse HEAD)
 GIT_TREE_STATE := $(shell test -n "`git status --porcelain`" && echo "-dirty" || echo "")
 
-REGISTRY ?= ghcr.io/kubeflow/notebook-servers
+REGISTRY ?= ghcr.io/kubeflow/kubeflow/notebook-servers
 TAG      ?= sha-$(GIT_COMMIT)$(GIT_TREE_STATE)
 
 IMAGE_NAME := jupyter-tensorflow-full
