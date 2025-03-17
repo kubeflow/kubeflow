@@ -9,7 +9,6 @@ on:
       - releasing/version/VERSION
 
 env:
-  DOCKER_USER: kubeflow
   IMG: ghcr.io/kubeflow/kubeflow/centraldashboard-angular
 
 jobs:

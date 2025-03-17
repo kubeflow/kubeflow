@@ -10,7 +10,6 @@ on:
       - releasing/version/VERSION
 
 env:
-  DOCKER_USER: kubeflow
   IMG: ghcr.io/kubeflow/kubeflow/volumes-web-app
   ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
