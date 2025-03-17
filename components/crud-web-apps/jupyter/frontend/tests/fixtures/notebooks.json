@@ -7,7 +7,7 @@
         "count": 0,
         "message": ""
       },
-      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "image": "ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-scipy:latest",
       "last_activity": "2022-09-21T12:15:06Z",
       "memory": "1073741824m",
       "metadata": {
@@ -48,7 +48,7 @@
         "count": 0,
         "message": ""
       },
-      "image": "kubeflownotebookswg/codeserver-python:latest",
+      "image": "ghcr.io/kubeflow/kubeflow/notebook-servers/codeserver-python:latest",
       "last_activity": "2022-09-15T13:28:17Z",
       "memory": "1Gi",
       "metadata": {
@@ -87,7 +87,7 @@
         "count": 0,
         "message": ""
       },
-      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "image": "ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-scipy:latest",
       "last_activity": "",
       "memory": "1Gi",
       "metadata": {
@@ -129,7 +129,7 @@
         "count": 0,
         "message": ""
       },
-      "image": "kubeflownotebookswg/rstudio-tidyverse:latest",
+      "image": "ghcr.io/kubeflow/kubeflow/notebook-servers/rstudio-tidyverse:latest",
       "last_activity": "2022-09-12T07:30:39Z",
       "memory": "1Gi",
       "metadata": {
@@ -169,7 +169,7 @@
         "count": 0,
         "message": ""
       },
-      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "image": "ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-scipy:latest",
       "last_activity": "2022-09-21T12:16:25Z",
       "memory": "1073741824m",
       "metadata": {
@@ -207,7 +207,7 @@
         "count": 0,
         "message": ""
       },
-      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "image": "ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-scipy:latest",
       "last_activity": "2022-09-21T12:19:26Z",
       "memory": "1073741824m",
       "metadata": {

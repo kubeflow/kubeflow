@@ -8,4 +8,4 @@ spec:
     spec:
       containers:
         - name: notebook-sample-v1
-          image: kubeflownotebookswg/jupyter:latest
+          image: ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter:latest
