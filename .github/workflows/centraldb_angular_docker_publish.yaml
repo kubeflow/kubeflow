@@ -10,7 +10,7 @@ on:
 
 env:
   DOCKER_USER: kubeflow
-  IMG: kubeflow/central-dashboard-angular
+  IMG: ghcr.io/kubeflow/kubeflow/centraldashboard-angular
 
 jobs:
   push_to_registry:

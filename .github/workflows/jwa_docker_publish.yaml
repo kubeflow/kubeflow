@@ -10,8 +10,8 @@ on:
       - releasing/version/VERSION
 
 env:
-  DOCKER_USER: kubeflownotebookswg
-  IMG: kubeflownotebookswg/jupyter-web-app
+  DOCKER_USER: kubeflow
+  IMG: ghcr.io/kubeflow/kubeflow/jupyter-web-app
   ARCH: linux/amd64,linux/ppc64le,linux/arm64/v8
 
 jobs:
