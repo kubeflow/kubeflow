@@ -42,10 +42,10 @@ These images provide a common starting point for Kubeflow Notebook containers.
 
 Dockerfile | Container Registry | Notes
 --- | --- | ---
-[`./base`](./base) | [`kubeflownotebookswg/base`](https://hub.docker.com/r/kubeflownotebookswg/base) | Common Base Image
-[`./codeserver`](./codeserver) | [`kubeflownotebookswg/codeserver`](https://hub.docker.com/r/kubeflownotebookswg/codeserver) | [code-server](https://github.com/coder/code-server) (Visual Studio Code)
-[`./jupyter`](./jupyter) | [`kubeflownotebookswg/jupyter`](https://hub.docker.com/r/kubeflownotebookswg/jupyter) | [JupyterLab](https://github.com/jupyterlab/jupyterlab)
-[`./rstudio`](./rstudio) | [`kubeflownotebookswg/rstudio`](https://hub.docker.com/r/kubeflownotebookswg/rstudio) | [RStudio](https://github.com/rstudio/rstudio)
+[`./base`](./base) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/base`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/base) | Common Base Image
+[`./codeserver`](./codeserver) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/codeserver`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/codeserver) | [code-server](https://github.com/coder/code-server) (Visual Studio Code)
+[`./jupyter`](./jupyter) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter) | [JupyterLab](https://github.com/jupyterlab/jupyterlab)
+[`./rstudio`](./rstudio) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/rstudio`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/rstudio) | [RStudio](https://github.com/rstudio/rstudio)
 
 ### Kubeflow Images
 
@@ -53,19 +53,19 @@ These images extend the [base images](#images--base) with common packages used i
 
 Dockerfile | Container Registry | Notes
 --- | --- | ---
-[`./codeserver-python`](./codeserver-python) | [`kubeflownotebookswg/codeserver-python`](https://hub.docker.com/r/kubeflownotebookswg/codeserver-python) | code-server + Conda Python
-[`./rstudio-tidyverse`](./rstudio-tidyverse) | [`kubeflownotebookswg/rstudio-tidyverse`](https://hub.docker.com/r/kubeflownotebookswg/rstudio-tidyverse) | RStudio + [Tidyverse](https://www.tidyverse.org/)
-[`./jupyter-pytorch`](./jupyter-pytorch) | [`kubeflownotebookswg/jupyter-pytorch`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch) | JupyterLab + PyTorch
-[`./jupyter-pytorch-full`](./jupyter-pytorch-full) | [`kubeflownotebookswg/jupyter-pytorch-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-full) | JupyterLab + PyTorch + Common Packages
-[`./jupyter-pytorch-cuda`](./jupyter-pytorch-cuda) | [`kubeflownotebookswg/jupyter-pytorch-cuda`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-cuda) | JupyterLab + PyTorch + CUDA
-[`./jupyter-pytorch-cuda-full`](./jupyter-pytorch-cuda-full) | [`kubeflownotebookswg/jupyter-pytorch-cuda-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-cuda-full) | JupyterLab + PyTorch + CUDA + Common Packages
-[`./jupyter-pytorch-gaudi`](./jupyter-pytorch-gaudi) | [`kubeflownotebookswg/jupyter-pytorch-gaudi`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-gaudi) | JupyterLab + PyTorch + Intel Gaudi
-[`./jupyter-pytorch-gaudi-full`](./jupyter-pytorch-gaudi-full) | [`kubeflownotebookswg/jupyter-pytorch-gaudi-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-pytorch-gaudi-full) | JupyterLab + PyTorch + Intel Gaudi + Common Packages
-[`./jupyter-scipy`](./jupyter-scipy) | [`kubeflownotebookswg/jupyter-scipy`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-scipy) | JupyterLab + Common Packages
-[`./jupyter-tensorflow`](./jupyter-tensorflow) | [`kubeflownotebookswg/jupyter-tensorflow`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow) | JupyterLab + TensorFlow
-[`./jupyter-tensorflow-full`](./jupyter-tensorflow-full) | [`kubeflownotebookswg/jupyter-tensorflow-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow-full) | JupyterLab + TensorFlow + Common Packages
-[`./jupyter-tensorflow-cuda`](./jupyter-tensorflow-cuda) | [`kubeflownotebookswg/jupyter-tensorflow-cuda`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow-cuda) | JupyterLab + TensorFlow + CUDA
-[`./jupyter-tensorflow-cuda-full`](./jupyter-tensorflow-cuda-full) | [`kubeflownotebookswg/jupyter-tensorflow-cuda-full`](https://hub.docker.com/r/kubeflownotebookswg/jupyter-tensorflow-cuda-full) | JupyterLab + TensorFlow + CUDA + Common Packages
+[`./codeserver-python`](./codeserver-python) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/codeserver-python`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/codeserver-python) | code-server + Conda Python
+[`./rstudio-tidyverse`](./rstudio-tidyverse) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/rstudio-tidyverse`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/rstudio-tidyverse) | RStudio + [Tidyverse](https://www.tidyverse.org/)
+[`./jupyter-pytorch`](./jupyter-pytorch) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-pytorch`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch) | JupyterLab + PyTorch
+[`./jupyter-pytorch-full`](./jupyter-pytorch-full) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-full`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-full) | JupyterLab + PyTorch + Common Packages
+[`./jupyter-pytorch-cuda`](./jupyter-pytorch-cuda) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-cuda`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-cuda) | JupyterLab + PyTorch + CUDA
+[`./jupyter-pytorch-cuda-full`](./jupyter-pytorch-cuda-full) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-cuda-full`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-cuda-full) | JupyterLab + PyTorch + CUDA + Common Packages
+[`./jupyter-pytorch-gaudi`](./jupyter-pytorch-gaudi) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-gaudi`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-gaudi) | JupyterLab + PyTorch + Intel Gaudi
+[`./jupyter-pytorch-gaudi-full`](./jupyter-pytorch-gaudi-full) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-gaudi-full`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-gaudi-full) | JupyterLab + PyTorch + Intel Gaudi + Common Packages
+[`./jupyter-scipy`](./jupyter-scipy) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-scipy`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-scipy) | JupyterLab + Common Packages
+[`./jupyter-tensorflow`](./jupyter-tensorflow) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow) | JupyterLab + TensorFlow
+[`./jupyter-tensorflow-full`](./jupyter-tensorflow-full) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-full`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-full) | JupyterLab + TensorFlow + Common Packages
+[`./jupyter-tensorflow-cuda`](./jupyter-tensorflow-cuda) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-cuda`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-cuda) | JupyterLab + TensorFlow + CUDA
+[`./jupyter-tensorflow-cuda-full`](./jupyter-tensorflow-cuda-full) | [`ghcr.io/kubeflow/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-cuda-full`](https://ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-cuda-full) | JupyterLab + TensorFlow + CUDA + Common Packages
 
 ## Package Installation
 
@@ -156,7 +156,7 @@ cd components/example-notebook-servers/jupyter-scipy
 
 # configure the image registry
 #  full image name: {REGISTRY}/{IMAGE_NAME}:{TAG}
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # build and push (current CPU architecture)
 make docker-build-dep
@@ -173,7 +173,7 @@ cd components/example-notebook-servers/jupyter-scipy
 #export TAG="X.Y.Z-patch.N"
 
 # configure the image registry
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # define the image build cache
 #  - sets the following build args:
@@ -206,7 +206,7 @@ cd components/example-notebook-servers
 #export TAG="X.Y.Z-patch.N"
 
 # configure the image registry
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # build and push (current CPU architecture)
 make docker-build
@@ -223,7 +223,7 @@ cd components/example-notebook-servers
 #export TAG="X.Y.Z-patch.N"
 
 # configure the image registry
-export REGISTRY="docker.io/MY_USERNAME"
+export REGISTRY="ghcr.io/MY_USERNAME"
 
 # define the image build cache
 export CACHE_IMAGE="ghcr.io/kubeflow/kubeflow/notebook-servers/build-cache"

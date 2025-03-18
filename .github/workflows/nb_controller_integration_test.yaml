@@ -1,9 +1,8 @@
-name: VWA Intergration Test
+name: Notebook Controller Integration Test
 on:
   pull_request:
     paths:
-      - components/crud-web-apps/volumes/**
-      - components/crud-web-apps/common/**
+      - components/notebook-controller/**
       - releasing/version/VERSION
     branches:
       - master
@@ -14,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: volumes-web-app
-  TAG: intergration-test
+  IMG: ghcr.io/kubeflow/kubeflow/notebook-controller
+  TAG: integration-test
 
 jobs:
   build:
@@ -27,9 +26,9 @@ jobs:
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build VWA Image
+    - name: Build Notebook Controller Image
       run: |
-        cd components/crud-web-apps/volumes
+        cd components/notebook-controller
         make docker-build-multi-arch
 
     - name: Install KinD
@@ -38,7 +37,7 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load Image into KinD Cluster
+    - name: Load Images into KinD Cluster
       run: |
         kind load docker-image "${IMG}:${TAG}"
 
@@ -50,18 +49,18 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/crud-web-apps/volumes/manifests
+        cd components/notebook-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_IMAGE="docker.io/kubeflownotebookswg/${IMG}"
+        export CURRENT_IMAGE="${IMG}"
         export PR_IMAGE="${IMG}:${TAG}"
 
         # escape "." in the image names, as it is a special characters in sed
         export CURRENT_IMAGE=$(echo "$CURRENT_IMAGE" | sed 's|\.|\\.|g')
         export PR_IMAGE=$(echo "$PR_IMAGE" | sed 's|\.|\\.|g')
 
-        kustomize build overlays/istio \
+        kustomize build overlays/kubeflow \
           | sed "s|${CURRENT_IMAGE}:[a-zA-Z0-9_.-]*|${PR_IMAGE}|g" \
           | kubectl apply -f -
 
-        kubectl wait pods -n kubeflow -l app=volumes-web-app --for=condition=Ready --timeout=300s
+        kubectl wait pods -n kubeflow -l app=notebook-controller --for=condition=Ready --timeout=300s

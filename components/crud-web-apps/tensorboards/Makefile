@@ -1,5 +1,5 @@
 TAG ?= $(shell git describe --tags --always --dirty)
-IMG ?= tensorboards-web-app
+IMG ?= ghcr.io/kubeflow/kubeflow/tensorboards-web-app
 DOCKERFILE ?= tensorboards/Dockerfile
 ARCH ?= linux/amd64
 

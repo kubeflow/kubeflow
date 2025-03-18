@@ -1,4 +1,4 @@
-IMG ?= centraldashboard-angular
+IMG ?= ghcr.io/kubeflow/kubeflow/centraldashboard-angular
 TAG ?= $(shell git describe --tags --always --dirty)
 COMMIT = $(shell git rev-parse HEAD)
 
