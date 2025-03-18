@@ -5,4 +5,4 @@ resources:
 images:
 - name: ghcr.io/kubeflow/kubeflow/notebook-controller
   newName: ghcr.io/kubeflow/kubeflow/notebook-controller
-  newTag: latest
+  newTag: v1.10.0-rc.2

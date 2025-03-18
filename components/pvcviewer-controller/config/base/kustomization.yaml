@@ -6,4 +6,4 @@ resources:
 images:
 - name: ghcr.io/kubeflow/kubeflow/pvcviewer-controller
   newName: ghcr.io/kubeflow/kubeflow/pvcviewer-controller
-  newTag: latest
+  newTag: v1.10.0-rc.2

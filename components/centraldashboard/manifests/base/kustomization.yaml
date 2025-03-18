@@ -13,7 +13,7 @@ resources:
 images:
 - name: ghcr.io/kubeflow/kubeflow/central-dashboard
   newName: ghcr.io/kubeflow/kubeflow/central-dashboard
-  newTag: latest
+  newTag: v1.10.0-rc.2
 configMapGenerator:
 - envs:
   - params.env
