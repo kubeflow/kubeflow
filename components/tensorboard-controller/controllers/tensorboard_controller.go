@@ -41,6 +41,9 @@ import (
 	tensorboardv1alpha1 "github.com/kubeflow/kubeflow/components/tensorboard-controller/api/v1alpha1"
 )
 
+const namePrefix = "tb-"
+const maxNameLength = 63
+
 // TensorboardReconciler reconciles a Tensorboard object
 type TensorboardReconciler struct {
 	client.Client
@@ -83,6 +86,12 @@ func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// tensorboards-web-app deletes objects using foreground deletion policy, Tensorboard CR will stay until all owned objects are deleted
 	// reconcile loop might keep on trying to recreate the resources that the API server tries to delete.
 	// so when Tensorboard CR is terminating, reconcile loop should do nothing
+
+	// Make sure the prefix doesn't cause the derived resource names to get too long
+	if len(instance.Name)+len(namePrefix) > maxNameLength {
+		return reconcile.Result{},
+			fmt.Errorf("tensorboard name must not be longer than %d characters", maxNameLength-len(namePrefix))
+	}
 
 	if !instance.DeletionTimestamp.IsZero() {
 		return ctrl.Result{}, nil
@@ -252,6 +261,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 		(podLabels)[k] = v
 	}
 	(podLabels)["app"] = tb.Name
+	(podLabels)["tensorboard-name"] = tb.Name
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -262,7 +272,8 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 			Replicas: proto.Int32(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": tb.Name,
+					"app":              tb.Name,
+					"tensorboard-name": tb.Name,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
@@ -301,12 +312,12 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      tb.Name,
+			Name:      fmt.Sprintf("%s%s", namePrefix, tb.Name),
 			Namespace: tb.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     "ClusterIP",
-			Selector: map[string]string{"app": tb.Name},
+			Selector: map[string]string{"app": tb.Name, "tensorboard-name": tb.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Name:       "http-" + tb.Name,
@@ -335,7 +346,7 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
-	vsvc.SetName(tb.Name)
+	vsvc.SetName(fmt.Sprintf("%s%s", namePrefix, tb.Name))
 	vsvc.SetNamespace(tb.Namespace)
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
@@ -409,8 +420,8 @@ func extractPVCSubPath(path string) string {
 	}
 }
 
-//Searches a corev1.PodList for running pods and returns
-//a running corev1.Pod (if exists)
+// Searches a corev1.PodList for running pods and returns
+// a running corev1.Pod (if exists)
 func findRunningPod(pods *corev1.PodList) corev1.Pod {
 	for _, pod := range pods.Items {
 		if pod.Status.Phase == "Running" {
@@ -470,9 +481,9 @@ func generateNodeAffinity(affinity *corev1.Affinity, pvcname string, r *Tensorbo
 	return nil
 }
 
-//Checks the value of 'RWO_PVC_SCHEDULING' env var (if present in the environment) and returns
-//'true' or 'false' accordingly. If 'RWO_PVC_SCHEDULING' is NOT present, then the value of the
-//returned boolean is set to 'false', so that the scheduling functionality is off by default.
+// Checks the value of 'RWO_PVC_SCHEDULING' env var (if present in the environment) and returns
+// 'true' or 'false' accordingly. If 'RWO_PVC_SCHEDULING' is NOT present, then the value of the
+// returned boolean is set to 'false', so that the scheduling functionality is off by default.
 func rwoPVCScheduling() (error, bool) {
 	if value, exists := os.LookupEnv("RWO_PVC_SCHEDULING"); !exists || value == "false" || value == "False" || value == "FALSE" {
 		return nil, false
