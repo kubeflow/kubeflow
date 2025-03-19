@@ -14,4 +14,4 @@ patchesStrategicMerge:
 images:
 - name: ghcr.io/kubeflow/kubeflow/tensorboard-controller
   newName: ghcr.io/kubeflow/kubeflow/tensorboard-controller
-  newTag: latest
+  newTag: v1.10.0-rc.2
