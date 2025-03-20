@@ -7,6 +7,7 @@ import { VolumeAccessModesModule } from './access-modes/access-modes.module';
 import { VolumeSizeModule } from './size/size.module';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { EditorModule } from 'kubeflow';
@@ -23,6 +24,7 @@ import { EditorModule } from 'kubeflow';
     MatSelectModule,
     ReactiveFormsModule,
     MatFormFieldModule,
+    MatCheckboxModule,
     EditorModule,
   ],
   exports: [NewVolumeComponent],
