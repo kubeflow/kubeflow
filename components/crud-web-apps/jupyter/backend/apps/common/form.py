@@ -98,7 +98,7 @@ def set_server_type(notebook, body, defaults):
     notebook_annotations = notebook["metadata"]["annotations"]
     server_type = get_form_value(body, defaults, "serverType")
     if server_type == "":
-        server_type == "jupyter"
+        server_type = "jupyter"
     if server_type not in valid_server_types:
         raise BadRequest("'%s' is not a valid server type" % server_type)
 
