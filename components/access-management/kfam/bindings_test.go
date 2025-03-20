@@ -30,11 +30,11 @@ func TestGetBindingName(t *testing.T) {
 		out      string
 		hasError bool
 	}{
-		{"letters", getBindingObject("lalith.vaka@zq.msds.kp.org"), "user-lalith-vaka-zq-msds-kp-org-clusterrole-edit", false},
-		{"numbers", getBindingObject("397401@zq.msds.kp.org"), "user-397401-zq-msds-kp-org-clusterrole-edit", false},
-		{"letters-numbers", getBindingObject("lalith.397401@zq.msds.kp.org"), "user-lalith-397401-zq-msds-kp-org-clusterrole-edit", false},
-		{"numbers-letters", getBindingObject("397401.vaka@zq.msds.kp.org"), "user-397401-vaka-zq-msds-kp-org-clusterrole-edit", false},
-		{"lettersnumbers", getBindingObject("i397401@zq.msds.kp.org"), "user-i397401-zq-msds-kp-org-clusterrole-edit", false},
+		{"letters", getBindingObject("lalith.vaka@xyz.msds.abc.com"), "user-lalith-vaka-xyz-msds-abc-com-clusterrole-edit", false},
+		{"numbers", getBindingObject("111111@xyz.msds.abc.com"), "user-111111-xyz-msds-abc-com-clusterrole-edit", false},
+		{"letters-numbers", getBindingObject("lalith.111111@xyz.msds.abc.com"), "user-lalith-111111-xyz-msds-abc-com-clusterrole-edit", false},
+		{"numbers-letters", getBindingObject("111111.vaka@xyz.msds.abc.com"), "user-111111-vaka-xyz-msds-abc-com-clusterrole-edit", false},
+		{"lettersnumbers", getBindingObject("a111111@xyz.msds.abc.com"), "user-a111111-xyz-msds-abc-com-clusterrole-edit", false},
 	}
 
 	//format := "--- %s: %s (%s)\n"
