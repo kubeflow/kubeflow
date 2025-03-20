@@ -1,6 +1,6 @@
 REGISTRY_PROJECT ?= kubeflow-dev
 PROJECT ?= kubeflow-dev
-GO_SWAGGER_URL ?= https://github.com/go-swagger/go-swagger/releases/download/v0.21.0/swagger_linux_amd64
+GO_SWAGGER_URL ?= https://github.com/go-swagger/go-swagger/releases/download/v0.31.0/swagger_linux_amd64
 
 GIT_VERSION := $(shell git describe --tags --always --dirty)
 
