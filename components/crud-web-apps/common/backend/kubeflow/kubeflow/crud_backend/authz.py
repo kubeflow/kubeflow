@@ -22,7 +22,7 @@ except ConfigException:
 authz_api = client.AuthorizationV1Api()
 
 
-def create_subject_access_review(user, verb, namespace, group, version,
+def create_subject_access_review(user, user_groups, verb, namespace, group, version,
                                  resource, subresource):
     """
     Create the SubjecAccessReview object which we will use to determine if the
@@ -31,6 +31,7 @@ def create_subject_access_review(user, verb, namespace, group, version,
     return client.V1SubjectAccessReview(
         spec=client.V1SubjectAccessReviewSpec(
             user=user,
+            groups=user_groups,
             resource_attributes=client.V1ResourceAttributes(
                 group=group,
                 namespace=namespace,
@@ -43,7 +44,7 @@ def create_subject_access_review(user, verb, namespace, group, version,
     )
 
 
-def is_authorized(user, verb, group, version, resource, namespace=None,
+def is_authorized(user, user_groups, verb, group, version, resource, namespace=None,
                   subresource=None):
     """
     Create a SubjectAccessReview to the K8s API to determine if the user is
@@ -65,7 +66,7 @@ def is_authorized(user, verb, group, version, resource, namespace=None,
                     " deployment.")
         raise Unauthorized(description="No user credentials were found!")
 
-    sar = create_subject_access_review(user, verb, namespace, group, version,
+    sar = create_subject_access_review(user, user_groups, verb, namespace, group, version,
                                        resource, subresource)
     try:
         obj = authz_api.create_subject_access_review(sar)
@@ -101,7 +102,8 @@ def generate_unauthorized_message(user, verb, group, version, resource,
 def ensure_authorized(verb, group, version, resource, namespace=None,
                       subresource=None):
     user = authn.get_username()
-    if not is_authorized(user, verb, group, version, resource,
+    user_groups = authn.get_user_groups()
+    if not is_authorized(user, user_groups, verb, group, version, resource,
                          namespace=namespace, subresource=subresource):
 
         msg = generate_unauthorized_message(user, verb, group, version,
