@@ -1,5 +1,10 @@
+import logging
+
 from kubernetes import client, config
 from kubernetes.config import ConfigException
+
+logging.getLogger("kubernetes").setLevel(logging.INFO)
+
 
 try:
     config.load_incluster_config()
