@@ -35,6 +35,22 @@ spec:
           spec:
             description: TensorboardSpec defines the desired state of Tensorboard
             properties:
+              image:
+                description: TensorBoard image to use for this tensorboard deployment
+                type: string
+              imagePullPolicy:
+                description: The pull policy for the TensorBoard image. Refer to the
+                  Kubernetes documentation for details https://kubernetes.io/docs/concepts/containers/images#updating-images
+                type: string
+              imagePullSecret:
+                description: Specify the secret key to use for pulling images from
+                  a private Docker repository.
+                properties:
+                  name:
+                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      TODO: Add other useful fields. apiVersion, kind, uid?'
+                    type: string
+                type: object
               logspath:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
