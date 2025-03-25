@@ -14,7 +14,7 @@ commonLabels:
 images:
 - name: ghcr.io/kubeflow/kubeflow/tensorboards-web-app
   newName: ghcr.io/kubeflow/kubeflow/tensorboards-web-app
-  newTag: v1.10.0-rc.2
+  newTag: v1.10.0
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:

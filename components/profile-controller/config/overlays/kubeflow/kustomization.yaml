@@ -29,4 +29,4 @@ vars:
 images:
 - name: ghcr.io/kubeflow/kubeflow/kfam
   newName: ghcr.io/kubeflow/kubeflow/kfam
-  newTag: v1.10.0-rc.2
+  newTag: v1.10.0
