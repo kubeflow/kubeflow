@@ -2,15 +2,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: role
 rules:
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  verbs:
-  - '*'
 - apiGroups:
   - ""
   resources:
@@ -33,6 +26,12 @@ rules:
   - ""
   resources:
   - services
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
   verbs:
   - '*'
 - apiGroups:
