@@ -13,6 +13,17 @@ def success_response(data_field=None, data=None):
     resp[data_field] = data
     return jsonify(resp)
 
+def success_response_gpu(data_field=None, data=None):
+    user = authn.get_username()
+    resp = {"status": 200, "success": True, "user": user}
+    if data_field is None and data is None:
+        return jsonify(resp)
+
+    for i in range(len(data_field)):
+        resp[data_field[i]] = data[i]
+
+    return jsonify(resp)
+
 
 def failed_response(msg, error_code):
     user = authn.get_username()
