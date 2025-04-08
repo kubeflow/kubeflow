@@ -1,7 +1,0 @@
-{
-  "namespace": "kubeflow-user",
-  "postHeaders": {
-    "X-XSRF-Token": "asdf",
-    "Cookie": "XSRF-TOKEN=asdf"
-  }
-}

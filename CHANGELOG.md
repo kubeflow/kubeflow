@@ -7,6 +7,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 # Changelog (pre-0.5.0)
 
 ## [v0.5.0-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.5.0-rc.0) (2019-03-28)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1-rc.4...v0.5.0-rc.0)
 
 **Fixed bugs:**
@@ -23,7 +24,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - kfctl generate fails "jupyter" is not a component or a module [\#2796](https://github.com/kubeflow/kubeflow/issues/2796)
 - kfctl apply fails to create k8s resources; tries to deploy to 127.0.0.1 [\#2791](https://github.com/kubeflow/kubeflow/issues/2791)
 - ipName and zone are being written to app.yaml even when no platform is specified [\#2773](https://github.com/kubeflow/kubeflow/issues/2773)
-- kfctl Incorrect ksonnet OptionServer is specified when no platform is provided  [\#2761](https://github.com/kubeflow/kubeflow/issues/2761)
+- kfctl Incorrect ksonnet OptionServer is specified when no platform is provided [\#2761](https://github.com/kubeflow/kubeflow/issues/2761)
 - kfctl apply should fail early if no client id/secret environment variable [\#2752](https://github.com/kubeflow/kubeflow/issues/2752)
 - \[kfctl\] Finish kfctl delete [\#2750](https://github.com/kubeflow/kubeflow/issues/2750)
 - kfctl presubmit test failure [\#2725](https://github.com/kubeflow/kubeflow/issues/2725)
@@ -55,34 +56,34 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[1-click deploy\] propagate PD name to ks app via ks param set [\#2617](https://github.com/kubeflow/kubeflow/issues/2617)
 - \[Dashboard v1\] Add endpoint to central dashboard server to surface events [\#2615](https://github.com/kubeflow/kubeflow/issues/2615)
 - \[Dashboard v1\] Support deep-links [\#2614](https://github.com/kubeflow/kubeflow/issues/2614)
--  Central Dashboard - Rename "JupyterHub" to "Notebooks" [\#2612](https://github.com/kubeflow/kubeflow/issues/2612)
+- Central Dashboard - Rename "JupyterHub" to "Notebooks" [\#2612](https://github.com/kubeflow/kubeflow/issues/2612)
 - \[GCP\] kfctl iap setup permissions error [\#2605](https://github.com/kubeflow/kubeflow/issues/2605)
 - \[GCP\] kfctl create named context and set namespace [\#2604](https://github.com/kubeflow/kubeflow/issues/2604)
 - User inside Notebook is root and not jovyan [\#2602](https://github.com/kubeflow/kubeflow/issues/2602)
-- Set the base\_url flag in Jupyter Pod [\#2595](https://github.com/kubeflow/kubeflow/issues/2595)
+- Set the base_url flag in Jupyter Pod [\#2595](https://github.com/kubeflow/kubeflow/issues/2595)
 - jupyter turn off token authentication [\#2593](https://github.com/kubeflow/kubeflow/issues/2593)
 - Ambassador routes for new jupyter notebooks don't work [\#2590](https://github.com/kubeflow/kubeflow/issues/2590)
 - Central dashboard doesn't render; lots of 404s [\#2582](https://github.com/kubeflow/kubeflow/issues/2582)
-- \[click-to-deploy app\] Load test with multiple projects  [\#2580](https://github.com/kubeflow/kubeflow/issues/2580)
+- \[click-to-deploy app\] Load test with multiple projects [\#2580](https://github.com/kubeflow/kubeflow/issues/2580)
 - Automate image builds of Jupyter UI [\#2578](https://github.com/kubeflow/kubeflow/issues/2578)
 - Multi user for Jupyterhub [\#2577](https://github.com/kubeflow/kubeflow/issues/2577)
-- presubmit error: ImportError: cannot import name tf\_job\_client [\#2574](https://github.com/kubeflow/kubeflow/issues/2574)
+- presubmit error: ImportError: cannot import name tf_job_client [\#2574](https://github.com/kubeflow/kubeflow/issues/2574)
 - \[question\] driver support for cuda 10? [\#2573](https://github.com/kubeflow/kubeflow/issues/2573)
 - clean up role binding after presubmit tests. [\#2570](https://github.com/kubeflow/kubeflow/issues/2570)
 - How can I work around "cannot create directory ‘/home/jovyan/work’: Permission denied" [\#2567](https://github.com/kubeflow/kubeflow/issues/2567)
 - \[Dashboard v1\] Getting started card on has no content [\#2562](https://github.com/kubeflow/kubeflow/issues/2562)
 - Move ksonnet, kustomize implementations out of KfApps.Children [\#2561](https://github.com/kubeflow/kubeflow/issues/2561)
-- kfctl: Add a show subcommand  [\#2560](https://github.com/kubeflow/kubeflow/issues/2560)
+- kfctl: Add a show subcommand [\#2560](https://github.com/kubeflow/kubeflow/issues/2560)
 - Create a new repo for kustomize packages [\#2559](https://github.com/kubeflow/kubeflow/issues/2559)
 - Update TFDV and TFMA versions in Jupyter images [\#2551](https://github.com/kubeflow/kubeflow/issues/2551)
 - Create secret in istio namespace when using istio [\#2549](https://github.com/kubeflow/kubeflow/issues/2549)
 - kfctl \(golang\) move creation of test directories to subdirs under bootstrap [\#2537](https://github.com/kubeflow/kubeflow/issues/2537)
 - kfctl \(golang\) Simplify the child/parent relationships in platforms [\#2536](https://github.com/kubeflow/kubeflow/issues/2536)
-- kfctl \(golang\) Remove hard dependency on GOOGLE\_APPLICATION\_CREDENTIALS [\#2535](https://github.com/kubeflow/kubeflow/issues/2535)
+- kfctl \(golang\) Remove hard dependency on GOOGLE_APPLICATION_CREDENTIALS [\#2535](https://github.com/kubeflow/kubeflow/issues/2535)
 - openshift 3.11 routes ok, but stylesheets and fonts from Web [\#2524](https://github.com/kubeflow/kubeflow/issues/2524)
 - Stop hosting mongo in gcr.io/kubeflow-images-public/mongo:3.4 [\#2520](https://github.com/kubeflow/kubeflow/issues/2520)
 - kfctl, replace regex edits with yaml modifications of individual fields [\#2515](https://github.com/kubeflow/kubeflow/issues/2515)
-- add additional config files to kfctl for iap, basic\_auth, default components [\#2514](https://github.com/kubeflow/kubeflow/issues/2514)
+- add additional config files to kfctl for iap, basic_auth, default components [\#2514](https://github.com/kubeflow/kubeflow/issues/2514)
 - vizier-db and vizier-core cannot running [\#2513](https://github.com/kubeflow/kubeflow/issues/2513)
 - \[Dashboard v1\] Rewrite the backend for Central-Dashboard to Node.JS [\#2512](https://github.com/kubeflow/kubeflow/issues/2512)
 - Stop deploying JupyterHub [\#2498](https://github.com/kubeflow/kubeflow/issues/2498)
@@ -95,7 +96,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Cloud NFS PVC needs to specify volumeName with k8s 1.11 [\#2475](https://github.com/kubeflow/kubeflow/issues/2475)
 - kfctl: support deploy with basic auth [\#2472](https://github.com/kubeflow/kubeflow/issues/2472)
 - Provide a list of required docs for the documentation card on the new landing page [\#2468](https://github.com/kubeflow/kubeflow/issues/2468)
-- Upgrade to go 1.12, remove 'static', 'plugins' macros in kfctl \(golang\)  [\#2460](https://github.com/kubeflow/kubeflow/issues/2460)
+- Upgrade to go 1.12, remove 'static', 'plugins' macros in kfctl \(golang\) [\#2460](https://github.com/kubeflow/kubeflow/issues/2460)
 - Change jupyter images to work with the new jupyter CR [\#2458](https://github.com/kubeflow/kubeflow/issues/2458)
 - Issues with the current Go notebook controller [\#2456](https://github.com/kubeflow/kubeflow/issues/2456)
 - Update Python scripts based on ".style.yapf" config. [\#2448](https://github.com/kubeflow/kubeflow/issues/2448)
@@ -106,13 +107,13 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - add docker-for-desktop platform to kfctl \(golang\) [\#2420](https://github.com/kubeflow/kubeflow/issues/2420)
 - make it easy to configure the foo sample plugin as a plugin or statically linked [\#2414](https://github.com/kubeflow/kubeflow/issues/2414)
 - kfctl.sh delete all failed on OSX [\#2411](https://github.com/kubeflow/kubeflow/issues/2411)
-- presubmit failing: Quota 'DISKS\_TOTAL\_GB' exceeded. Limit: 16384.0 in region us-east1. [\#2401](https://github.com/kubeflow/kubeflow/issues/2401)
+- presubmit failing: Quota 'DISKS_TOTAL_GB' exceeded. Limit: 16384.0 in region us-east1. [\#2401](https://github.com/kubeflow/kubeflow/issues/2401)
 - kfctl \(golang\) rename 'ks' directory and app to ksonnet and ksonnet.go respectively [\#2398](https://github.com/kubeflow/kubeflow/issues/2398)
 - kfctl - Fetch registry automatically [\#2397](https://github.com/kubeflow/kubeflow/issues/2397)
 - DM template fails with GPU enabled [\#2392](https://github.com/kubeflow/kubeflow/issues/2392)
 - \[Dashboard v1\] Immediate fixes for new dashboard [\#2390](https://github.com/kubeflow/kubeflow/issues/2390)
 - Clean up trailing whitespaces at the end of lines [\#2389](https://github.com/kubeflow/kubeflow/issues/2389)
-- Integrate test\_flake8.py into CI system [\#2388](https://github.com/kubeflow/kubeflow/issues/2388)
+- Integrate test_flake8.py into CI system [\#2388](https://github.com/kubeflow/kubeflow/issues/2388)
 - I am installing kubeflow and got this error，no matches for kind "Application" in version "app.k8s.io/v1beta1"，need help [\#2380](https://github.com/kubeflow/kubeflow/issues/2380)
 - \[Click To Deploy\] Take a query argument that specifies the list of Kubeflow versions to display [\#2377](https://github.com/kubeflow/kubeflow/issues/2377)
 - "pip install --upgrade pip" is usually a bad practice since it's known to have caused issues. [\#2375](https://github.com/kubeflow/kubeflow/issues/2375)
@@ -121,14 +122,14 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Have the different kfctl \(golang\) implementations of KfApp hold a map of KfApp children [\#2367](https://github.com/kubeflow/kubeflow/issues/2367)
 - Move --namespace parameter from generate to init in kfctl \(golang\) [\#2366](https://github.com/kubeflow/kubeflow/issues/2366)
 - Remove --packages and --components from 'kfctl generate' \(golang\) [\#2365](https://github.com/kubeflow/kubeflow/issues/2365)
-- Re-enable click\_deploy\_test [\#2364](https://github.com/kubeflow/kubeflow/issues/2364)
+- Re-enable click_deploy_test [\#2364](https://github.com/kubeflow/kubeflow/issues/2364)
 - \[Dashboard v1\]\[Tracker\]\[Redesign\] Landing Page v1 [\#2359](https://github.com/kubeflow/kubeflow/issues/2359)
-- Failed to connect to Hub API at 'http://jupyter-0:8081/hub/api'.  Is the Hub accessible at this URL \(from host: jupyter-q\)? [\#2350](https://github.com/kubeflow/kubeflow/issues/2350)
+- Failed to connect to Hub API at 'http://jupyter-0:8081/hub/api'. Is the Hub accessible at this URL \(from host: jupyter-q\)? [\#2350](https://github.com/kubeflow/kubeflow/issues/2350)
 - Unable to download after pod starts [\#2345](https://github.com/kubeflow/kubeflow/issues/2345)
 - TF-Serving: How to add new Param to Service Prototype \(running in Field does not exist\) [\#2326](https://github.com/kubeflow/kubeflow/issues/2326)
 - kubeflow 有没有中文社区 [\#2325](https://github.com/kubeflow/kubeflow/issues/2325)
-- TF serving new template should support model from NFS volume  [\#2321](https://github.com/kubeflow/kubeflow/issues/2321)
-- tf-serving how to add volumes/volumeMounts  [\#2319](https://github.com/kubeflow/kubeflow/issues/2319)
+- TF serving new template should support model from NFS volume [\#2321](https://github.com/kubeflow/kubeflow/issues/2321)
+- tf-serving how to add volumes/volumeMounts [\#2319](https://github.com/kubeflow/kubeflow/issues/2319)
 - Add Azure Version of tf-serving prototype [\#2317](https://github.com/kubeflow/kubeflow/issues/2317)
 - studyjob controller stays in CrashLoopbackoff [\#2308](https://github.com/kubeflow/kubeflow/issues/2308)
 - Proposal: Kubeflow Serverless Serving CRD [\#2306](https://github.com/kubeflow/kubeflow/issues/2306)
@@ -145,7 +146,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Docs: The reference to the deployer app should be higher in the page [\#2169](https://github.com/kubeflow/kubeflow/issues/2169)
 - Notebook manager UI should disable New PVC option if no default storage class is defined. [\#2157](https://github.com/kubeflow/kubeflow/issues/2157)
 - Jupyter spawner UI should provide a warning if pod isn't backed by durable storage [\#2156](https://github.com/kubeflow/kubeflow/issues/2156)
-- Allow in-cluster traffic through ambassador while enable basic username/password login with ambassador  [\#2149](https://github.com/kubeflow/kubeflow/issues/2149)
+- Allow in-cluster traffic through ambassador while enable basic username/password login with ambassador [\#2149](https://github.com/kubeflow/kubeflow/issues/2149)
 - Cookie based auth for basic username/password login with ambassador [\#2148](https://github.com/kubeflow/kubeflow/issues/2148)
 - login page for basic username/password login with ambassador [\#2147](https://github.com/kubeflow/kubeflow/issues/2147)
 - Kubebench operator jsonnet unittest [\#2134](https://github.com/kubeflow/kubeflow/issues/2134)
@@ -169,7 +170,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Remove OpenMPI package in 0.5.0 [\#1859](https://github.com/kubeflow/kubeflow/issues/1859)
 - kfctl.sh delete doesn't check/change kubectl context before issuing delete [\#1669](https://github.com/kubeflow/kubeflow/issues/1669)
 - add jsonnet tests for all libsonnet files [\#1542](https://github.com/kubeflow/kubeflow/issues/1542)
-- \[kfctl\] Create kfctl CLI  [\#1419](https://github.com/kubeflow/kubeflow/issues/1419)
+- \[kfctl\] Create kfctl CLI [\#1419](https://github.com/kubeflow/kubeflow/issues/1419)
 - \[microk8s\] error while loading shared libraries: libpython3.6m.so.1.0 [\#1367](https://github.com/kubeflow/kubeflow/issues/1367)
 - JupyterHub users can't create pods on GKE [\#1281](https://github.com/kubeflow/kubeflow/issues/1281)
 - Pachyderm and Kubeflow integration [\#151](https://github.com/kubeflow/kubeflow/issues/151)
@@ -189,7 +190,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - fixes 'kfctl apply fails to create k8s resources; tries to deploy to 127.0.0.1' [\#2813](https://github.com/kubeflow/kubeflow/pull/2813) ([kkasravi](https://github.com/kkasravi))
 - fixes 'kfctl delete fails when no platform or minikube is specified' [\#2810](https://github.com/kubeflow/kubeflow/pull/2810) ([kkasravi](https://github.com/kkasravi))
 - Retag jupyter images with tag v0.5.0 [\#2805](https://github.com/kubeflow/kubeflow/pull/2805) ([zabbasi](https://github.com/zabbasi))
-- check CLIENT\_ID/CLIENT\_SECRET before acutal Apply [\#2803](https://github.com/kubeflow/kubeflow/pull/2803) ([gabrielwen](https://github.com/gabrielwen))
+- check CLIENT_ID/CLIENT_SECRET before acutal Apply [\#2803](https://github.com/kubeflow/kubeflow/pull/2803) ([gabrielwen](https://github.com/gabrielwen))
 - Add named context to KUBECONFIG [\#2802](https://github.com/kubeflow/kubeflow/pull/2802) ([gabrielwen](https://github.com/gabrielwen))
 - kfctl interface in gcp.go/ksonnet.go for deploy app [\#2801](https://github.com/kubeflow/kubeflow/pull/2801) ([kunmingg](https://github.com/kunmingg))
 - Stop setting JupyterHub parameters and pull config from PR branch. [\#2798](https://github.com/kubeflow/kubeflow/pull/2798) ([jlewi](https://github.com/jlewi))
@@ -200,7 +201,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Namespace selector now only shows up when on activity page [\#2788](https://github.com/kubeflow/kubeflow/pull/2788) ([avdaredevil](https://github.com/avdaredevil))
 - notebook CR shows container status [\#2787](https://github.com/kubeflow/kubeflow/pull/2787) ([lluunn](https://github.com/lluunn))
 - Privacy link implemented with CSS changes [\#2786](https://github.com/kubeflow/kubeflow/pull/2786) ([avdaredevil](https://github.com/avdaredevil))
-- update pipeline system images to 0.1.13 release  [\#2785](https://github.com/kubeflow/kubeflow/pull/2785) ([IronPan](https://github.com/IronPan))
+- update pipeline system images to 0.1.13 release [\#2785](https://github.com/kubeflow/kubeflow/pull/2785) ([IronPan](https://github.com/IronPan))
 - add spartakus as component [\#2784](https://github.com/kubeflow/kubeflow/pull/2784) ([gabrielwen](https://github.com/gabrielwen))
 - update pipeline version to v0.1.13 [\#2783](https://github.com/kubeflow/kubeflow/pull/2783) ([IronPan](https://github.com/IronPan))
 - add jupyter image with tf 2.0 [\#2782](https://github.com/kubeflow/kubeflow/pull/2782) ([zabbasi](https://github.com/zabbasi))
@@ -225,8 +226,8 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[KUBEFLOW-2735\] Fix regex for distribution detection. [\#2737](https://github.com/kubeflow/kubeflow/pull/2737) ([holdenk](https://github.com/holdenk))
 - Polish changes: [\#2733](https://github.com/kubeflow/kubeflow/pull/2733) ([avdaredevil](https://github.com/avdaredevil))
 - Add pdb to mpi-operator clusterrole [\#2732](https://github.com/kubeflow/kubeflow/pull/2732) ([stpabhi](https://github.com/stpabhi))
-- Added tf 1.13 to the list of jupyter images  [\#2730](https://github.com/kubeflow/kubeflow/pull/2730) ([zabbasi](https://github.com/zabbasi))
-- Fix presubmit kfctl\_go\_test [\#2729](https://github.com/kubeflow/kubeflow/pull/2729) ([gabrielwen](https://github.com/gabrielwen))
+- Added tf 1.13 to the list of jupyter images [\#2730](https://github.com/kubeflow/kubeflow/pull/2730) ([zabbasi](https://github.com/zabbasi))
+- Fix presubmit kfctl_go_test [\#2729](https://github.com/kubeflow/kubeflow/pull/2729) ([gabrielwen](https://github.com/gabrielwen))
 - update fairing@7f7a66687ceab3ed2838ad29e3ff4b04afe351ab [\#2728](https://github.com/kubeflow/kubeflow/pull/2728) ([r2d4](https://github.com/r2d4))
 - Launch trtserver so that CUDA driver compatibility is enabled [\#2726](https://github.com/kubeflow/kubeflow/pull/2726) ([deadeyegoodwin](https://github.com/deadeyegoodwin))
 - fixes: kfctl go doesn't exit with non-zero exit code on failure [\#2721](https://github.com/kubeflow/kubeflow/pull/2721) ([kkasravi](https://github.com/kkasravi))
@@ -238,14 +239,14 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Update centraldashboard.jsonnet [\#2711](https://github.com/kubeflow/kubeflow/pull/2711) ([prodonjs](https://github.com/prodonjs))
 - Added PVC volumeName [\#2710](https://github.com/kubeflow/kubeflow/pull/2710) ([zabbasi](https://github.com/zabbasi))
 - Kfctl go E2E test should deploy kubeflow [\#2705](https://github.com/kubeflow/kubeflow/pull/2705) ([jlewi](https://github.com/jlewi))
-- Fix error in setup\_backend [\#2704](https://github.com/kubeflow/kubeflow/pull/2704) ([lluunn](https://github.com/lluunn))
+- Fix error in setup_backend [\#2704](https://github.com/kubeflow/kubeflow/pull/2704) ([lluunn](https://github.com/lluunn))
 - Fix param set on ipName and hostname [\#2702](https://github.com/kubeflow/kubeflow/pull/2702) ([gabrielwen](https://github.com/gabrielwen))
 - \[Dashboard v1\] Sidebar dynamic hide support added, stylistic refactor [\#2695](https://github.com/kubeflow/kubeflow/pull/2695) ([avdaredevil](https://github.com/avdaredevil))
 - Attempt to fix spark-operator and argo-deploy test flakiness. [\#2694](https://github.com/kubeflow/kubeflow/pull/2694) ([jlewi](https://github.com/jlewi))
 - moved the Profiles golang controller kustomize manifests around [\#2692](https://github.com/kubeflow/kubeflow/pull/2692) ([swiftdiaries](https://github.com/swiftdiaries))
 - Create secret for basic login [\#2690](https://github.com/kubeflow/kubeflow/pull/2690) ([gabrielwen](https://github.com/gabrielwen))
 - fixes 'Install profiles CR by default' [\#2689](https://github.com/kubeflow/kubeflow/pull/2689) ([kkasravi](https://github.com/kkasravi))
-- Skip check to oauth\_id/oauth\_secret if using basic auth [\#2687](https://github.com/kubeflow/kubeflow/pull/2687) ([gabrielwen](https://github.com/gabrielwen))
+- Skip check to oauth_id/oauth_secret if using basic auth [\#2687](https://github.com/kubeflow/kubeflow/pull/2687) ([gabrielwen](https://github.com/gabrielwen))
 - Add ClusterRole and ClusterRole [\#2684](https://github.com/kubeflow/kubeflow/pull/2684) ([prodonjs](https://github.com/prodonjs))
 - fix pipeline-viewer-controller access kube-apiserver 403 [\#2683](https://github.com/kubeflow/kubeflow/pull/2683) ([hzxuzhonghu](https://github.com/hzxuzhonghu))
 - fix IAM policy set [\#2681](https://github.com/kubeflow/kubeflow/pull/2681) ([kunmingg](https://github.com/kunmingg))
@@ -268,15 +269,15 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - update pipeline system images to 0.1.12 release \(\#2637\) [\#2640](https://github.com/kubeflow/kubeflow/pull/2640) ([gaoning777](https://github.com/gaoning777))
 - Updated jupyter image paths to point to the latest ones [\#2638](https://github.com/kubeflow/kubeflow/pull/2638) ([zabbasi](https://github.com/zabbasi))
 - update pipeline system images to 0.1.12 release [\#2637](https://github.com/kubeflow/kubeflow/pull/2637) ([gaoning777](https://github.com/gaoning777))
-- Fix kfctl: didn't pass flag client\_id/secret [\#2632](https://github.com/kubeflow/kubeflow/pull/2632) ([lluunn](https://github.com/lluunn))
+- Fix kfctl: didn't pass flag client_id/secret [\#2632](https://github.com/kubeflow/kubeflow/pull/2632) ([lluunn](https://github.com/lluunn))
 - Fix typo in kfctl [\#2631](https://github.com/kubeflow/kubeflow/pull/2631) ([lluunn](https://github.com/lluunn))
-- Setting the base\_url flag of Jupyter images [\#2627](https://github.com/kubeflow/kubeflow/pull/2627) ([zabbasi](https://github.com/zabbasi))
+- Setting the base_url flag of Jupyter images [\#2627](https://github.com/kubeflow/kubeflow/pull/2627) ([zabbasi](https://github.com/zabbasi))
 - Separate front-end components and add mock activities service. [\#2626](https://github.com/kubeflow/kubeflow/pull/2626) ([prodonjs](https://github.com/prodonjs))
 - store non exist parameter differently [\#2625](https://github.com/kubeflow/kubeflow/pull/2625) ([IronPan](https://github.com/IronPan))
-- Fix ambassador route and base\_url in notebook controller [\#2620](https://github.com/kubeflow/kubeflow/pull/2620) ([lluunn](https://github.com/lluunn))
+- Fix ambassador route and base_url in notebook controller [\#2620](https://github.com/kubeflow/kubeflow/pull/2620) ([lluunn](https://github.com/lluunn))
 - \[Dashboard v1\] Changed sidebar tab from JupyterHub to Notebooks [\#2619](https://github.com/kubeflow/kubeflow/pull/2619) ([avdaredevil](https://github.com/avdaredevil))
 - Add prodonjs to OWNERS [\#2613](https://github.com/kubeflow/kubeflow/pull/2613) ([prodonjs](https://github.com/prodonjs))
-- Updated jupyter spawning options to the latest images.  [\#2611](https://github.com/kubeflow/kubeflow/pull/2611) ([zabbasi](https://github.com/zabbasi))
+- Updated jupyter spawning options to the latest images. [\#2611](https://github.com/kubeflow/kubeflow/pull/2611) ([zabbasi](https://github.com/zabbasi))
 - Adding additional printer columns to display status [\#2609](https://github.com/kubeflow/kubeflow/pull/2609) ([johnugeorge](https://github.com/johnugeorge))
 - Updated jupyter images to allow any origin [\#2606](https://github.com/kubeflow/kubeflow/pull/2606) ([zabbasi](https://github.com/zabbasi))
 - Add build using GCB support to profile controller [\#2603](https://github.com/kubeflow/kubeflow/pull/2603) ([lluunn](https://github.com/lluunn))
@@ -293,7 +294,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - new deploy API following Open API format [\#2564](https://github.com/kubeflow/kubeflow/pull/2564) ([kunmingg](https://github.com/kunmingg))
 - Add status to notebook [\#2558](https://github.com/kubeflow/kubeflow/pull/2558) ([lluunn](https://github.com/lluunn))
 - Add Azure support for kfctl.sh [\#2557](https://github.com/kubeflow/kubeflow/pull/2557) ([ritazh](https://github.com/ritazh))
-- Temporary change to pin kubeflow to the latest verified tf-operator commit  [\#2555](https://github.com/kubeflow/kubeflow/pull/2555) ([zabbasi](https://github.com/zabbasi))
+- Temporary change to pin kubeflow to the latest verified tf-operator commit [\#2555](https://github.com/kubeflow/kubeflow/pull/2555) ([zabbasi](https://github.com/zabbasi))
 - update katib component [\#2553](https://github.com/kubeflow/kubeflow/pull/2553) ([hougangliu](https://github.com/hougangliu))
 - Updated Jupyter image paths for using in notebook controller [\#2552](https://github.com/kubeflow/kubeflow/pull/2552) ([zabbasi](https://github.com/zabbasi))
 - fixes 'kfctl \(golang\) Simplify the child/parent relationships in platforms' [\#2547](https://github.com/kubeflow/kubeflow/pull/2547) ([kkasravi](https://github.com/kkasravi))
@@ -303,7 +304,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Update dashboard image to point to newest build [\#2540](https://github.com/kubeflow/kubeflow/pull/2540) ([avdaredevil](https://github.com/avdaredevil))
 - fix command in bootstrap dev guide [\#2538](https://github.com/kubeflow/kubeflow/pull/2538) ([lluunn](https://github.com/lluunn))
 - update pipeline image version to v0.1.10 [\#2534](https://github.com/kubeflow/kubeflow/pull/2534) ([IronPan](https://github.com/IronPan))
-- Golang profile controller  [\#2533](https://github.com/kubeflow/kubeflow/pull/2533) ([lluunn](https://github.com/lluunn))
+- Golang profile controller [\#2533](https://github.com/kubeflow/kubeflow/pull/2533) ([lluunn](https://github.com/lluunn))
 - Pytorch v1beta2 support [\#2532](https://github.com/kubeflow/kubeflow/pull/2532) ([johnugeorge](https://github.com/johnugeorge))
 - Update dev guide for bootstrapper [\#2527](https://github.com/kubeflow/kubeflow/pull/2527) ([lluunn](https://github.com/lluunn))
 - Fix typo [\#2523](https://github.com/kubeflow/kubeflow/pull/2523) ([ib-steffen](https://github.com/ib-steffen))
@@ -329,7 +330,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - pass username & password hash as k8s secret instead of ks parameters [\#2485](https://github.com/kubeflow/kubeflow/pull/2485) ([kunmingg](https://github.com/kunmingg))
 - Wrap os.makedir calls inside try,catch block [\#2483](https://github.com/kubeflow/kubeflow/pull/2483) ([ashahba](https://github.com/ashahba))
 - add config file entries for deployment on GCP [\#2482](https://github.com/kubeflow/kubeflow/pull/2482) ([kunmingg](https://github.com/kunmingg))
-- Add script to upgrade kubeflow pipeline  [\#2479](https://github.com/kubeflow/kubeflow/pull/2479) ([IronPan](https://github.com/IronPan))
+- Add script to upgrade kubeflow pipeline [\#2479](https://github.com/kubeflow/kubeflow/pull/2479) ([IronPan](https://github.com/IronPan))
 - Refactor the Kubeflow Pipeline ksonnet to better support upgrade [\#2478](https://github.com/kubeflow/kubeflow/pull/2478) ([IronPan](https://github.com/IronPan))
 - fix test image [\#2477](https://github.com/kubeflow/kubeflow/pull/2477) ([lluunn](https://github.com/lluunn))
 - Support multiple CRD versions for TFJob [\#2474](https://github.com/kubeflow/kubeflow/pull/2474) ([richardsliu](https://github.com/richardsliu))
@@ -337,9 +338,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - cherrypick pipeline deployment changes to pipelines branch [\#2470](https://github.com/kubeflow/kubeflow/pull/2470) ([IronPan](https://github.com/IronPan))
 - add selector for minio deploy [\#2466](https://github.com/kubeflow/kubeflow/pull/2466) ([IronPan](https://github.com/IronPan))
 - Reduce NFS disk size from 200 -\> 20 GB [\#2464](https://github.com/kubeflow/kubeflow/pull/2464) ([IronPan](https://github.com/IronPan))
--  Notebook controller fixes [\#2463](https://github.com/kubeflow/kubeflow/pull/2463) ([lluunn](https://github.com/lluunn))
+- Notebook controller fixes [\#2463](https://github.com/kubeflow/kubeflow/pull/2463) ([lluunn](https://github.com/lluunn))
 - fix test name on testgrid [\#2462](https://github.com/kubeflow/kubeflow/pull/2462) ([lluunn](https://github.com/lluunn))
-- add basic auth as alternative of iap access to deploy app;  [\#2455](https://github.com/kubeflow/kubeflow/pull/2455) ([kunmingg](https://github.com/kunmingg))
+- add basic auth as alternative of iap access to deploy app; [\#2455](https://github.com/kubeflow/kubeflow/pull/2455) ([kunmingg](https://github.com/kunmingg))
 - Skipped context check on OSX [\#2453](https://github.com/kubeflow/kubeflow/pull/2453) ([svalleru](https://github.com/svalleru))
 - bootstrapper e2e test with istio [\#2451](https://github.com/kubeflow/kubeflow/pull/2451) ([lluunn](https://github.com/lluunn))
 - Fix testgrid test name [\#2450](https://github.com/kubeflow/kubeflow/pull/2450) ([lluunn](https://github.com/lluunn))
@@ -354,7 +355,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Use command array in mpi job prototype [\#2434](https://github.com/kubeflow/kubeflow/pull/2434) ([Jeffwan](https://github.com/Jeffwan))
 - fixes 'add docker-for-desktop platform to kfctl \(golang\)' [\#2433](https://github.com/kubeflow/kubeflow/pull/2433) ([kkasravi](https://github.com/kkasravi))
 - Dashboard immediate changes complete [\#2432](https://github.com/kubeflow/kubeflow/pull/2432) ([avdaredevil](https://github.com/avdaredevil))
-- fix click\_to\_deploy test [\#2431](https://github.com/kubeflow/kubeflow/pull/2431) ([lluunn](https://github.com/lluunn))
+- fix click_to_deploy test [\#2431](https://github.com/kubeflow/kubeflow/pull/2431) ([lluunn](https://github.com/lluunn))
 - Cherry pick storage changes to pipelines branch [\#2429](https://github.com/kubeflow/kubeflow/pull/2429) ([IronPan](https://github.com/IronPan))
 - fixes 'make it easy to configure the foo sample plugin as a plugin or statically linked' [\#2428](https://github.com/kubeflow/kubeflow/pull/2428) ([kkasravi](https://github.com/kkasravi))
 - Bump pipeline version to 0.1.9 [\#2427](https://github.com/kubeflow/kubeflow/pull/2427) ([IronPan](https://github.com/IronPan))
@@ -367,14 +368,14 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Wait for at most 100s on namespace deletion [\#2409](https://github.com/kubeflow/kubeflow/pull/2409) ([IronPan](https://github.com/IronPan))
 - Create kfctl command [\#2407](https://github.com/kubeflow/kubeflow/pull/2407) ([kkasravi](https://github.com/kkasravi))
 - Profiles e2e test [\#2404](https://github.com/kubeflow/kubeflow/pull/2404) ([lluunn](https://github.com/lluunn))
-- Integrated test\_flake8.py into CI system [\#2403](https://github.com/kubeflow/kubeflow/pull/2403) ([bikramnehra](https://github.com/bikramnehra))
-- fix click\_deploy\_test [\#2400](https://github.com/kubeflow/kubeflow/pull/2400) ([lluunn](https://github.com/lluunn))
+- Integrated test_flake8.py into CI system [\#2403](https://github.com/kubeflow/kubeflow/pull/2403) ([bikramnehra](https://github.com/bikramnehra))
+- fix click_deploy_test [\#2400](https://github.com/kubeflow/kubeflow/pull/2400) ([lluunn](https://github.com/lluunn))
 - sync pipelines branch to master [\#2396](https://github.com/kubeflow/kubeflow/pull/2396) ([IronPan](https://github.com/IronPan))
 - add query string to click-to-deploy app to support arbitrary version [\#2384](https://github.com/kubeflow/kubeflow/pull/2384) ([IronPan](https://github.com/IronPan))
 - deploy storage through kfctl.sh [\#2373](https://github.com/kubeflow/kubeflow/pull/2373) ([IronPan](https://github.com/IronPan))
 - upgrade conda and tini to nerwer versions and stick with pip version 19.0.1 for now [\#2372](https://github.com/kubeflow/kubeflow/pull/2372) ([ashahba](https://github.com/ashahba))
 - Remove all unnecessary white spaces at the end of lines [\#2371](https://github.com/kubeflow/kubeflow/pull/2371) ([ashahba](https://github.com/ashahba))
-- Combine check for kf client dependencies into one utility function check\_installed\_deps [\#2369](https://github.com/kubeflow/kubeflow/pull/2369) ([ashahba](https://github.com/ashahba))
+- Combine check for kf client dependencies into one utility function check_installed_deps [\#2369](https://github.com/kubeflow/kubeflow/pull/2369) ([ashahba](https://github.com/ashahba))
 - Propagate Disk name to ks application [\#2363](https://github.com/kubeflow/kubeflow/pull/2363) ([IronPan](https://github.com/IronPan))
 - one-click-deploy fix - break if deploy successfully [\#2362](https://github.com/kubeflow/kubeflow/pull/2362) ([IronPan](https://github.com/IronPan))
 - Dashboard v1 UI rewrite done [\#2361](https://github.com/kubeflow/kubeflow/pull/2361) ([avdaredevil](https://github.com/avdaredevil))
@@ -384,13 +385,13 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Add annotation to istio ingressgateway to enable IAP [\#2352](https://github.com/kubeflow/kubeflow/pull/2352) ([lluunn](https://github.com/lluunn))
 - use Istio for JWT validation [\#2348](https://github.com/kubeflow/kubeflow/pull/2348) ([lluunn](https://github.com/lluunn))
 - update config and README for local test [\#2346](https://github.com/kubeflow/kubeflow/pull/2346) ([kunmingg](https://github.com/kunmingg))
-- Improve the delete\_deployment script. [\#2344](https://github.com/kubeflow/kubeflow/pull/2344) ([jlewi](https://github.com/jlewi))
+- Improve the delete_deployment script. [\#2344](https://github.com/kubeflow/kubeflow/pull/2344) ([jlewi](https://github.com/jlewi))
 - upgrade ks app for E2E test to 0.3.0 [\#2338](https://github.com/kubeflow/kubeflow/pull/2338) ([stpabhi](https://github.com/stpabhi))
 - Golang notebook controller [\#2336](https://github.com/kubeflow/kubeflow/pull/2336) ([lluunn](https://github.com/lluunn))
 - add condition to create pv and pvc for kubeflow pipeline [\#2335](https://github.com/kubeflow/kubeflow/pull/2335) ([IronPan](https://github.com/IronPan))
 - Integrate Jupyter e2e test into CI [\#2333](https://github.com/kubeflow/kubeflow/pull/2333) ([jlewi](https://github.com/jlewi))
 - use wrong var in katib test [\#2332](https://github.com/kubeflow/kubeflow/pull/2332) ([hougangliu](https://github.com/hougangliu))
-- add in-cluster nfs  [\#2328](https://github.com/kubeflow/kubeflow/pull/2328) ([IronPan](https://github.com/IronPan))
+- add in-cluster nfs [\#2328](https://github.com/kubeflow/kubeflow/pull/2328) ([IronPan](https://github.com/IronPan))
 - GCP secrets cherrypick [\#2324](https://github.com/kubeflow/kubeflow/pull/2324) ([DanSanche](https://github.com/DanSanche))
 - Create an E2E test for the Jupyter custom resource. [\#2323](https://github.com/kubeflow/kubeflow/pull/2323) ([jlewi](https://github.com/jlewi))
 - Clean up - Remove the load sample job [\#2322](https://github.com/kubeflow/kubeflow/pull/2322) ([IronPan](https://github.com/IronPan))
@@ -399,7 +400,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - create secrets before checking for oauth env vars [\#2313](https://github.com/kubeflow/kubeflow/pull/2313) ([DanSanche](https://github.com/DanSanche))
 - Added context check before issuing delete [\#2305](https://github.com/kubeflow/kubeflow/pull/2305) ([svalleru](https://github.com/svalleru))
 - increase the number of mktemp template variables in download.sh [\#2304](https://github.com/kubeflow/kubeflow/pull/2304) ([tnthornton](https://github.com/tnthornton))
-- Do best practices for kfctl\_test Argo workflow [\#2303](https://github.com/kubeflow/kubeflow/pull/2303) ([jlewi](https://github.com/jlewi))
+- Do best practices for kfctl_test Argo workflow [\#2303](https://github.com/kubeflow/kubeflow/pull/2303) ([jlewi](https://github.com/jlewi))
 - update katib studyjob controller manifest [\#2301](https://github.com/kubeflow/kubeflow/pull/2301) ([hougangliu](https://github.com/hougangliu))
 - add pipeline team to the owner file [\#2299](https://github.com/kubeflow/kubeflow/pull/2299) ([IronPan](https://github.com/IronPan))
 - Bump ScheduledWorkflow CRD version to v1beta1 [\#2298](https://github.com/kubeflow/kubeflow/pull/2298) ([neuromage](https://github.com/neuromage))
@@ -409,23 +410,25 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Update seldon to version 0.2.5 [\#2293](https://github.com/kubeflow/kubeflow/pull/2293) ([cliveseldon](https://github.com/cliveseldon))
 - Add xgboost to image, fix credential-helper [\#2286](https://github.com/kubeflow/kubeflow/pull/2286) ([r2d4](https://github.com/r2d4))
 - adjust param name for v0.3 compatibility [\#2285](https://github.com/kubeflow/kubeflow/pull/2285) ([kunmingg](https://github.com/kunmingg))
-- Define signer\_email in main to remove flake8 F821 \#2229 [\#2283](https://github.com/kubeflow/kubeflow/pull/2283) ([philtremblay](https://github.com/philtremblay))
+- Define signer_email in main to remove flake8 F821 \#2229 [\#2283](https://github.com/kubeflow/kubeflow/pull/2283) ([philtremblay](https://github.com/philtremblay))
 - add gcp to registry [\#2280](https://github.com/kubeflow/kubeflow/pull/2280) ([kunmingg](https://github.com/kunmingg))
 - Update README for newer TRTIS releases [\#2279](https://github.com/kubeflow/kubeflow/pull/2279) ([deadeyegoodwin](https://github.com/deadeyegoodwin))
-- Update kfctl to export PLATFORM and GKE\_API\_VERSION [\#2278](https://github.com/kubeflow/kubeflow/pull/2278) ([gabrielwen](https://github.com/gabrielwen))
+- Update kfctl to export PLATFORM and GKE_API_VERSION [\#2278](https://github.com/kubeflow/kubeflow/pull/2278) ([gabrielwen](https://github.com/gabrielwen))
 - fixes "add jsonnet tests for all libsonnet files" [\#2264](https://github.com/kubeflow/kubeflow/pull/2264) ([kkasravi](https://github.com/kkasravi))
 - basic auth service [\#2262](https://github.com/kubeflow/kubeflow/pull/2262) ([kunmingg](https://github.com/kunmingg))
 - Extend Katib documentation to use not in GKE [\#2260](https://github.com/kubeflow/kubeflow/pull/2260) ([andreyvelich](https://github.com/andreyvelich))
-- Create test\_flake8.py [\#2247](https://github.com/kubeflow/kubeflow/pull/2247) ([cclauss](https://github.com/cclauss))
+- Create test_flake8.py [\#2247](https://github.com/kubeflow/kubeflow/pull/2247) ([cclauss](https://github.com/cclauss))
 - Added 'google-api-python-client' to JH images [\#2241](https://github.com/kubeflow/kubeflow/pull/2241) ([svalleru](https://github.com/svalleru))
-- Fix TabError in sync\_images.py [\#2240](https://github.com/kubeflow/kubeflow/pull/2240) ([cclauss](https://github.com/cclauss))
+- Fix TabError in sync_images.py [\#2240](https://github.com/kubeflow/kubeflow/pull/2240) ([cclauss](https://github.com/cclauss))
 - Add Deprecation Notice to README of openmpi package [\#2127](https://github.com/kubeflow/kubeflow/pull/2127) ([everpeace](https://github.com/everpeace))
 - Add Spark Job [\#1467](https://github.com/kubeflow/kubeflow/pull/1467) ([holdenk](https://github.com/holdenk))
 
 ## [v0.4.1-rc.4](https://github.com/kubeflow/kubeflow/tree/v0.4.1-rc.4) (2019-01-15)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1...v0.4.1-rc.4)
 
 ## [v0.4.1](https://github.com/kubeflow/kubeflow/tree/v0.4.1) (2019-01-15)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1-rc.3...v0.4.1)
 
 **Merged pull requests:**
@@ -433,6 +436,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - cherrypick changes to V0.4 branch [\#2274](https://github.com/kubeflow/kubeflow/pull/2274) ([IronPan](https://github.com/IronPan))
 
 ## [v0.4.1-rc.3](https://github.com/kubeflow/kubeflow/tree/v0.4.1-rc.3) (2019-01-15)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1-rc.2...v0.4.1-rc.3)
 
 **Merged pull requests:**
@@ -440,6 +444,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - add gcp to registry [\#2281](https://github.com/kubeflow/kubeflow/pull/2281) ([kunmingg](https://github.com/kunmingg))
 
 ## [v0.4.1-rc.2](https://github.com/kubeflow/kubeflow/tree/v0.4.1-rc.2) (2019-01-15)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1-rc.1...v0.4.1-rc.2)
 
 **Closed issues:**
@@ -458,6 +463,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Update image pull policy for pipeline [\#2251](https://github.com/kubeflow/kubeflow/pull/2251) ([jinchihe](https://github.com/jinchihe))
 
 ## [v0.4.1-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.4.1-rc.1) (2019-01-12)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.0...v0.4.1-rc.1)
 
 **Fixed bugs:**
@@ -480,7 +486,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Not able to build from source: Makefile:17: recipe for target 'presubmit' failed [\#1812](https://github.com/kubeflow/kubeflow/issues/1812)
 - \[gcp\] Enable new stackdriver Kubernetes agents on GKE [\#1757](https://github.com/kubeflow/kubeflow/issues/1757)
 - Create a kubeflow application in the GCP Marketplace [\#1691](https://github.com/kubeflow/kubeflow/issues/1691)
-- migrate bootstraper from glide to dep  [\#1520](https://github.com/kubeflow/kubeflow/issues/1520)
+- migrate bootstraper from glide to dep [\#1520](https://github.com/kubeflow/kubeflow/issues/1520)
 - Make ambassador number of replicas configurable [\#1112](https://github.com/kubeflow/kubeflow/issues/1112)
 - proposal for tooling [\#250](https://github.com/kubeflow/kubeflow/issues/250)
 
@@ -492,7 +498,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - remove load sample job from pipeline config [\#2254](https://github.com/kubeflow/kubeflow/pull/2254) ([IronPan](https://github.com/IronPan))
 - bump pipeline sdk version to 0.1.7 [\#2253](https://github.com/kubeflow/kubeflow/pull/2253) ([IronPan](https://github.com/IronPan))
 - Update Pipeline version to v0.1.7 [\#2252](https://github.com/kubeflow/kubeflow/pull/2252) ([IronPan](https://github.com/IronPan))
-- Minor readability modifications in test\_jsonnet.py [\#2246](https://github.com/kubeflow/kubeflow/pull/2246) ([cclauss](https://github.com/cclauss))
+- Minor readability modifications in test_jsonnet.py [\#2246](https://github.com/kubeflow/kubeflow/pull/2246) ([cclauss](https://github.com/cclauss))
 - update params following ksonnet v0.13.1; update image build file path [\#2245](https://github.com/kubeflow/kubeflow/pull/2245) ([kunmingg](https://github.com/kunmingg))
 - update jupyter hub with customized docker registry [\#2243](https://github.com/kubeflow/kubeflow/pull/2243) ([cheyang](https://github.com/cheyang))
 - split debug case into separate docker file so we don't expose port unnecessary [\#2242](https://github.com/kubeflow/kubeflow/pull/2242) ([kunmingg](https://github.com/kunmingg))
@@ -511,6 +517,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - fixes Change the application component to agree with kubernetes-sigs application CRD [\#2154](https://github.com/kubeflow/kubeflow/pull/2154) ([kkasravi](https://github.com/kkasravi))
 
 ## [v0.4.0](https://github.com/kubeflow/kubeflow/tree/v0.4.0) (2019-01-05)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.0-rc.3...v0.4.0)
 
 **Closed issues:**
@@ -527,16 +534,17 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - simplify cloud shell; add instruction message [\#2218](https://github.com/kubeflow/kubeflow/pull/2218) ([kunmingg](https://github.com/kunmingg))
 - publish v0.4.0 on web app [\#2217](https://github.com/kubeflow/kubeflow/pull/2217) ([kunmingg](https://github.com/kunmingg))
 - Update kubebench tags for 0.4.0 release [\#2216](https://github.com/kubeflow/kubeflow/pull/2216) ([richardsliu](https://github.com/richardsliu))
-- add status tag to deployments\_failure; exclude failure caused by quota or permission issue [\#2215](https://github.com/kubeflow/kubeflow/pull/2215) ([kunmingg](https://github.com/kunmingg))
+- add status tag to deployments_failure; exclude failure caused by quota or permission issue [\#2215](https://github.com/kubeflow/kubeflow/pull/2215) ([kunmingg](https://github.com/kunmingg))
 - Cherrypick v0.4-branch: kfctl: add default zone if not specified \(\#2210\) [\#2214](https://github.com/kubeflow/kubeflow/pull/2214) ([r2d4](https://github.com/r2d4))
 - sync-notebook needs to look for a Deployment kind that is version independent [\#2211](https://github.com/kubeflow/kubeflow/pull/2211) ([stpabhi](https://github.com/stpabhi))
 - kfctl: add default zone if not specified [\#2210](https://github.com/kubeflow/kubeflow/pull/2210) ([r2d4](https://github.com/r2d4))
 - sync-notebook needs to look for a Deployment kind that is version independent [\#2194](https://github.com/kubeflow/kubeflow/pull/2194) ([stpabhi](https://github.com/stpabhi))
--    Check the name of the deployment is \< 25 characters on GCP [\#2191](https://github.com/kubeflow/kubeflow/pull/2191) ([jcastill](https://github.com/jcastill))
+- Check the name of the deployment is \< 25 characters on GCP [\#2191](https://github.com/kubeflow/kubeflow/pull/2191) ([jcastill](https://github.com/jcastill))
 - Update tf-serving.libsonnet for replicas [\#2113](https://github.com/kubeflow/kubeflow/pull/2113) ([Youki](https://github.com/Youki))
 - Remove Seldon Cluster Roles by default [\#2039](https://github.com/kubeflow/kubeflow/pull/2039) ([cliveseldon](https://github.com/cliveseldon))
 
 ## [v0.4.0-rc.3](https://github.com/kubeflow/kubeflow/tree/v0.4.0-rc.3) (2019-01-03)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.0-rc.2...v0.4.0-rc.3)
 
 **Closed issues:**
@@ -546,11 +554,11 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Docs: referenced version of KF is not the latest [\#2170](https://github.com/kubeflow/kubeflow/issues/2170)
 - Add timestamps in the log messages of the click to deploy app [\#2166](https://github.com/kubeflow/kubeflow/issues/2166)
 - Don't wait for IAP redirect when Skip IAP is selected [\#2165](https://github.com/kubeflow/kubeflow/issues/2165)
-- util.sh check\_install falls back to check for ks [\#2162](https://github.com/kubeflow/kubeflow/issues/2162)
+- util.sh check_install falls back to check for ks [\#2162](https://github.com/kubeflow/kubeflow/issues/2162)
 - Create changelog for 0.4 release [\#2133](https://github.com/kubeflow/kubeflow/issues/2133)
 - Can kubeflow run a job using multi-nodes' resources ? [\#2130](https://github.com/kubeflow/kubeflow/issues/2130)
 - Reproduce FastAI dawn-benchmark using Kubeflow [\#2119](https://github.com/kubeflow/kubeflow/issues/2119)
-- bootstrap golang modules  [\#2022](https://github.com/kubeflow/kubeflow/issues/2022)
+- bootstrap golang modules [\#2022](https://github.com/kubeflow/kubeflow/issues/2022)
 - Argo UI not working [\#2021](https://github.com/kubeflow/kubeflow/issues/2021)
 - Which jubyterhub disks param name to use when assigning GCFS as PV [\#1934](https://github.com/kubeflow/kubeflow/issues/1934)
 - Kubeflow on GKE not using the default gcp zone configured in the cloud shell. [\#1914](https://github.com/kubeflow/kubeflow/issues/1914)
@@ -565,9 +573,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Tag and update katib for v0.4.0 release [\#2204](https://github.com/kubeflow/kubeflow/pull/2204) ([richardsliu](https://github.com/richardsliu))
 - Cherrypick - Add retry to loading the sample job \(\#2199\) [\#2203](https://github.com/kubeflow/kubeflow/pull/2203) ([IronPan](https://github.com/IronPan))
 - Fix OWNERs file for gcp package. [\#2202](https://github.com/kubeflow/kubeflow/pull/2202) ([jlewi](https://github.com/jlewi))
-- Add CUJs for  multiuser kubeflow to the ROADMAP. [\#2200](https://github.com/kubeflow/kubeflow/pull/2200) ([jlewi](https://github.com/jlewi))
+- Add CUJs for multiuser kubeflow to the ROADMAP. [\#2200](https://github.com/kubeflow/kubeflow/pull/2200) ([jlewi](https://github.com/jlewi))
 - Add retry to loading the sample job [\#2199](https://github.com/kubeflow/kubeflow/pull/2199) ([IronPan](https://github.com/IronPan))
-- Add log timestamps, and do not wait for IAP if skipped IAP  [\#2198](https://github.com/kubeflow/kubeflow/pull/2198) ([abhi-g](https://github.com/abhi-g))
+- Add log timestamps, and do not wait for IAP if skipped IAP [\#2198](https://github.com/kubeflow/kubeflow/pull/2198) ([abhi-g](https://github.com/abhi-g))
 - kfctl.sh shouldn't fail if a user isn't explicitly in the IAM policy - 0.4 patch. [\#2188](https://github.com/kubeflow/kubeflow/pull/2188) ([jlewi](https://github.com/jlewi))
 - kfctl.sh shouldn't fail if a user isn't explicitly in the IAM policy. [\#2187](https://github.com/kubeflow/kubeflow/pull/2187) ([jlewi](https://github.com/jlewi))
 - Add the TF 1.11 & TF 1.12 Jupyter images to the spawner drop down box. [\#2181](https://github.com/kubeflow/kubeflow/pull/2181) ([jlewi](https://github.com/jlewi))
@@ -576,7 +584,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - "argo" should be "Argo" [\#2168](https://github.com/kubeflow/kubeflow/pull/2168) ([suigh](https://github.com/suigh))
 - Add log timestamps, and do not wait for IAP if skipped IAP [\#2167](https://github.com/kubeflow/kubeflow/pull/2167) ([abhi-g](https://github.com/abhi-g))
 - \[gcp-click-to-deploy\] cleanup: remove ks and kubectl from Dockerfile [\#2164](https://github.com/kubeflow/kubeflow/pull/2164) ([stpabhi](https://github.com/stpabhi))
-- Fix check install to use param for type as well as which check  [\#2163](https://github.com/kubeflow/kubeflow/pull/2163) ([holdenk](https://github.com/holdenk))
+- Fix check install to use param for type as well as which check [\#2163](https://github.com/kubeflow/kubeflow/pull/2163) ([holdenk](https://github.com/holdenk))
 - update kf version to 0.3.5; add retry around IAM policy edit [\#2161](https://github.com/kubeflow/kubeflow/pull/2161) ([kunmingg](https://github.com/kunmingg))
 - \[gcp-deployer\] Style fixes [\#2158](https://github.com/kubeflow/kubeflow/pull/2158) ([yebrahim](https://github.com/yebrahim))
 - Update ROADMAP with link to CUJ for build/train/deploy from notebook. [\#2143](https://github.com/kubeflow/kubeflow/pull/2143) ([jlewi](https://github.com/jlewi))
@@ -585,6 +593,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - fixes 'bootstrap golang modules' [\#2090](https://github.com/kubeflow/kubeflow/pull/2090) ([kkasravi](https://github.com/kkasravi))
 
 ## [v0.4.0-rc.2](https://github.com/kubeflow/kubeflow/tree/v0.4.0-rc.2) (2018-12-21)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.5...v0.4.0-rc.2)
 
 **Closed issues:**
@@ -599,6 +608,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - use service account token to make request, set token life time to be 15 mins. [\#2062](https://github.com/kubeflow/kubeflow/pull/2062) ([kunmingg](https://github.com/kunmingg))
 
 ## [v0.3.5](https://github.com/kubeflow/kubeflow/tree/v0.3.5) (2018-12-21)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.0-rc.1...v0.3.5)
 
 **Merged pull requests:**
@@ -606,19 +616,20 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - cherry pick pipeline fix to v0.3 branch [\#2153](https://github.com/kubeflow/kubeflow/pull/2153) ([IronPan](https://github.com/IronPan))
 
 ## [v0.4.0-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.4.0-rc.1) (2018-12-21)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.4-rc.2...v0.4.0-rc.1)
 
 **Closed issues:**
 
-- Issue installing Kubeflow 0.3  [\#2128](https://github.com/kubeflow/kubeflow/issues/2128)
+- Issue installing Kubeflow 0.3 [\#2128](https://github.com/kubeflow/kubeflow/issues/2128)
 - Update ksonnet package for Katib [\#2126](https://github.com/kubeflow/kubeflow/issues/2126)
-- master head: cloud-endpoints controller not respond to newly created CRD  [\#2125](https://github.com/kubeflow/kubeflow/issues/2125)
+- master head: cloud-endpoints controller not respond to newly created CRD [\#2125](https://github.com/kubeflow/kubeflow/issues/2125)
 - Cloud Endpoints Controller not working on master [\#2120](https://github.com/kubeflow/kubeflow/issues/2120)
 - Ks package for kubebench operator [\#2110](https://github.com/kubeflow/kubeflow/issues/2110)
 - CrashLoopBackOff pods after 'apply k8s' [\#2077](https://github.com/kubeflow/kubeflow/issues/2077)
 - no persistent volumes available for this claim and no storage class is set; minio and pipelines [\#2076](https://github.com/kubeflow/kubeflow/issues/2076)
 - Issue while deploying kubeflow on GKE using command line- killed message in Cloud Shell [\#2075](https://github.com/kubeflow/kubeflow/issues/2075)
-- Ambassador crashing in kops  cluster  [\#2074](https://github.com/kubeflow/kubeflow/issues/2074)
+- Ambassador crashing in kops cluster [\#2074](https://github.com/kubeflow/kubeflow/issues/2074)
 - deploy.sh should not assume uuidgen is present [\#2072](https://github.com/kubeflow/kubeflow/issues/2072)
 - setup-minikube.sh doesn't install ksonnet if missing [\#2068](https://github.com/kubeflow/kubeflow/issues/2068)
 - New Jupyter spawner Ui doesn't allow entering a custom image [\#2060](https://github.com/kubeflow/kubeflow/issues/2060)
@@ -627,7 +638,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Auto-scaling for Seldon serving? [\#2029](https://github.com/kubeflow/kubeflow/issues/2029)
 - Upgrade bootstrapper to use go modules [\#2023](https://github.com/kubeflow/kubeflow/issues/2023)
 - Grant kubeflow user service account CMLE permission [\#2012](https://github.com/kubeflow/kubeflow/issues/2012)
-- Seems to be an issue in kfctl.sh re existence of dir ${DEPLOYMENT\_NAME}  [\#2009](https://github.com/kubeflow/kubeflow/issues/2009)
+- Seems to be an issue in kfctl.sh re existence of dir ${DEPLOYMENT_NAME} [\#2009](https://github.com/kubeflow/kubeflow/issues/2009)
 - trying to deploy a component using ks after initial deployment fails [\#2006](https://github.com/kubeflow/kubeflow/issues/2006)
 - Move components in core into a GCP specific ksonnet package [\#1996](https://github.com/kubeflow/kubeflow/issues/1996)
 - Installation woes - ./kfctl.sh: line 189: env.sh: No such file or directory [\#1993](https://github.com/kubeflow/kubeflow/issues/1993)
@@ -651,27 +662,27 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix one click deployer url in README [\#2138](https://github.com/kubeflow/kubeflow/pull/2138) ([yebrahim](https://github.com/yebrahim))
 - Fixes initialization script does not correctly detect ks installation [\#2137](https://github.com/kubeflow/kubeflow/pull/2137) ([holdenk](https://github.com/holdenk))
 - Update ksonnet package for Katib [\#2135](https://github.com/kubeflow/kubeflow/pull/2135) ([andreyvelich](https://github.com/andreyvelich))
-- Create cloud sql database for ml pipeline  [\#2123](https://github.com/kubeflow/kubeflow/pull/2123) ([IronPan](https://github.com/IronPan))
+- Create cloud sql database for ml pipeline [\#2123](https://github.com/kubeflow/kubeflow/pull/2123) ([IronPan](https://github.com/IronPan))
 - fixes "Cloud Endpoints Controller not working on mmaster" [\#2122](https://github.com/kubeflow/kubeflow/pull/2122) ([kkasravi](https://github.com/kkasravi))
-- Enable stackdriver agents for GKE  by default. [\#2118](https://github.com/kubeflow/kubeflow/pull/2118) ([jlewi](https://github.com/jlewi))
+- Enable stackdriver agents for GKE by default. [\#2118](https://github.com/kubeflow/kubeflow/pull/2118) ([jlewi](https://github.com/jlewi))
 - Fix the modeldb ambassador route. [\#2117](https://github.com/kubeflow/kubeflow/pull/2117) ([jlewi](https://github.com/jlewi))
-- Fix the check if directory named ${DEPLOYMENT\_NAME} exists [\#2115](https://github.com/kubeflow/kubeflow/pull/2115) ([jlewi](https://github.com/jlewi))
+- Fix the check if directory named ${DEPLOYMENT_NAME} exists [\#2115](https://github.com/kubeflow/kubeflow/pull/2115) ([jlewi](https://github.com/jlewi))
 - Update kubeflow components to v0.4.0 [\#2112](https://github.com/kubeflow/kubeflow/pull/2112) ([richardsliu](https://github.com/richardsliu))
 - Kubebench operator ksonnet package [\#2111](https://github.com/kubeflow/kubeflow/pull/2111) ([andreyvelich](https://github.com/andreyvelich))
 - Add yebrahim to pipeline ksonnet owner [\#2108](https://github.com/kubeflow/kubeflow/pull/2108) ([IronPan](https://github.com/IronPan))
 - add r2d4 to approvers [\#2106](https://github.com/kubeflow/kubeflow/pull/2106) ([r2d4](https://github.com/r2d4))
 - Replace with std.asciiUpper with supported by required version of jsonnet [\#2104](https://github.com/kubeflow/kubeflow/pull/2104) ([Jeffwan](https://github.com/Jeffwan))
 - Don't grant cloudservices account IAM admin priveleges. [\#2101](https://github.com/kubeflow/kubeflow/pull/2101) ([jlewi](https://github.com/jlewi))
-- ks init: --skip-default-registries + append ${KS\_INIT\_EXTRA\_ARGS} [\#2100](https://github.com/kubeflow/kubeflow/pull/2100) ([doodlesbykumbi](https://github.com/doodlesbykumbi))
+- ks init: --skip-default-registries + append ${KS_INIT_EXTRA_ARGS} [\#2100](https://github.com/kubeflow/kubeflow/pull/2100) ([doodlesbykumbi](https://github.com/doodlesbykumbi))
 - Update aws parameters in serving and dashboard [\#2097](https://github.com/kubeflow/kubeflow/pull/2097) ([Jeffwan](https://github.com/Jeffwan))
 - Update private IP configuration with new GKE API [\#2085](https://github.com/kubeflow/kubeflow/pull/2085) ([IronPan](https://github.com/IronPan))
-- Correct typo, "for ever image" should be  "for every image" [\#2084](https://github.com/kubeflow/kubeflow/pull/2084) ([suigh](https://github.com/suigh))
+- Correct typo, "for ever image" should be "for every image" [\#2084](https://github.com/kubeflow/kubeflow/pull/2084) ([suigh](https://github.com/suigh))
 - Fix variable in setup-minikube.sh [\#2082](https://github.com/kubeflow/kubeflow/pull/2082) ([andreyvelich](https://github.com/andreyvelich))
 - Owners file for jupyter ksonnet [\#2081](https://github.com/kubeflow/kubeflow/pull/2081) ([pdmack](https://github.com/pdmack))
 - fixes 'upgrade cloud-endpoints-controller to use metacontroller/metacontroller:v0.3.0 [\#2080](https://github.com/kubeflow/kubeflow/pull/2080) ([kkasravi](https://github.com/kkasravi))
 - JH Spawner Enhancements - Fixes \#2060 [\#2079](https://github.com/kubeflow/kubeflow/pull/2079) ([ioandr](https://github.com/ioandr))
 - Add job to load pipeline samples [\#2071](https://github.com/kubeflow/kubeflow/pull/2071) ([IronPan](https://github.com/IronPan))
-- Enforce use string type param for S3\_USE\_HTTPS and S3\_VERIFY\_SSL [\#2067](https://github.com/kubeflow/kubeflow/pull/2067) ([Jeffwan](https://github.com/Jeffwan))
+- Enforce use string type param for S3_USE_HTTPS and S3_VERIFY_SSL [\#2067](https://github.com/kubeflow/kubeflow/pull/2067) ([Jeffwan](https://github.com/Jeffwan))
 - Temp workaround for RAPIDS shared lib issues [\#2066](https://github.com/kubeflow/kubeflow/pull/2066) ([pdmack](https://github.com/pdmack))
 - Update katib components [\#2064](https://github.com/kubeflow/kubeflow/pull/2064) ([richardsliu](https://github.com/richardsliu))
 - update kf version to v0.3.4 [\#2063](https://github.com/kubeflow/kubeflow/pull/2063) ([kunmingg](https://github.com/kunmingg))
@@ -689,14 +700,16 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Give jupyter-notebook pods/log permission for fairing [\#2015](https://github.com/kubeflow/kubeflow/pull/2015) ([r2d4](https://github.com/r2d4))
 
 ## [v0.3.4-rc.2](https://github.com/kubeflow/kubeflow/tree/v0.3.4-rc.2) (2018-12-06)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.4...v0.3.4-rc.2)
 
 ## [v0.3.4](https://github.com/kubeflow/kubeflow/tree/v0.3.4) (2018-12-06)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.4-rc.1...v0.3.4)
 
 **Closed issues:**
 
--  ImagePullBackOff for images on GCR within same GCP project as GKE cluster [\#2044](https://github.com/kubeflow/kubeflow/issues/2044)
+- ImagePullBackOff for images on GCR within same GCP project as GKE cluster [\#2044](https://github.com/kubeflow/kubeflow/issues/2044)
 - ksonnet runtime error Seldon [\#2001](https://github.com/kubeflow/kubeflow/issues/2001)
 - Better testing output for jsonnet [\#1988](https://github.com/kubeflow/kubeflow/issues/1988)
 - Install pipelines SDK in Jupyter images [\#1968](https://github.com/kubeflow/kubeflow/issues/1968)
@@ -739,6 +752,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - fixes 'Create an openvino component' [\#1916](https://github.com/kubeflow/kubeflow/pull/1916) ([kkasravi](https://github.com/kkasravi))
 
 ## [v0.3.4-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.3.4-rc.1) (2018-11-26)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.3...v0.3.4-rc.1)
 
 **Closed issues:**
@@ -751,16 +765,16 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Can TFJob be parameterized by replica index [\#1943](https://github.com/kubeflow/kubeflow/issues/1943)
 - Dashboard cannot list tf jobs [\#1883](https://github.com/kubeflow/kubeflow/issues/1883)
 - Issues installing 0.3 [\#1871](https://github.com/kubeflow/kubeflow/issues/1871)
-- flaky configure\_envoy\_for\_iap.sh [\#1807](https://github.com/kubeflow/kubeflow/issues/1807)
+- flaky configure_envoy_for_iap.sh [\#1807](https://github.com/kubeflow/kubeflow/issues/1807)
 - create a notebook controller that can replace jupyterhub and uses k8 native auth [\#1769](https://github.com/kubeflow/kubeflow/issues/1769)
 - Build Jupyter notebook images for TF 1.11 and 1.12 [\#1740](https://github.com/kubeflow/kubeflow/issues/1740)
 - kfctl.sh apply platform assumes availability of yaml python library [\#1739](https://github.com/kubeflow/kubeflow/issues/1739)
--  Unable to install Kubeflow on a exising 2 node ubuntu cluster; Docs need to be fixed [\#1711](https://github.com/kubeflow/kubeflow/issues/1711)
+- Unable to install Kubeflow on a exising 2 node ubuntu cluster; Docs need to be fixed [\#1711](https://github.com/kubeflow/kubeflow/issues/1711)
 - \[gcp\] Click to deploy needs to save DM config to cloud source repo as well. [\#1655](https://github.com/kubeflow/kubeflow/issues/1655)
 - PyTorch and TFJob v1beta1 API [\#1584](https://github.com/kubeflow/kubeflow/issues/1584)
 - Error in the generated YAML [\#1524](https://github.com/kubeflow/kubeflow/issues/1524)
 - Exposing service using Nginx Ingress Controller and load balancing \(question\) [\#1214](https://github.com/kubeflow/kubeflow/issues/1214)
-- Problems upgrading services of type NodePort; spec.clusterIP: Invalid value: "":  [\#1145](https://github.com/kubeflow/kubeflow/issues/1145)
+- Problems upgrading services of type NodePort; spec.clusterIP: Invalid value: "": [\#1145](https://github.com/kubeflow/kubeflow/issues/1145)
 - Simplify Image Tag management for releases [\#1060](https://github.com/kubeflow/kubeflow/issues/1060)
 - TFServing supports collection of metrics with prometheus [\#1036](https://github.com/kubeflow/kubeflow/issues/1036)
 - Add a parameter for clusters without RBAC [\#1027](https://github.com/kubeflow/kubeflow/issues/1027)
@@ -791,9 +805,10 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - miscellaneous updates and enhacements for shell scripts [\#1923](https://github.com/kubeflow/kubeflow/pull/1923) ([ashahba](https://github.com/ashahba))
 - make prober always sleep before execute [\#1908](https://github.com/kubeflow/kubeflow/pull/1908) ([kunmingg](https://github.com/kunmingg))
 - fixes 'create a notebook controller that can replace jupyterhub and uses k8 native auth' [\#1855](https://github.com/kubeflow/kubeflow/pull/1855) ([kkasravi](https://github.com/kkasravi))
-- Separate logic for setup\_backend.sh [\#1841](https://github.com/kubeflow/kubeflow/pull/1841) ([r2d4](https://github.com/r2d4))
+- Separate logic for setup_backend.sh [\#1841](https://github.com/kubeflow/kubeflow/pull/1841) ([r2d4](https://github.com/r2d4))
 
 ## [v0.3.3](https://github.com/kubeflow/kubeflow/tree/v0.3.3) (2018-11-15)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.2...v0.3.3)
 
 **Closed issues:**
@@ -802,7 +817,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Use iam-policy value for EMAIL if case-sensitive [\#1936](https://github.com/kubeflow/kubeflow/issues/1936)
 - Following Quickstart Guide - Can't Deploy Kubeflow [\#1929](https://github.com/kubeflow/kubeflow/issues/1929)
 - Enable kubeflow running on POWER [\#1928](https://github.com/kubeflow/kubeflow/issues/1928)
-- Do we have support in documentation for Inference?  [\#1905](https://github.com/kubeflow/kubeflow/issues/1905)
+- Do we have support in documentation for Inference? [\#1905](https://github.com/kubeflow/kubeflow/issues/1905)
 - Update katib manifests [\#1903](https://github.com/kubeflow/kubeflow/issues/1903)
 - Deploy same components in click-to-deploy as kfctl [\#1892](https://github.com/kubeflow/kubeflow/issues/1892)
 - Kubeflow 0.2.7 Spawning an image with GPU [\#1890](https://github.com/kubeflow/kubeflow/issues/1890)
@@ -861,6 +876,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[cuda\] use runtime image instead of development image [\#1785](https://github.com/kubeflow/kubeflow/pull/1785) ([r2d4](https://github.com/r2d4))
 
 ## [v0.3.2](https://github.com/kubeflow/kubeflow/tree/v0.3.2) (2018-10-26)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.1...v0.3.2)
 
 **Closed issues:**
@@ -874,17 +890,17 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - issues with 0.3.0 deployment scripts [\#1767](https://github.com/kubeflow/kubeflow/issues/1767)
 - Enable TPU in GKE [\#1766](https://github.com/kubeflow/kubeflow/issues/1766)
 - TFMA Dependency [\#1745](https://github.com/kubeflow/kubeflow/issues/1745)
-- jupyter\_console needs update in the latest notebooks [\#1721](https://github.com/kubeflow/kubeflow/issues/1721)
+- jupyter_console needs update in the latest notebooks [\#1721](https://github.com/kubeflow/kubeflow/issues/1721)
 - \[gcp\] Click to deploy needs to get a valid master version for GKE by calling get-server-config [\#1653](https://github.com/kubeflow/kubeflow/issues/1653)
-- test coverage for click-to-deploy app  [\#1578](https://github.com/kubeflow/kubeflow/issues/1578)
+- test coverage for click-to-deploy app [\#1578](https://github.com/kubeflow/kubeflow/issues/1578)
 - Required JWT token is missing [\#1495](https://github.com/kubeflow/kubeflow/issues/1495)
 - A small problem, Error validate kubeflow-core [\#1462](https://github.com/kubeflow/kubeflow/issues/1462)
 - Does CentralUi need ClusterScope? [\#1450](https://github.com/kubeflow/kubeflow/issues/1450)
 - Remove ksonnet parameter cloud [\#1227](https://github.com/kubeflow/kubeflow/issues/1227)
-- Test Flake wait\_for\_workflow terminated on HTTPSConnectionPool error; why don't we retry [\#1169](https://github.com/kubeflow/kubeflow/issues/1169)
+- Test Flake wait_for_workflow terminated on HTTPSConnectionPool error; why don't we retry [\#1169](https://github.com/kubeflow/kubeflow/issues/1169)
 - Application Custom Resource for Kubeflow Deployments [\#1106](https://github.com/kubeflow/kubeflow/issues/1106)
 - Create & label P1 issues needed for an initial release of Horovod support [\#778](https://github.com/kubeflow/kubeflow/issues/778)
-- Document Red/Green Model Rollout using ISTIO  [\#667](https://github.com/kubeflow/kubeflow/issues/667)
+- Document Red/Green Model Rollout using ISTIO [\#667](https://github.com/kubeflow/kubeflow/issues/667)
 - Central UI - need release process [\#527](https://github.com/kubeflow/kubeflow/issues/527)
 - Model Management Features [\#136](https://github.com/kubeflow/kubeflow/issues/136)
 
@@ -920,6 +936,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Application crd [\#1633](https://github.com/kubeflow/kubeflow/pull/1633) ([kkasravi](https://github.com/kkasravi))
 
 ## [v0.3.1](https://github.com/kubeflow/kubeflow/tree/v0.3.1) (2018-10-19)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.7...v0.3.1)
 
 **Fixed bugs:**
@@ -1003,9 +1020,10 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Add katib's hyperband/bayesianoptimization suggestion images \(\#1464\) [\#1727](https://github.com/kubeflow/kubeflow/pull/1727) ([leoncamel](https://github.com/leoncamel))
 - gke/deploy.sh: test uuidgen exists before using it [\#1674](https://github.com/kubeflow/kubeflow/pull/1674) ([rabierp](https://github.com/rabierp))
 - Allow folks to have the kubeflow github repo over https + improve error message [\#1626](https://github.com/kubeflow/kubeflow/pull/1626) ([holdenk](https://github.com/holdenk))
-- Improvements to kubeform\_spawner.py \(form UI and others\) [\#1551](https://github.com/kubeflow/kubeflow/pull/1551) ([tlkh](https://github.com/tlkh))
+- Improvements to kubeform_spawner.py \(form UI and others\) [\#1551](https://github.com/kubeflow/kubeflow/pull/1551) ([tlkh](https://github.com/tlkh))
 
 ## [v0.2.7](https://github.com/kubeflow/kubeflow/tree/v0.2.7) (2018-10-10)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.0...v0.2.7)
 
 **Fixed bugs:**
@@ -1017,7 +1035,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 
 - How to submit multiple OpenMPI jobs? [\#1730](https://github.com/kubeflow/kubeflow/issues/1730)
 - Permission denied errors when pip \(un\)installing without --user in new nb images [\#1722](https://github.com/kubeflow/kubeflow/issues/1722)
-- \[GCP\] Update credentials filename  [\#1715](https://github.com/kubeflow/kubeflow/issues/1715)
+- \[GCP\] Update credentials filename [\#1715](https://github.com/kubeflow/kubeflow/issues/1715)
 - jsonnet test is failing but no jsonnet files changed in the PR. [\#1707](https://github.com/kubeflow/kubeflow/issues/1707)
 - Error while updating iap-ingress for custom domains [\#1689](https://github.com/kubeflow/kubeflow/issues/1689)
 - Jupyterlab service account token [\#1648](https://github.com/kubeflow/kubeflow/issues/1648)
@@ -1043,6 +1061,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - HubSync v1.0 [\#1548](https://github.com/kubeflow/kubeflow/pull/1548) ([TheJaySmith](https://github.com/TheJaySmith))
 
 ## [v0.3.0](https://github.com/kubeflow/kubeflow/tree/v0.3.0) (2018-10-04)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.0-rc.3...v0.3.0)
 
 **Fixed bugs:**
@@ -1071,6 +1090,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix cert-manager and iap config to make dashboard accessible [\#1544](https://github.com/kubeflow/kubeflow/pull/1544) ([sambaiz](https://github.com/sambaiz))
 
 ## [v0.3.0-rc.3](https://github.com/kubeflow/kubeflow/tree/v0.3.0-rc.3) (2018-10-02)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.0-rc.2...v0.3.0-rc.3)
 
 **Closed issues:**
@@ -1082,7 +1102,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - central dashboard image build workflow doesn't work [\#1575](https://github.com/kubeflow/kubeflow/issues/1575)
 - \[Image Auto Release\] process has lots of issues; should we use prow? [\#1574](https://github.com/kubeflow/kubeflow/issues/1574)
 - Image Auto Release Cron Job is failing [\#1563](https://github.com/kubeflow/kubeflow/issues/1563)
-- ack\_guide.md out of date [\#1293](https://github.com/kubeflow/kubeflow/issues/1293)
+- ack_guide.md out of date [\#1293](https://github.com/kubeflow/kubeflow/issues/1293)
 - GKE: can not read from google cloud storage in Jupyter notebook [\#1249](https://github.com/kubeflow/kubeflow/issues/1249)
 - Friction log for bootstrapper documentation [\#927](https://github.com/kubeflow/kubeflow/issues/927)
 - Create a minimal release process for our ksonnet configs [\#215](https://github.com/kubeflow/kubeflow/issues/215)
@@ -1096,25 +1116,27 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Cherry-pick \#1676 fix centralUI [\#1685](https://github.com/kubeflow/kubeflow/pull/1685) ([swiftdiaries](https://github.com/swiftdiaries))
 - \[0.3\] Cherry-pick \#1647 [\#1684](https://github.com/kubeflow/kubeflow/pull/1684) ([lluunn](https://github.com/lluunn))
 - Update image tag for centralUI [\#1682](https://github.com/kubeflow/kubeflow/pull/1682) ([swiftdiaries](https://github.com/swiftdiaries))
-- cherrypick - Remove trailing slash from KUBEFLOW\_REPO \(\#1664\) [\#1677](https://github.com/kubeflow/kubeflow/pull/1677) ([jlewi](https://github.com/jlewi))
-- Fix for "/" not directing to centralUI \(\#1670\).  [\#1676](https://github.com/kubeflow/kubeflow/pull/1676) ([swiftdiaries](https://github.com/swiftdiaries))
+- cherrypick - Remove trailing slash from KUBEFLOW_REPO \(\#1664\) [\#1677](https://github.com/kubeflow/kubeflow/pull/1677) ([jlewi](https://github.com/jlewi))
+- Fix for "/" not directing to centralUI \(\#1670\). [\#1676](https://github.com/kubeflow/kubeflow/pull/1676) ([swiftdiaries](https://github.com/swiftdiaries))
 
 ## [v0.3.0-rc.2](https://github.com/kubeflow/kubeflow/tree/v0.3.0-rc.2) (2018-09-30)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.3.0-rc.1...v0.3.0-rc.2)
 
 **Fixed bugs:**
 
-- Deploy kfctl.sh apply k8s : Service "ambassador" is invalid  ? [\#1566](https://github.com/kubeflow/kubeflow/issues/1566)
+- Deploy kfctl.sh apply k8s : Service "ambassador" is invalid ? [\#1566](https://github.com/kubeflow/kubeflow/issues/1566)
 
 **Merged pull requests:**
 
 - remove prune from kubeflow core which delete required fields \(\#1580\) [\#1667](https://github.com/kubeflow/kubeflow/pull/1667) ([jlewi](https://github.com/jlewi))
 - Add swiftdiaries as reviewer [\#1665](https://github.com/kubeflow/kubeflow/pull/1665) ([swiftdiaries](https://github.com/swiftdiaries))
-- Remove trailing slash from KUBEFLOW\_REPO [\#1664](https://github.com/kubeflow/kubeflow/pull/1664) ([jlewi](https://github.com/jlewi))
+- Remove trailing slash from KUBEFLOW_REPO [\#1664](https://github.com/kubeflow/kubeflow/pull/1664) ([jlewi](https://github.com/jlewi))
 - Change kubebench 0.3 image [\#1661](https://github.com/kubeflow/kubeflow/pull/1661) ([xyhuang](https://github.com/xyhuang))
 - Ankush Signing Out [\#1652](https://github.com/kubeflow/kubeflow/pull/1652) ([ankushagarwal](https://github.com/ankushagarwal))
 
 ## [v0.3.0-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.3.0-rc.1) (2018-09-28)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.6...v0.3.0-rc.1)
 
 **Closed issues:**
@@ -1125,7 +1147,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 
 **Merged pull requests:**
 
-- Cherrypick \(\#1657\) tag image and change libsonnet for centraldashboard image  [\#1660](https://github.com/kubeflow/kubeflow/pull/1660) ([swiftdiaries](https://github.com/swiftdiaries))
+- Cherrypick \(\#1657\) tag image and change libsonnet for centraldashboard image [\#1660](https://github.com/kubeflow/kubeflow/pull/1660) ([swiftdiaries](https://github.com/swiftdiaries))
 - Tag and update centraldashboard image [\#1657](https://github.com/kubeflow/kubeflow/pull/1657) ([swiftdiaries](https://github.com/swiftdiaries))
 - Cherry-pick \#1589 to v0.3 [\#1656](https://github.com/kubeflow/kubeflow/pull/1656) ([lluunn](https://github.com/lluunn))
 - Cherrypick \#1650; automatically set master version to supported version. [\#1654](https://github.com/kubeflow/kubeflow/pull/1654) ([jlewi](https://github.com/jlewi))
@@ -1134,6 +1156,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Build image for centralui part of presubmit [\#1623](https://github.com/kubeflow/kubeflow/pull/1623) ([swiftdiaries](https://github.com/swiftdiaries))
 
 ## [v0.2.6](https://github.com/kubeflow/kubeflow/tree/v0.2.6) (2018-09-28)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/4e7f4ed...v0.2.6)
 
 **Fixed bugs:**
@@ -1201,12 +1224,13 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - bump gke version to 1.10.7-gke.2 [\#1573](https://github.com/kubeflow/kubeflow/pull/1573) ([kkasravi](https://github.com/kkasravi))
 - Typo in nvidia inference server README [\#1569](https://github.com/kubeflow/kubeflow/pull/1569) ([cliveseldon](https://github.com/cliveseldon))
 - Run Jupyter image and centraldashboard image release on postsubmit [\#1565](https://github.com/kubeflow/kubeflow/pull/1565) ([jlewi](https://github.com/jlewi))
-- Adding --skipInitProject to kfctl\_test.jsonnet until CI quota is increased [\#1564](https://github.com/kubeflow/kubeflow/pull/1564) ([ashahba](https://github.com/ashahba))
+- Adding --skipInitProject to kfctl_test.jsonnet until CI quota is increased [\#1564](https://github.com/kubeflow/kubeflow/pull/1564) ([ashahba](https://github.com/ashahba))
 - Tag and update v0.3.0 release for chainer-operator [\#1552](https://github.com/kubeflow/kubeflow/pull/1552) ([everpeace](https://github.com/everpeace))
 - fixes 'refactor tf-job-operator to match style-guide of libsonnet' [\#1535](https://github.com/kubeflow/kubeflow/pull/1535) ([kkasravi](https://github.com/kkasravi))
 - Rename TF-Hub to JupyterHub [\#1410](https://github.com/kubeflow/kubeflow/pull/1410) ([pvsousalima](https://github.com/pvsousalima))
 
 ## [4e7f4ed](https://github.com/kubeflow/kubeflow/tree/4e7f4ed) (2018-09-19)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.5...4e7f4ed)
 
 **Closed issues:**
@@ -1216,7 +1240,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - "Patching IAM bindings" halt during deployment. [\#1559](https://github.com/kubeflow/kubeflow/issues/1559)
 - cert-manager missing clusterrole [\#1554](https://github.com/kubeflow/kubeflow/issues/1554)
 - Jupyter Notebooks for TF 1.9 and 1.10 [\#1546](https://github.com/kubeflow/kubeflow/issues/1546)
-- test\_jsonnet is failing in postsubmit [\#1543](https://github.com/kubeflow/kubeflow/issues/1543)
+- test_jsonnet is failing in postsubmit [\#1543](https://github.com/kubeflow/kubeflow/issues/1543)
 - Directory ${KFAPP} already exists [\#1530](https://github.com/kubeflow/kubeflow/issues/1530)
 - Move kubebench package to kubeflow repo [\#1513](https://github.com/kubeflow/kubeflow/issues/1513)
 - cloud endpoint prototype breaks on master. [\#1507](https://github.com/kubeflow/kubeflow/issues/1507)
@@ -1242,7 +1266,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - standardize remaining \<component\>.{jsonnet,libsonnet} files [\#1414](https://github.com/kubeflow/kubeflow/issues/1414)
 - Update 0.2 blog with new deployment script [\#1390](https://github.com/kubeflow/kubeflow/issues/1390)
 - Update E2E test to use kfctl.sh and delete gke/deploy.sh; [\#1331](https://github.com/kubeflow/kubeflow/issues/1331)
-- Docker image building workflows are failing  [\#1135](https://github.com/kubeflow/kubeflow/issues/1135)
+- Docker image building workflows are failing [\#1135](https://github.com/kubeflow/kubeflow/issues/1135)
 - \[bootstrap\] Fail to update role kubeflow.jupyter-role [\#1076](https://github.com/kubeflow/kubeflow/issues/1076)
 - camelCase for some recently fixed params [\#1050](https://github.com/kubeflow/kubeflow/issues/1050)
 - Add document on Stackdriver agents [\#997](https://github.com/kubeflow/kubeflow/issues/997)
@@ -1258,7 +1282,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix cert-manager [\#1568](https://github.com/kubeflow/kubeflow/pull/1568) ([lluunn](https://github.com/lluunn))
 - Bug fix for \#1559 [\#1561](https://github.com/kubeflow/kubeflow/pull/1561) ([lluunn](https://github.com/lluunn))
 - increase pageSize for service list to avoid truncate [\#1558](https://github.com/kubeflow/kubeflow/pull/1558) ([kunmingg](https://github.com/kunmingg))
-- Fix for issue 1050 - camelCase for some recently fixed params.  [\#1556](https://github.com/kubeflow/kubeflow/pull/1556) ([ashahba](https://github.com/ashahba))
+- Fix for issue 1050 - camelCase for some recently fixed params. [\#1556](https://github.com/kubeflow/kubeflow/pull/1556) ([ashahba](https://github.com/ashahba))
 - fix cert-manager: add clusterrole back [\#1555](https://github.com/kubeflow/kubeflow/pull/1555) ([kunmingg](https://github.com/kunmingg))
 - enable sourcerepo.googleapis.com api if needed [\#1553](https://github.com/kubeflow/kubeflow/pull/1553) ([kunmingg](https://github.com/kunmingg))
 - Webapp: Don't use DM for IAM. [\#1550](https://github.com/kubeflow/kubeflow/pull/1550) ([lluunn](https://github.com/lluunn))
@@ -1298,10 +1322,11 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Delete deploy.sh scripts; we use kfctl.sh now. [\#1482](https://github.com/kubeflow/kubeflow/pull/1482) ([jlewi](https://github.com/jlewi))
 - Ensure jovyan has site-packages perms [\#1470](https://github.com/kubeflow/kubeflow/pull/1470) ([pdmack](https://github.com/pdmack))
 - Adding namespace scope to pytorch operator [\#1465](https://github.com/kubeflow/kubeflow/pull/1465) ([johnugeorge](https://github.com/johnugeorge))
-- standardize remaining \<component\>.{jsonnet,libsonnet} files  [\#1437](https://github.com/kubeflow/kubeflow/pull/1437) ([kkasravi](https://github.com/kkasravi))
+- standardize remaining \<component\>.{jsonnet,libsonnet} files [\#1437](https://github.com/kubeflow/kubeflow/pull/1437) ([kkasravi](https://github.com/kkasravi))
 - Fix kfctl.sh gcpInitProject is always skipped [\#1425](https://github.com/kubeflow/kubeflow/pull/1425) ([sambaiz](https://github.com/sambaiz))
 
 ## [v0.2.5](https://github.com/kubeflow/kubeflow/tree/v0.2.5) (2018-09-04)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.4-rc.0...v0.2.5)
 
 **Fixed bugs:**
@@ -1316,7 +1341,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - What is image registry.opensource.zalan.do/teapot/external-dns ? [\#1446](https://github.com/kubeflow/kubeflow/issues/1446)
 - What's the function of tfReplicaType: Master ? [\#1442](https://github.com/kubeflow/kubeflow/issues/1442)
 - Bootstrapper fails in docker-for-desktop [\#1430](https://github.com/kubeflow/kubeflow/issues/1430)
-- tf\_job\_simple\_test results not being report [\#1426](https://github.com/kubeflow/kubeflow/issues/1426)
+- tf_job_simple_test results not being report [\#1426](https://github.com/kubeflow/kubeflow/issues/1426)
 - deploy.sh should be restart-aware in terms of directory structure [\#1422](https://github.com/kubeflow/kubeflow/issues/1422)
 - kfctl.sh should not assume uuidgen is present [\#1415](https://github.com/kubeflow/kubeflow/issues/1415)
 - How to spawn the jupyter container as a root user [\#1412](https://github.com/kubeflow/kubeflow/issues/1412)
@@ -1346,10 +1371,10 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Click to deploy ui: remove ipName and make hostName optional [\#1449](https://github.com/kubeflow/kubeflow/pull/1449) ([lluunn](https://github.com/lluunn))
 - Create webapp manifest dir [\#1447](https://github.com/kubeflow/kubeflow/pull/1447) ([lluunn](https://github.com/lluunn))
 - Fix readme for local run [\#1445](https://github.com/kubeflow/kubeflow/pull/1445) ([lluunn](https://github.com/lluunn))
-- Ensure MOUNT\_LOCAL env var is forwarded to kfctl [\#1443](https://github.com/kubeflow/kubeflow/pull/1443) ([abhi-g](https://github.com/abhi-g))
+- Ensure MOUNT_LOCAL env var is forwarded to kfctl [\#1443](https://github.com/kubeflow/kubeflow/pull/1443) ([abhi-g](https://github.com/abhi-g))
 - Enable v1alpha2 for Pytorch operator [\#1441](https://github.com/kubeflow/kubeflow/pull/1441) ([johnugeorge](https://github.com/johnugeorge))
-- Fix KUBEFLOW\_REPO dir pointer. [\#1439](https://github.com/kubeflow/kubeflow/pull/1439) ([abhi-g](https://github.com/abhi-g))
-- Weaveflux version 0.1.2.  [\#1434](https://github.com/kubeflow/kubeflow/pull/1434) ([TheJaySmith](https://github.com/TheJaySmith))
+- Fix KUBEFLOW_REPO dir pointer. [\#1439](https://github.com/kubeflow/kubeflow/pull/1439) ([abhi-g](https://github.com/abhi-g))
+- Weaveflux version 0.1.2. [\#1434](https://github.com/kubeflow/kubeflow/pull/1434) ([TheJaySmith](https://github.com/TheJaySmith))
 - Add imagePullSecret to Seldon Prototypes [\#1431](https://github.com/kubeflow/kubeflow/pull/1431) ([cliveseldon](https://github.com/cliveseldon))
 - Add logging statements to help figure out why test results aren't reported [\#1427](https://github.com/kubeflow/kubeflow/pull/1427) ([jlewi](https://github.com/jlewi))
 - Add texasmichelle to OWNERS [\#1424](https://github.com/kubeflow/kubeflow/pull/1424) ([texasmichelle](https://github.com/texasmichelle))
@@ -1357,9 +1382,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Use bash ${RANDOM} instead of uuidgen [\#1418](https://github.com/kubeflow/kubeflow/pull/1418) ([ankushagarwal](https://github.com/ankushagarwal))
 - Fix minikube test and trigger on presubmit when modified. [\#1411](https://github.com/kubeflow/kubeflow/pull/1411) ([jlewi](https://github.com/jlewi))
 - Python script to declaratively manage IAM binding patches [\#1408](https://github.com/kubeflow/kubeflow/pull/1408) ([ankushagarwal](https://github.com/ankushagarwal))
-- Remove deploy\_gcp.sh and update workflows.libsonnet. [\#1406](https://github.com/kubeflow/kubeflow/pull/1406) ([jlewi](https://github.com/jlewi))
+- Remove deploy_gcp.sh and update workflows.libsonnet. [\#1406](https://github.com/kubeflow/kubeflow/pull/1406) ([jlewi](https://github.com/jlewi))
 - Update various scripts to use lowercase clientid/secret [\#1405](https://github.com/kubeflow/kubeflow/pull/1405) ([ankushagarwal](https://github.com/ankushagarwal))
-- Fix use\_gcr\_for\_all\_images.sh [\#1404](https://github.com/kubeflow/kubeflow/pull/1404) ([ankushagarwal](https://github.com/ankushagarwal))
+- Fix use_gcr_for_all_images.sh [\#1404](https://github.com/kubeflow/kubeflow/pull/1404) ([ankushagarwal](https://github.com/ankushagarwal))
 - Update tf-job-operator prototype to support namespace-scoped deployment [\#1403](https://github.com/kubeflow/kubeflow/pull/1403) ([ankushagarwal](https://github.com/ankushagarwal))
 - Fix annotations in ambassador and centraldashboard [\#1399](https://github.com/kubeflow/kubeflow/pull/1399) ([richardsliu](https://github.com/richardsliu))
 - Add namespaces to the tf-job-dashboard role [\#1397](https://github.com/kubeflow/kubeflow/pull/1397) ([ankushagarwal](https://github.com/ankushagarwal))
@@ -1372,29 +1397,33 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix iap-ingress certificate creation and use BackendConfig for IAP [\#1327](https://github.com/kubeflow/kubeflow/pull/1327) ([danisla](https://github.com/danisla))
 
 ## [v0.2.4-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.2.4-rc.0) (2018-08-21)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.4...v0.2.4-rc.0)
 
 ## [v0.2.4](https://github.com/kubeflow/kubeflow/tree/v0.2.4) (2018-08-21)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.3-rc.0...v0.2.4)
 
 **Closed issues:**
 
-- The testing/install\_minikube.sh script assumes the host OS is Ubuntu. [\#1383](https://github.com/kubeflow/kubeflow/issues/1383)
+- The testing/install_minikube.sh script assumes the host OS is Ubuntu. [\#1383](https://github.com/kubeflow/kubeflow/issues/1383)
 - Add Argo UI to Ambassador and Central UI [\#1310](https://github.com/kubeflow/kubeflow/issues/1310)
 
 **Merged pull requests:**
 
 - Cherry-pick: Update TFJob operator to the latest image [\#1391](https://github.com/kubeflow/kubeflow/pull/1391) ([richardsliu](https://github.com/richardsliu))
 - Fix typo [\#1385](https://github.com/kubeflow/kubeflow/pull/1385) ([fisache](https://github.com/fisache))
-- Fixes the install\_minikube.sh script for non-Ubuntu OSes [\#1384](https://github.com/kubeflow/kubeflow/pull/1384) ([Ark-kun](https://github.com/Ark-kun))
+- Fixes the install_minikube.sh script for non-Ubuntu OSes [\#1384](https://github.com/kubeflow/kubeflow/pull/1384) ([Ark-kun](https://github.com/Ark-kun))
 - fix a typo and remove a too restrictive limit for gpu specification [\#1382](https://github.com/kubeflow/kubeflow/pull/1382) ([yixinshi](https://github.com/yixinshi))
 - Fix groups for various resources [\#1380](https://github.com/kubeflow/kubeflow/pull/1380) ([activatedgeek](https://github.com/activatedgeek))
 - Adds argo to ambassador and Central UI [\#1376](https://github.com/kubeflow/kubeflow/pull/1376) ([swiftdiaries](https://github.com/swiftdiaries))
 
 ## [v0.2.3-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.2.3-rc.0) (2018-08-17)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.3...v0.2.3-rc.0)
 
 ## [v0.2.3](https://github.com/kubeflow/kubeflow/tree/v0.2.3) (2018-08-17)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.2-rc.0...v0.2.3)
 
 **Features and improvements:**
@@ -1416,7 +1445,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Central UI should include a link to Kubeflow docs website [\#1318](https://github.com/kubeflow/kubeflow/issues/1318)
 - Istio integration doc: Point to kubeflow/website documentation for [\#1315](https://github.com/kubeflow/kubeflow/issues/1315)
 - Build and debug improvements for bootstrapper [\#1312](https://github.com/kubeflow/kubeflow/issues/1312)
-- Fix incorrect links to user\_guide in kubeflow.org [\#1300](https://github.com/kubeflow/kubeflow/issues/1300)
+- Fix incorrect links to user_guide in kubeflow.org [\#1300](https://github.com/kubeflow/kubeflow/issues/1300)
 - JupyterHub login unauthorized \(401\) [\#1296](https://github.com/kubeflow/kubeflow/issues/1296)
 - Katib apply fail with error: Field does not exist: modeldbDatabaseImage [\#1291](https://github.com/kubeflow/kubeflow/issues/1291)
 - ambassador crashing on node with wrong DNS resolver address due to misconfigured kubelet [\#1289](https://github.com/kubeflow/kubeflow/issues/1289)
@@ -1438,8 +1467,8 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - GPU support on GKE not available [\#1246](https://github.com/kubeflow/kubeflow/issues/1246)
 - TF-job package missing [\#1245](https://github.com/kubeflow/kubeflow/issues/1245)
 - Spawning Jupyter failed; user jovyan does not have permission to write to default storage class [\#1241](https://github.com/kubeflow/kubeflow/issues/1241)
-- "Getting Involved" in README.md should point to kubeflow.org  [\#1237](https://github.com/kubeflow/kubeflow/issues/1237)
-- scripts/gke/deploy.sh fails when kubeflow\_deployment\_manager\_configs/ exists [\#1233](https://github.com/kubeflow/kubeflow/issues/1233)
+- "Getting Involved" in README.md should point to kubeflow.org [\#1237](https://github.com/kubeflow/kubeflow/issues/1237)
+- scripts/gke/deploy.sh fails when kubeflow_deployment_manager_configs/ exists [\#1233](https://github.com/kubeflow/kubeflow/issues/1233)
 - \[openmpi\]- NodeSelector not working. [\#1230](https://github.com/kubeflow/kubeflow/issues/1230)
 - \[GCP\] deploy.sh - don't show error if deployment doesn't exist [\#1222](https://github.com/kubeflow/kubeflow/issues/1222)
 - Cant start jupyter-notebook pod in kubeflow version 0.2.1 [\#1221](https://github.com/kubeflow/kubeflow/issues/1221)
@@ -1466,7 +1495,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - unflake TF serving testing [\#1031](https://github.com/kubeflow/kubeflow/issues/1031)
 - Support and testing different versions of TF serving images [\#1005](https://github.com/kubeflow/kubeflow/issues/1005)
 - Serving path should support logging request input/output [\#1000](https://github.com/kubeflow/kubeflow/issues/1000)
-- 'ks delete ${KF\_ENV} -c kubeflow-core' doesn't take down user notebook pods [\#968](https://github.com/kubeflow/kubeflow/issues/968)
+- 'ks delete ${KF_ENV} -c kubeflow-core' doesn't take down user notebook pods [\#968](https://github.com/kubeflow/kubeflow/issues/968)
 - Bootstrapper should support file and http registries in a consistent manner [\#962](https://github.com/kubeflow/kubeflow/issues/962)
 - Click-to-deploy UI upgrade. [\#959](https://github.com/kubeflow/kubeflow/issues/959)
 - Remove "alpha" in deployment manager config when gke-1.10.2 is public [\#821](https://github.com/kubeflow/kubeflow/issues/821)
@@ -1485,12 +1514,12 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 
 - Change the default branch used for the configs to v0.2-branch and not master [\#1378](https://github.com/kubeflow/kubeflow/pull/1378) ([jlewi](https://github.com/jlewi))
 - add apply handler; fix k8s auth; reset glide hash [\#1375](https://github.com/kubeflow/kubeflow/pull/1375) ([kunmingg](https://github.com/kunmingg))
-- Add Jobs permission to jupyterhub-noteook role to  for common use cases [\#1374](https://github.com/kubeflow/kubeflow/pull/1374) ([activatedgeek](https://github.com/activatedgeek))
+- Add Jobs permission to jupyterhub-noteook role to for common use cases [\#1374](https://github.com/kubeflow/kubeflow/pull/1374) ([activatedgeek](https://github.com/activatedgeek))
 - use tf serving image [\#1370](https://github.com/kubeflow/kubeflow/pull/1370) ([lluunn](https://github.com/lluunn))
 - Disable spartakus usage reporting in our ci clusters. [\#1364](https://github.com/kubeflow/kubeflow/pull/1364) ([jlewi](https://github.com/jlewi))
 - Use gcr.io images for argo, ambassador and cert-manager [\#1362](https://github.com/kubeflow/kubeflow/pull/1362) ([ankushagarwal](https://github.com/ankushagarwal))
 - add optionsHandler for OPTIONS request from browser [\#1361](https://github.com/kubeflow/kubeflow/pull/1361) ([kunmingg](https://github.com/kunmingg))
-- fix 'kfctl.sh delete platform'  doesn't delete platform correctly. [\#1360](https://github.com/kubeflow/kubeflow/pull/1360) ([everpeace](https://github.com/everpeace))
+- fix 'kfctl.sh delete platform' doesn't delete platform correctly. [\#1360](https://github.com/kubeflow/kubeflow/pull/1360) ([everpeace](https://github.com/everpeace))
 - Fix a bug in kfctl.sh when just creating a K8s app and not GCP. [\#1357](https://github.com/kubeflow/kubeflow/pull/1357) ([jlewi](https://github.com/jlewi))
 - ks version update to 0.11.0, and bug fixes. [\#1356](https://github.com/kubeflow/kubeflow/pull/1356) ([kunmingg](https://github.com/kunmingg))
 - upgrade gke version for v0.2 [\#1355](https://github.com/kubeflow/kubeflow/pull/1355) ([lluunn](https://github.com/lluunn))
@@ -1500,7 +1529,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Add more tests to the subgraph we created to run the tests. [\#1342](https://github.com/kubeflow/kubeflow/pull/1342) ([jlewi](https://github.com/jlewi))
 - Update TFJob operator to the latest image. [\#1341](https://github.com/kubeflow/kubeflow/pull/1341) ([jlewi](https://github.com/jlewi))
 - add bindRoleHandler which bind roles to service accounts [\#1335](https://github.com/kubeflow/kubeflow/pull/1335) ([kunmingg](https://github.com/kunmingg))
-- Add TFJob test to the Kfctl test; refactor workflows to start to use  [\#1333](https://github.com/kubeflow/kubeflow/pull/1333) ([jlewi](https://github.com/jlewi))
+- Add TFJob test to the Kfctl test; refactor workflows to start to use [\#1333](https://github.com/kubeflow/kubeflow/pull/1333) ([jlewi](https://github.com/jlewi))
 - \[gcp-deployer\] add service account key handler and a check health handler [\#1329](https://github.com/kubeflow/kubeflow/pull/1329) ([kunmingg](https://github.com/kunmingg))
 - Update ambassador to 0.37.0 [\#1324](https://github.com/kubeflow/kubeflow/pull/1324) ([ankushagarwal](https://github.com/ankushagarwal))
 - adds link to docs in centralui [\#1322](https://github.com/kubeflow/kubeflow/pull/1322) ([swiftdiaries](https://github.com/swiftdiaries))
@@ -1510,7 +1539,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - revert to k8s 1.9 [\#1307](https://github.com/kubeflow/kubeflow/pull/1307) ([lluunn](https://github.com/lluunn))
 - wording [\#1305](https://github.com/kubeflow/kubeflow/pull/1305) ([pymia](https://github.com/pymia))
 - Add reasonable default to tf-serving s3 creds [\#1304](https://github.com/kubeflow/kubeflow/pull/1304) ([inc0](https://github.com/inc0))
-- Fixed broken links \(to user\_guide\) [\#1301](https://github.com/kubeflow/kubeflow/pull/1301) ([amsaha](https://github.com/amsaha))
+- Fixed broken links \(to user_guide\) [\#1301](https://github.com/kubeflow/kubeflow/pull/1301) ([amsaha](https://github.com/amsaha))
 - Pointing katib doc to kubeflow/website [\#1292](https://github.com/kubeflow/kubeflow/pull/1292) ([amsaha](https://github.com/amsaha))
 - Make it easier to rerun deploy.sh [\#1290](https://github.com/kubeflow/kubeflow/pull/1290) ([jlewi](https://github.com/jlewi))
 - Update README.md [\#1287](https://github.com/kubeflow/kubeflow/pull/1287) ([pdmack](https://github.com/pdmack))
@@ -1557,14 +1586,16 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Set min-cpu-platform to haswell to support avx2 in deployment manager [\#1083](https://github.com/kubeflow/kubeflow/pull/1083) ([lluunn](https://github.com/lluunn))
 
 ## [v0.2.2-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.2.2-rc.0) (2018-07-13)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.2...v0.2.2-rc.0)
 
 ## [v0.2.2](https://github.com/kubeflow/kubeflow/tree/v0.2.2) (2018-07-13)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.1-rc.1...v0.2.2)
 
 **Closed issues:**
 
-- TFMA plots don't render; GET tfma\_widget\_js.js returns 404 [\#1130](https://github.com/kubeflow/kubeflow/issues/1130)
+- TFMA plots don't render; GET tfma_widget_js.js returns 404 [\#1130](https://github.com/kubeflow/kubeflow/issues/1130)
 
 **Merged pull requests:**
 
@@ -1573,16 +1604,18 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - GCFS support [\#1173](https://github.com/kubeflow/kubeflow/pull/1173) ([ankushagarwal](https://github.com/ankushagarwal))
 
 ## [v0.2.1-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.2.1-rc.1) (2018-07-12)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.1...v0.2.1-rc.1)
 
 ## [v0.2.1](https://github.com/kubeflow/kubeflow/tree/v0.2.1) (2018-07-12)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.1-rc.0...v0.2.1)
 
 **Closed issues:**
 
 - Use PV by default mounted at /home/jovyan [\#1187](https://github.com/kubeflow/kubeflow/issues/1187)
 - Central UI image needs to be updated in 0.2.1 release; it is too old. [\#1147](https://github.com/kubeflow/kubeflow/issues/1147)
-- metrics\_collector should emit K8s events to indicate when Kubeflow is ready [\#1142](https://github.com/kubeflow/kubeflow/issues/1142)
+- metrics_collector should emit K8s events to indicate when Kubeflow is ready [\#1142](https://github.com/kubeflow/kubeflow/issues/1142)
 - Jupyter images in 0.2.1 need to be upgraded [\#1129](https://github.com/kubeflow/kubeflow/issues/1129)
 
 **Merged pull requests:**
@@ -1595,6 +1628,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Make metric collector emit k8s event [\#1161](https://github.com/kubeflow/kubeflow/pull/1161) ([kunmingg](https://github.com/kunmingg))
 
 ## [v0.2.1-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.2.1-rc.0) (2018-07-11)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.0...v0.2.1-rc.0)
 
 **Closed issues:**
@@ -1602,9 +1636,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Test Flake deploy.sh fails trying to enable the deployment service [\#1158](https://github.com/kubeflow/kubeflow/issues/1158)
 - Make downloading our ksonnet registry for getting started efficient [\#1154](https://github.com/kubeflow/kubeflow/issues/1154)
 - kubeflow cluster cannot pull image from GCR within same Project. [\#1139](https://github.com/kubeflow/kubeflow/issues/1139)
-- \[Test Flake\] vm\_util.wait\_for\_operation needs to retry on socket error [\#1137](https://github.com/kubeflow/kubeflow/issues/1137)
+- \[Test Flake\] vm_util.wait_for_operation needs to retry on socket error [\#1137](https://github.com/kubeflow/kubeflow/issues/1137)
 - Ambassador pod failed to run because kube-dns not running [\#1134](https://github.com/kubeflow/kubeflow/issues/1134)
-- \[Test Flake\] tf\_job\_simple\_test needs retries for ks init to deal with git connection issues [\#1128](https://github.com/kubeflow/kubeflow/issues/1128)
+- \[Test Flake\] tf_job_simple_test needs retries for ks init to deal with git connection issues [\#1128](https://github.com/kubeflow/kubeflow/issues/1128)
 - PyTorch job prototype should contain the full job spec [\#1114](https://github.com/kubeflow/kubeflow/issues/1114)
 - Finalize release 0.2.0 [\#1070](https://github.com/kubeflow/kubeflow/issues/1070)
 - \[gcp\] GKE setup; do as much as possible in deploy.sh [\#1068](https://github.com/kubeflow/kubeflow/issues/1068)
@@ -1626,7 +1660,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Cherypick: Tag the latest Jupyter images with v0.2.1 \(\#1144\) [\#1170](https://github.com/kubeflow/kubeflow/pull/1170) ([jlewi](https://github.com/jlewi))
 - Delete kubeflow namespace before deleting the cluster [\#1167](https://github.com/kubeflow/kubeflow/pull/1167) ([ankushagarwal](https://github.com/ankushagarwal))
 - Make GKE VM service account storage.objectViewer [\#1164](https://github.com/kubeflow/kubeflow/pull/1164) ([kunmingg](https://github.com/kunmingg))
-- Give KF\_USER\_NAME service account roles/cloudbuild.builds.editor role [\#1163](https://github.com/kubeflow/kubeflow/pull/1163) ([ankushagarwal](https://github.com/ankushagarwal))
+- Give KF_USER_NAME service account roles/cloudbuild.builds.editor role [\#1163](https://github.com/kubeflow/kubeflow/pull/1163) ([ankushagarwal](https://github.com/ankushagarwal))
 - Skip project setup during deployment. [\#1162](https://github.com/kubeflow/kubeflow/pull/1162) ([jlewi](https://github.com/jlewi))
 - Don't check in bootstrap/vendor. [\#1152](https://github.com/kubeflow/kubeflow/pull/1152) ([jlewi](https://github.com/jlewi))
 - Make Katib work with Ambassador. \(\#1103\) [\#1150](https://github.com/kubeflow/kubeflow/pull/1150) ([jlewi](https://github.com/jlewi))
@@ -1650,6 +1684,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Tfjob create fails in tfjob UI [\#1099](https://github.com/kubeflow/kubeflow/pull/1099) ([kkasravi](https://github.com/kkasravi))
 
 ## [v0.2.0](https://github.com/kubeflow/kubeflow/tree/v0.2.0) (2018-06-29)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.0-rc.1...v0.2.0)
 
 **Fixed bugs:**
@@ -1659,10 +1694,10 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 
 **Closed issues:**
 
-- Wrong comment in setting default  CleanPodPolicy [\#1081](https://github.com/kubeflow/kubeflow/issues/1081)
+- Wrong comment in setting default CleanPodPolicy [\#1081](https://github.com/kubeflow/kubeflow/issues/1081)
 - Deprecate tfserving http-proxy? [\#1080](https://github.com/kubeflow/kubeflow/issues/1080)
 - user guide disappear? [\#1078](https://github.com/kubeflow/kubeflow/issues/1078)
-- user\_guide link is dead [\#1075](https://github.com/kubeflow/kubeflow/issues/1075)
+- user_guide link is dead [\#1075](https://github.com/kubeflow/kubeflow/issues/1075)
 - TFJob prototype's default TFVersion should be v1alpha2 [\#1049](https://github.com/kubeflow/kubeflow/issues/1049)
 - TF-Serving 1.8 Images [\#845](https://github.com/kubeflow/kubeflow/issues/845)
 
@@ -1680,9 +1715,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - cherry-pick: update tf job default version \(\#1086\) [\#1087](https://github.com/kubeflow/kubeflow/pull/1087) ([kunmingg](https://github.com/kunmingg))
 - update tf job default version [\#1086](https://github.com/kubeflow/kubeflow/pull/1086) ([kunmingg](https://github.com/kunmingg))
 - Add katib tag to images [\#1085](https://github.com/kubeflow/kubeflow/pull/1085) ([inc0](https://github.com/inc0))
-- fix for file\_cache is unavailable when using oauth2client \>= 4.0.0 [\#1084](https://github.com/kubeflow/kubeflow/pull/1084) ([kkasravi](https://github.com/kkasravi))
+- fix for file_cache is unavailable when using oauth2client \>= 4.0.0 [\#1084](https://github.com/kubeflow/kubeflow/pull/1084) ([kkasravi](https://github.com/kkasravi))
 - add a readme file to the mpi-job ksonnet component [\#1079](https://github.com/kubeflow/kubeflow/pull/1079) ([rongou](https://github.com/rongou))
-- fix \#1075, user\_guide link is dead [\#1077](https://github.com/kubeflow/kubeflow/pull/1077) ([theofpa](https://github.com/theofpa))
+- fix \#1075, user_guide link is dead [\#1077](https://github.com/kubeflow/kubeflow/pull/1077) ([theofpa](https://github.com/theofpa))
 - TFJobs UI doesn't work behind IAP [\#1073](https://github.com/kubeflow/kubeflow/pull/1073) ([kkasravi](https://github.com/kkasravi))
 - point bootstrapper to v0.2.0 in release branch [\#1069](https://github.com/kubeflow/kubeflow/pull/1069) ([kunmingg](https://github.com/kunmingg))
 - Tooling to make it easier to tag images and update the ksonnet prototypes [\#1066](https://github.com/kubeflow/kubeflow/pull/1066) ([jlewi](https://github.com/jlewi))
@@ -1690,6 +1725,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[gcp-deployer\] Add Gapi manager class, more typings and fixes [\#1054](https://github.com/kubeflow/kubeflow/pull/1054) ([yebrahim](https://github.com/yebrahim))
 
 ## [v0.2.0-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.2.0-rc.1) (2018-06-22)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.2.0-rc.0...v0.2.0-rc.1)
 
 **Closed issues:**
@@ -1714,9 +1750,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 
 **Merged pull requests:**
 
-- cherry pick: update tf\_operator image to point to tag v0.2.0 \(\#1062\) [\#1065](https://github.com/kubeflow/kubeflow/pull/1065) ([kunmingg](https://github.com/kunmingg))
+- cherry pick: update tf_operator image to point to tag v0.2.0 \(\#1062\) [\#1065](https://github.com/kubeflow/kubeflow/pull/1065) ([kunmingg](https://github.com/kunmingg))
 - cherry pick fixes to release branch [\#1064](https://github.com/kubeflow/kubeflow/pull/1064) ([kunmingg](https://github.com/kunmingg))
-- update tf\_operator image to point to tag v0.2.0 [\#1062](https://github.com/kubeflow/kubeflow/pull/1062) ([kunmingg](https://github.com/kunmingg))
+- update tf_operator image to point to tag v0.2.0 [\#1062](https://github.com/kubeflow/kubeflow/pull/1062) ([kunmingg](https://github.com/kunmingg))
 - Some scripts to support retagging our images as part of our releases. [\#1061](https://github.com/kubeflow/kubeflow/pull/1061) ([jlewi](https://github.com/jlewi))
 - Fix typo in NB image sha [\#1058](https://github.com/kubeflow/kubeflow/pull/1058) ([pdmack](https://github.com/pdmack))
 - Update default notebook image for spawner [\#1052](https://github.com/kubeflow/kubeflow/pull/1052) ([pdmack](https://github.com/pdmack))
@@ -1724,7 +1760,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - test-dir-delete should depend upon teardown to complete [\#1045](https://github.com/kubeflow/kubeflow/pull/1045) ([ankushagarwal](https://github.com/ankushagarwal))
 - add mpi operator ksonnet package [\#1043](https://github.com/kubeflow/kubeflow/pull/1043) ([rongou](https://github.com/rongou))
 - Changing defaults in Pytorch-job [\#1040](https://github.com/kubeflow/kubeflow/pull/1040) ([johnugeorge](https://github.com/johnugeorge))
-- Delete user\_guide.md; it is now part of the website [\#1038](https://github.com/kubeflow/kubeflow/pull/1038) ([johnugeorge](https://github.com/johnugeorge))
+- Delete user_guide.md; it is now part of the website [\#1038](https://github.com/kubeflow/kubeflow/pull/1038) ([johnugeorge](https://github.com/johnugeorge))
 - \[gcp-deployer\] Move to Typescript, clear dead code [\#1037](https://github.com/kubeflow/kubeflow/pull/1037) ([yebrahim](https://github.com/yebrahim))
 - Update examples for 0.2. [\#1035](https://github.com/kubeflow/kubeflow/pull/1035) ([jlewi](https://github.com/jlewi))
 - update pytorch image [\#1034](https://github.com/kubeflow/kubeflow/pull/1034) ([kunmingg](https://github.com/kunmingg))
@@ -1736,7 +1772,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - update bootstrapper image to use tfJobsVersion v1alpha2 as default [\#1021](https://github.com/kubeflow/kubeflow/pull/1021) ([kunmingg](https://github.com/kunmingg))
 - Pin the central UI image. [\#1019](https://github.com/kubeflow/kubeflow/pull/1019) ([jlewi](https://github.com/jlewi))
 - Add a link to JupyterHub in the CentralUI [\#1016](https://github.com/kubeflow/kubeflow/pull/1016) ([jlewi](https://github.com/jlewi))
-- Include the TF 1.8 image in kubeform\_spawner. [\#1015](https://github.com/kubeflow/kubeflow/pull/1015) ([jlewi](https://github.com/jlewi))
+- Include the TF 1.8 image in kubeform_spawner. [\#1015](https://github.com/kubeflow/kubeflow/pull/1015) ([jlewi](https://github.com/jlewi))
 - Fix hard coded "name" variable in example prototypes [\#1013](https://github.com/kubeflow/kubeflow/pull/1013) ([xyhuang](https://github.com/xyhuang))
 - Set default version of TFJob operator to be v1alpha2 [\#1012](https://github.com/kubeflow/kubeflow/pull/1012) ([kunmingg](https://github.com/kunmingg))
 - Use docs/gke/configs to run e2e tests [\#1002](https://github.com/kubeflow/kubeflow/pull/1002) ([ankushagarwal](https://github.com/ankushagarwal))
@@ -1744,6 +1780,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix permissions for jupyter-role [\#978](https://github.com/kubeflow/kubeflow/pull/978) ([wmuizelaar](https://github.com/wmuizelaar))
 
 ## [v0.2.0-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.2.0-rc.0) (2018-06-16)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.3...v0.2.0-rc.0)
 
 **Fixed bugs:**
@@ -1755,7 +1792,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Bootstrapper should apply components in an order [\#1006](https://github.com/kubeflow/kubeflow/issues/1006)
 - Make Katib work with reverse proxy and ambassador [\#991](https://github.com/kubeflow/kubeflow/issues/991)
 - ambassador memory leak statsd:0.30.1 [\#986](https://github.com/kubeflow/kubeflow/issues/986)
-- presubmit failing:  couldn't open import "X": no match locally or in the Jsonnet library path [\#983](https://github.com/kubeflow/kubeflow/issues/983)
+- presubmit failing: couldn't open import "X": no match locally or in the Jsonnet library path [\#983](https://github.com/kubeflow/kubeflow/issues/983)
 - Verify Katib is working [\#973](https://github.com/kubeflow/kubeflow/issues/973)
 - Issues with image release workflow app [\#970](https://github.com/kubeflow/kubeflow/issues/970)
 - ks error: ERROR open /home/jlewi/app.yaml: no such file or directory [\#966](https://github.com/kubeflow/kubeflow/issues/966)
@@ -1763,7 +1800,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[gcp\] bootstrapper fails to create CloudEndpoints resource [\#954](https://github.com/kubeflow/kubeflow/issues/954)
 - Nightly builds of TensorFlow notebook images do not have have the same commit hash in the tag [\#943](https://github.com/kubeflow/kubeflow/issues/943)
 - Create ksonnet prototype for auto image release [\#941](https://github.com/kubeflow/kubeflow/issues/941)
-- How to configure a local volume for Jupyterhub\_spawner.py [\#933](https://github.com/kubeflow/kubeflow/issues/933)
+- How to configure a local volume for Jupyterhub_spawner.py [\#933](https://github.com/kubeflow/kubeflow/issues/933)
 - Unknown variable error when applying kubeflow-core prototypes [\#932](https://github.com/kubeflow/kubeflow/issues/932)
 - GCP Deployment Manager needs to delete IAM roles when DM is deleted [\#910](https://github.com/kubeflow/kubeflow/issues/910)
 - Unable to use image-releaser for tf-notebook-workflow [\#909](https://github.com/kubeflow/kubeflow/issues/909)
@@ -1784,20 +1821,20 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - E2E test for TFJob v1alpha2 ksonnet package [\#852](https://github.com/kubeflow/kubeflow/issues/852)
 - Include ssh in notebook image to support authenticated git push [\#850](https://github.com/kubeflow/kubeflow/issues/850)
 - Jupyter image for TensorFlow 1.8 [\#846](https://github.com/kubeflow/kubeflow/issues/846)
-- Some questions  about tf-serving on NFS [\#844](https://github.com/kubeflow/kubeflow/issues/844)
+- Some questions about tf-serving on NFS [\#844](https://github.com/kubeflow/kubeflow/issues/844)
 - E2E test verifies Kubeflow installed via Deployment Manager [\#836](https://github.com/kubeflow/kubeflow/issues/836)
 - JupyterHub GitHub OAuth Setup missing manifest/config.yaml files [\#835](https://github.com/kubeflow/kubeflow/issues/835)
 - GCP deployment manager test handle internal errors [\#833](https://github.com/kubeflow/kubeflow/issues/833)
 - bootstrapper error trying to create the PyTorch Operator [\#832](https://github.com/kubeflow/kubeflow/issues/832)
 - Unify and dedup release workflows [\#830](https://github.com/kubeflow/kubeflow/issues/830)
 - Bootstrapper should optionally use config map to specify ksonnet parameters [\#829](https://github.com/kubeflow/kubeflow/issues/829)
-- horovod error  [\#826](https://github.com/kubeflow/kubeflow/issues/826)
+- horovod error [\#826](https://github.com/kubeflow/kubeflow/issues/826)
 - Give release service account access to kubeflow-images-public [\#824](https://github.com/kubeflow/kubeflow/issues/824)
 - Ambassador failed to start up [\#811](https://github.com/kubeflow/kubeflow/issues/811)
 - IAP Envoy route should map / to central dashboard [\#809](https://github.com/kubeflow/kubeflow/issues/809)
 - \[Central UI\] Remove the box "There is nothing to display here" [\#808](https://github.com/kubeflow/kubeflow/issues/808)
 - Bootstrapper should deploy new Stackdriver agents [\#807](https://github.com/kubeflow/kubeflow/issues/807)
-- deployment manager should disable legacy Stackdriver agents  [\#806](https://github.com/kubeflow/kubeflow/issues/806)
+- deployment manager should disable legacy Stackdriver agents [\#806](https://github.com/kubeflow/kubeflow/issues/806)
 - Invalid envoy config duplicate value IAP [\#804](https://github.com/kubeflow/kubeflow/issues/804)
 - On GCP trigger bootstrapper with deployment manager [\#802](https://github.com/kubeflow/kubeflow/issues/802)
 - TF serving GPU test failing [\#794](https://github.com/kubeflow/kubeflow/issues/794)
@@ -1816,7 +1853,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Use Pod Preset to add environment variables and volume mounts to pods [\#732](https://github.com/kubeflow/kubeflow/issues/732)
 - Bootstrapper fails if no ~/.kube/config is present [\#722](https://github.com/kubeflow/kubeflow/issues/722)
 - openmpi controller exited with error [\#718](https://github.com/kubeflow/kubeflow/issues/718)
-- \[openmpi\] Upload trained models to persistent storage  [\#713](https://github.com/kubeflow/kubeflow/issues/713)
+- \[openmpi\] Upload trained models to persistent storage [\#713](https://github.com/kubeflow/kubeflow/issues/713)
 - Create individual prototypes for just TFJob [\#669](https://github.com/kubeflow/kubeflow/issues/669)
 - Nightly \(regular\) build of container images [\#666](https://github.com/kubeflow/kubeflow/issues/666)
 - Bootstrapper should enable IAP on GKE [\#665](https://github.com/kubeflow/kubeflow/issues/665)
@@ -1824,7 +1861,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Bootstrapper should create namespace if it doesn't exist [\#663](https://github.com/kubeflow/kubeflow/issues/663)
 - Tests are failing because we are running out of PD quota in us-east1 [\#618](https://github.com/kubeflow/kubeflow/issues/618)
 - ksonnet packages for Pachyderm [\#611](https://github.com/kubeflow/kubeflow/issues/611)
-- Friction log for TFX Chicago taxi cab example on minikube  [\#594](https://github.com/kubeflow/kubeflow/issues/594)
+- Friction log for TFX Chicago taxi cab example on minikube [\#594](https://github.com/kubeflow/kubeflow/issues/594)
 - TFJob prototype should contain the full TFJob spec so that ks generate is mostly just copying the prototype [\#564](https://github.com/kubeflow/kubeflow/issues/564)
 - Can we put all of /home on PV for Jupyter notebooks [\#561](https://github.com/kubeflow/kubeflow/issues/561)
 - Create gcr.io/kubeflow-images-public [\#534](https://github.com/kubeflow/kubeflow/issues/534)
@@ -1838,7 +1875,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - E2E test for tf-job-simple prototype [\#462](https://github.com/kubeflow/kubeflow/issues/462)
 - Unable to mount volumes for pod "jupyter-... [\#424](https://github.com/kubeflow/kubeflow/issues/424)
 - multiple Matplotlib libraries [\#423](https://github.com/kubeflow/kubeflow/issues/423)
-- ksonnet style guide  [\#403](https://github.com/kubeflow/kubeflow/issues/403)
+- ksonnet style guide [\#403](https://github.com/kubeflow/kubeflow/issues/403)
 - Reformat only modified files [\#395](https://github.com/kubeflow/kubeflow/issues/395)
 - Establish a pattern for creating/using secrets used by multiple kubeflow prototypes [\#372](https://github.com/kubeflow/kubeflow/issues/372)
 - ks delete default fails [\#364](https://github.com/kubeflow/kubeflow/issues/364)
@@ -1852,7 +1889,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Recommended setup for different K8s Solutions [\#240](https://github.com/kubeflow/kubeflow/issues/240)
 - Use Ambassador/Envoy as proxy for JupyterHub [\#239](https://github.com/kubeflow/kubeflow/issues/239)
 - `ks apply cloud -c newjob` silently fails [\#217](https://github.com/kubeflow/kubeflow/issues/217)
-- Tracking Central UI  [\#199](https://github.com/kubeflow/kubeflow/issues/199)
+- Tracking Central UI [\#199](https://github.com/kubeflow/kubeflow/issues/199)
 - Kubeflow logo? [\#187](https://github.com/kubeflow/kubeflow/issues/187)
 - \[discussion\] Support PyTorch distributed training? [\#179](https://github.com/kubeflow/kubeflow/issues/179)
 - Add kubeflow into tesorflow/ecosystem [\#177](https://github.com/kubeflow/kubeflow/issues/177)
@@ -1874,9 +1911,9 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - bootstrapper doc update [\#992](https://github.com/kubeflow/kubeflow/pull/992) ([kunmingg](https://github.com/kunmingg))
 - Release prototype update. [\#990](https://github.com/kubeflow/kubeflow/pull/990) ([kunmingg](https://github.com/kunmingg))
 - Doc for katib [\#989](https://github.com/kubeflow/kubeflow/pull/989) ([lluunn](https://github.com/lluunn))
-- Retry on ssl.SSLError in vm\_util - this resolves test flakiness [\#987](https://github.com/kubeflow/kubeflow/pull/987) ([ankushagarwal](https://github.com/ankushagarwal))
+- Retry on ssl.SSLError in vm_util - this resolves test flakiness [\#987](https://github.com/kubeflow/kubeflow/pull/987) ([ankushagarwal](https://github.com/ankushagarwal))
 - Consolidate GKE deployment script [\#985](https://github.com/kubeflow/kubeflow/pull/985) ([activatedgeek](https://github.com/activatedgeek))
-- Remove gpu\_model.jsonnet [\#984](https://github.com/kubeflow/kubeflow/pull/984) ([lluunn](https://github.com/lluunn))
+- Remove gpu_model.jsonnet [\#984](https://github.com/kubeflow/kubeflow/pull/984) ([lluunn](https://github.com/lluunn))
 - config update [\#982](https://github.com/kubeflow/kubeflow/pull/982) ([kunmingg](https://github.com/kunmingg))
 - Fix vizier core [\#979](https://github.com/kubeflow/kubeflow/pull/979) ([lluunn](https://github.com/lluunn))
 - use ks apply in bootstrapper to avoid creation ordering issue [\#976](https://github.com/kubeflow/kubeflow/pull/976) ([kunmingg](https://github.com/kunmingg))
@@ -1884,7 +1921,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Adding pytorch-operator to nightly builds [\#972](https://github.com/kubeflow/kubeflow/pull/972) ([johnugeorge](https://github.com/johnugeorge))
 - Delete tf-cnn-benchmarks.jsonnet; there is now an example prototype. [\#967](https://github.com/kubeflow/kubeflow/pull/967) ([jlewi](https://github.com/jlewi))
 - Source admin role should be granted to KF service accounts. [\#965](https://github.com/kubeflow/kubeflow/pull/965) ([jlewi](https://github.com/jlewi))
-- Remove gke\_setup.md. The instructions are now part of the website. [\#963](https://github.com/kubeflow/kubeflow/pull/963) ([jlewi](https://github.com/jlewi))
+- Remove gke_setup.md. The instructions are now part of the website. [\#963](https://github.com/kubeflow/kubeflow/pull/963) ([jlewi](https://github.com/jlewi))
 - A bunch of fixes to the DM configs for GCP to work with latest bootstrapper [\#956](https://github.com/kubeflow/kubeflow/pull/956) ([jlewi](https://github.com/jlewi))
 - Add aws cloud details [\#952](https://github.com/kubeflow/kubeflow/pull/952) ([suneeta-mall](https://github.com/suneeta-mall))
 - hide registries config in bootstrapper image to save user effort [\#951](https://github.com/kubeflow/kubeflow/pull/951) ([kunmingg](https://github.com/kunmingg))
@@ -1913,15 +1950,15 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Doc on adding new ksonnet package [\#911](https://github.com/kubeflow/kubeflow/pull/911) ([lluunn](https://github.com/lluunn))
 - Update default parameters for image-releaser workflows [\#908](https://github.com/kubeflow/kubeflow/pull/908) ([ankushagarwal](https://github.com/ankushagarwal))
 - Install py2 to global conda env [\#907](https://github.com/kubeflow/kubeflow/pull/907) ([pdmack](https://github.com/pdmack))
-- Upgrade jupyterhub and kube\_spawner [\#905](https://github.com/kubeflow/kubeflow/pull/905) ([jlewi](https://github.com/jlewi))
+- Upgrade jupyterhub and kube_spawner [\#905](https://github.com/kubeflow/kubeflow/pull/905) ([jlewi](https://github.com/jlewi))
 - Improvements and bug fixes in DM config. [\#904](https://github.com/kubeflow/kubeflow/pull/904) ([jlewi](https://github.com/jlewi))
 - Make bootstrapper support multi ks registry, including private ones [\#900](https://github.com/kubeflow/kubeflow/pull/900) ([kunmingg](https://github.com/kunmingg))
 - Checkin the deployment manager config for running e2e-gke test [\#899](https://github.com/kubeflow/kubeflow/pull/899) ([ankushagarwal](https://github.com/ankushagarwal))
-- Create wait\_for\_deployment.py [\#898](https://github.com/kubeflow/kubeflow/pull/898) ([ankushagarwal](https://github.com/ankushagarwal))
-- Click to deploy Kubeflow web app on GCP  [\#897](https://github.com/kubeflow/kubeflow/pull/897) ([jlewi](https://github.com/jlewi))
+- Create wait_for_deployment.py [\#898](https://github.com/kubeflow/kubeflow/pull/898) ([ankushagarwal](https://github.com/ankushagarwal))
+- Click to deploy Kubeflow web app on GCP [\#897](https://github.com/kubeflow/kubeflow/pull/897) ([jlewi](https://github.com/jlewi))
 - Restrict jupyterHubRole [\#895](https://github.com/kubeflow/kubeflow/pull/895) ([wmuizelaar](https://github.com/wmuizelaar))
 - Use Deployment Manager to bring up clusters for running E2E tests [\#894](https://github.com/kubeflow/kubeflow/pull/894) ([ankushagarwal](https://github.com/ankushagarwal))
-- Use deployment name as the NAME\_PREFIX and CLUSTER\_NAME [\#893](https://github.com/kubeflow/kubeflow/pull/893) ([ankushagarwal](https://github.com/ankushagarwal))
+- Use deployment name as the NAME_PREFIX and CLUSTER_NAME [\#893](https://github.com/kubeflow/kubeflow/pull/893) ([ankushagarwal](https://github.com/ankushagarwal))
 - Merge PVC from spawner and provisioners [\#892](https://github.com/kubeflow/kubeflow/pull/892) ([pdmack](https://github.com/pdmack))
 - update release doc for images nightly release [\#890](https://github.com/kubeflow/kubeflow/pull/890) ([kunmingg](https://github.com/kunmingg))
 - fix endpoin deploy prototype [\#889](https://github.com/kubeflow/kubeflow/pull/889) ([kunmingg](https://github.com/kunmingg))
@@ -1935,15 +1972,15 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - deployment manager and prototype bug fix [\#872](https://github.com/kubeflow/kubeflow/pull/872) ([kunmingg](https://github.com/kunmingg))
 - Update the script so that we don't assume that the remote repository is [\#867](https://github.com/kubeflow/kubeflow/pull/867) ([jlewi](https://github.com/jlewi))
 - Create a python script to deploy Kubeflow on GCP via deployment manager. [\#866](https://github.com/kubeflow/kubeflow/pull/866) ([jlewi](https://github.com/jlewi))
-- build\_image.py waiting for docker daemon [\#864](https://github.com/kubeflow/kubeflow/pull/864) ([lluunn](https://github.com/lluunn))
+- build_image.py waiting for docker daemon [\#864](https://github.com/kubeflow/kubeflow/pull/864) ([lluunn](https://github.com/lluunn))
 - Use a config map to configure bootstrapper. [\#859](https://github.com/kubeflow/kubeflow/pull/859) ([jlewi](https://github.com/jlewi))
-- Fix push\_dockerhub in k8s-model-server/images/Makefile [\#857](https://github.com/kubeflow/kubeflow/pull/857) ([parano](https://github.com/parano))
-- build\_image.py supports pushing images  [\#856](https://github.com/kubeflow/kubeflow/pull/856) ([lluunn](https://github.com/lluunn))
+- Fix push_dockerhub in k8s-model-server/images/Makefile [\#857](https://github.com/kubeflow/kubeflow/pull/857) ([parano](https://github.com/parano))
+- build_image.py supports pushing images [\#856](https://github.com/kubeflow/kubeflow/pull/856) ([lluunn](https://github.com/lluunn))
 - Use yaml config to manage k8s resources deployed by bootstrapper [\#853](https://github.com/kubeflow/kubeflow/pull/853) ([kunmingg](https://github.com/kunmingg))
 - ksonnet changes to support deploying the v1alpha2 TFJob operator. [\#851](https://github.com/kubeflow/kubeflow/pull/851) ([jlewi](https://github.com/jlewi))
 - params update for release workflow [\#849](https://github.com/kubeflow/kubeflow/pull/849) ([kunmingg](https://github.com/kunmingg))
 - unifying image release process [\#843](https://github.com/kubeflow/kubeflow/pull/843) ([lluunn](https://github.com/lluunn))
-- Use relative directory path so that build\_image.py can be called from another dir [\#840](https://github.com/kubeflow/kubeflow/pull/840) ([lluunn](https://github.com/lluunn))
+- Use relative directory path so that build_image.py can be called from another dir [\#840](https://github.com/kubeflow/kubeflow/pull/840) ([lluunn](https://github.com/lluunn))
 - Add kunmingg as owner [\#839](https://github.com/kubeflow/kubeflow/pull/839) ([kunmingg](https://github.com/kunmingg))
 - \[openmpi\] Update README about GPU and horovod training [\#831](https://github.com/kubeflow/kubeflow/pull/831) ([jiezhang](https://github.com/jiezhang))
 - IAP should route to central ui instead of jupyterhub [\#827](https://github.com/kubeflow/kubeflow/pull/827) ([kkasravi](https://github.com/kkasravi))
@@ -1956,13 +1993,13 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - seldon load model files from PVC [\#799](https://github.com/kubeflow/kubeflow/pull/799) ([ogre0403](https://github.com/ogre0403))
 - Adds Makefile to build the centraldashboard image [\#798](https://github.com/kubeflow/kubeflow/pull/798) ([swiftdiaries](https://github.com/swiftdiaries))
 - \[openmpi\] Download and upload data in the controller [\#797](https://github.com/kubeflow/kubeflow/pull/797) ([jiezhang](https://github.com/jiezhang))
-- Use test\_helper to simplify test\_jsonnet.py [\#796](https://github.com/kubeflow/kubeflow/pull/796) ([ankushagarwal](https://github.com/ankushagarwal))
+- Use test_helper to simplify test_jsonnet.py [\#796](https://github.com/kubeflow/kubeflow/pull/796) ([ankushagarwal](https://github.com/ankushagarwal))
 - Refactor testing package [\#792](https://github.com/kubeflow/kubeflow/pull/792) ([ankushagarwal](https://github.com/ankushagarwal))
 - Python script to build TF notebook images [\#791](https://github.com/kubeflow/kubeflow/pull/791) ([lluunn](https://github.com/lluunn))
 - Support TF serving 1.5 image [\#790](https://github.com/kubeflow/kubeflow/pull/790) ([lluunn](https://github.com/lluunn))
 - Checking that Ambassador started in e2e test [\#789](https://github.com/kubeflow/kubeflow/pull/789) ([Maerville](https://github.com/Maerville))
 - Initial set of deployment manager configs for creating a GKE cluster to run Kubeflow [\#787](https://github.com/kubeflow/kubeflow/pull/787) ([jlewi](https://github.com/jlewi))
-- Modify NB Dockerfile and start scripts to support mount of /home/jovyan  [\#786](https://github.com/kubeflow/kubeflow/pull/786) ([pdmack](https://github.com/pdmack))
+- Modify NB Dockerfile and start scripts to support mount of /home/jovyan [\#786](https://github.com/kubeflow/kubeflow/pull/786) ([pdmack](https://github.com/pdmack))
 - \[tf-job\] support image pull secrets [\#785](https://github.com/kubeflow/kubeflow/pull/785) ([everpeace](https://github.com/everpeace))
 - Create a ksonnet package for injecting credentials through pod presets [\#782](https://github.com/kubeflow/kubeflow/pull/782) ([ankushagarwal](https://github.com/ankushagarwal))
 - -Format go code and fix spelling errors [\#780](https://github.com/kubeflow/kubeflow/pull/780) ([wgliang](https://github.com/wgliang))
@@ -1996,6 +2033,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Reformats only modified files by default \#395 [\#553](https://github.com/kubeflow/kubeflow/pull/553) ([jmsmkn](https://github.com/jmsmkn))
 
 ## [v0.1.3](https://github.com/kubeflow/kubeflow/tree/v0.1.3) (2018-04-26)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.2...v0.1.3)
 
 **Closed issues:**
@@ -2009,7 +2047,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 
 **Merged pull requests:**
 
-- CP to v0.1-branch: restore some important NB pkgs; http\_timeout; bool fixes for tf-serving [\#726](https://github.com/kubeflow/kubeflow/pull/726) ([pdmack](https://github.com/pdmack))
+- CP to v0.1-branch: restore some important NB pkgs; http_timeout; bool fixes for tf-serving [\#726](https://github.com/kubeflow/kubeflow/pull/726) ([pdmack](https://github.com/pdmack))
 - update ksonnet version to v0.10.0-alpha.3 [\#725](https://github.com/kubeflow/kubeflow/pull/725) ([kunmingg](https://github.com/kunmingg))
 - Add a few packages to the jupyter notebook image [\#724](https://github.com/kubeflow/kubeflow/pull/724) ([ankushagarwal](https://github.com/ankushagarwal))
 - add kunming to reviewer [\#715](https://github.com/kubeflow/kubeflow/pull/715) ([kunmingg](https://github.com/kunmingg))
@@ -2017,11 +2055,12 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[openmpi\] Add OWNERS file [\#711](https://github.com/kubeflow/kubeflow/pull/711) ([jiezhang](https://github.com/jiezhang))
 - Adding ksonnet components for tensorboard files. Issue \#297 [\#710](https://github.com/kubeflow/kubeflow/pull/710) ([abkosar](https://github.com/abkosar))
 - Point instructions to 0.1.2 release [\#706](https://github.com/kubeflow/kubeflow/pull/706) ([ankushagarwal](https://github.com/ankushagarwal))
-- CP to v0.1-branch: Update http\_timeout to 5 minutes in jupyterhub \(\#691\) [\#705](https://github.com/kubeflow/kubeflow/pull/705) ([pdmack](https://github.com/pdmack))
+- CP to v0.1-branch: Update http_timeout to 5 minutes in jupyterhub \(\#691\) [\#705](https://github.com/kubeflow/kubeflow/pull/705) ([pdmack](https://github.com/pdmack))
 - \[openmpi\] Introduce a sidecar container for inter-pod synchronization [\#704](https://github.com/kubeflow/kubeflow/pull/704) ([jiezhang](https://github.com/jiezhang))
 - openmpi: namespaced resource names should be prefixed with component name [\#698](https://github.com/kubeflow/kubeflow/pull/698) ([everpeace](https://github.com/everpeace))
 
 ## [v0.1.2](https://github.com/kubeflow/kubeflow/tree/v0.1.2) (2018-04-21)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.1...v0.1.2)
 
 **Fixed bugs:**
@@ -2033,6 +2072,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - CP to v0.1-branch: TF notebook slimming, joyvan pip installs, and new gcr.io locations [\#703](https://github.com/kubeflow/kubeflow/pull/703) ([pdmack](https://github.com/pdmack))
 
 ## [v0.1.1](https://github.com/kubeflow/kubeflow/tree/v0.1.1) (2018-04-20)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.0-rc.4...v0.1.1)
 
 **Fixed bugs:**
@@ -2058,7 +2098,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - kubeflow version [\#578](https://github.com/kubeflow/kubeflow/issues/578)
 - Presubmit failure: No such file or directory XXX/.kube/config [\#562](https://github.com/kubeflow/kubeflow/issues/562)
 - Make IAP config robust to updating the Ingress [\#550](https://github.com/kubeflow/kubeflow/issues/550)
-- TF MPI support  [\#535](https://github.com/kubeflow/kubeflow/issues/535)
+- TF MPI support [\#535](https://github.com/kubeflow/kubeflow/issues/535)
 - TF serving param deployHttpProxy needs to be transformed from string to bool [\#531](https://github.com/kubeflow/kubeflow/issues/531)
 - Cut a 0.1 release [\#506](https://github.com/kubeflow/kubeflow/issues/506)
 - TF serving component monitoring [\#496](https://github.com/kubeflow/kubeflow/issues/496)
@@ -2077,18 +2117,18 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Pin instructions to ks 0.9.2 \(for now\) [\#694](https://github.com/kubeflow/kubeflow/pull/694) ([pdmack](https://github.com/pdmack))
 - add export to ksonnet github token instructions [\#693](https://github.com/kubeflow/kubeflow/pull/693) ([mattf](https://github.com/mattf))
 - openmpi: slots clause should be generated when gpus '\> 0' [\#692](https://github.com/kubeflow/kubeflow/pull/692) ([everpeace](https://github.com/everpeace))
-- Update http\_timeout to 5 minutes in jupyterhub [\#691](https://github.com/kubeflow/kubeflow/pull/691) ([ankushagarwal](https://github.com/ankushagarwal))
+- Update http_timeout to 5 minutes in jupyterhub [\#691](https://github.com/kubeflow/kubeflow/pull/691) ([ankushagarwal](https://github.com/ankushagarwal))
 - openmpi: fix failing installing redis-tools in init.sh [\#690](https://github.com/kubeflow/kubeflow/pull/690) ([everpeace](https://github.com/everpeace))
 - Refactor tensorflow-notebook-image/Dockerfile [\#689](https://github.com/kubeflow/kubeflow/pull/689) ([ankushagarwal](https://github.com/ankushagarwal))
 - \[openmpi\] Add GPU support [\#685](https://github.com/kubeflow/kubeflow/pull/685) ([jiezhang](https://github.com/jiezhang))
-- openmpi: make 'schedulerName'  configurable to use custom schedulers. [\#683](https://github.com/kubeflow/kubeflow/pull/683) ([everpeace](https://github.com/everpeace))
+- openmpi: make 'schedulerName' configurable to use custom schedulers. [\#683](https://github.com/kubeflow/kubeflow/pull/683) ([everpeace](https://github.com/everpeace))
 - create rolebinding within namespace to guarantee permission [\#680](https://github.com/kubeflow/kubeflow/pull/680) ([kunmingg](https://github.com/kunmingg))
 - Support rollout new model with istio [\#679](https://github.com/kubeflow/kubeflow/pull/679) ([lluunn](https://github.com/lluunn))
 - Add documentation for exposing grafana dashboard [\#678](https://github.com/kubeflow/kubeflow/pull/678) ([lluunn](https://github.com/lluunn))
 - openmpi package doesn't work on kubernetes cluster having custom dns. [\#676](https://github.com/kubeflow/kubeflow/pull/676) ([everpeace](https://github.com/everpeace))
 - Add batch support to openmpi package [\#671](https://github.com/kubeflow/kubeflow/pull/671) ([jiezhang](https://github.com/jiezhang))
-- make Dockerfile & Makefile cross platform  [\#670](https://github.com/kubeflow/kubeflow/pull/670) ([kunmingg](https://github.com/kunmingg))
-- Update ksonnet\_packages.md [\#661](https://github.com/kubeflow/kubeflow/pull/661) ([pdmack](https://github.com/pdmack))
+- make Dockerfile & Makefile cross platform [\#670](https://github.com/kubeflow/kubeflow/pull/670) ([kunmingg](https://github.com/kunmingg))
+- Update ksonnet_packages.md [\#661](https://github.com/kubeflow/kubeflow/pull/661) ([pdmack](https://github.com/pdmack))
 - Include tensor2tensor in jupyter notebook image [\#659](https://github.com/kubeflow/kubeflow/pull/659) ([ankushagarwal](https://github.com/ankushagarwal))
 - Add willingc to reviewers [\#656](https://github.com/kubeflow/kubeflow/pull/656) ([willingc](https://github.com/willingc))
 - \[Azure\] Jupyter spawner: driver volumes for azure [\#655](https://github.com/kubeflow/kubeflow/pull/655) ([wbuchwalter](https://github.com/wbuchwalter))
@@ -2097,7 +2137,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - \[Azure\] Update nvidia driver volumes for AKS [\#650](https://github.com/kubeflow/kubeflow/pull/650) ([wbuchwalter](https://github.com/wbuchwalter))
 - Remove zjj2wry as a reviewer. [\#648](https://github.com/kubeflow/kubeflow/pull/648) ([jlewi](https://github.com/jlewi))
 - Remove the outdated YAML specs for TFCnn job. [\#647](https://github.com/kubeflow/kubeflow/pull/647) ([jlewi](https://github.com/jlewi))
-- update user\_guide [\#646](https://github.com/kubeflow/kubeflow/pull/646) ([lluunn](https://github.com/lluunn))
+- update user_guide [\#646](https://github.com/kubeflow/kubeflow/pull/646) ([lluunn](https://github.com/lluunn))
 - Add components to work with GCP [\#645](https://github.com/kubeflow/kubeflow/pull/645) ([jlewi](https://github.com/jlewi))
 - Change naming from jupyter to jupyterhub when referring to hub [\#642](https://github.com/kubeflow/kubeflow/pull/642) ([willingc](https://github.com/willingc))
 - Troubleshooting note on cluster-admin privileges for tf-job-operator [\#641](https://github.com/kubeflow/kubeflow/pull/641) ([tmckayus](https://github.com/tmckayus))
@@ -2127,9 +2167,11 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Branching and tagging policy for releases [\#519](https://github.com/kubeflow/kubeflow/pull/519) ([willb](https://github.com/willb))
 
 ## [v0.1.0-rc.4](https://github.com/kubeflow/kubeflow/tree/v0.1.0-rc.4) (2018-04-04)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.0...v0.1.0-rc.4)
 
 ## [v0.1.0](https://github.com/kubeflow/kubeflow/tree/v0.1.0) (2018-04-04)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.0-rc.3...v0.1.0)
 
 **Closed issues:**
@@ -2154,6 +2196,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Update instructions about releasing TFJob [\#532](https://github.com/kubeflow/kubeflow/pull/532) ([jlewi](https://github.com/jlewi))
 
 ## [v0.1.0-rc.3](https://github.com/kubeflow/kubeflow/tree/v0.1.0-rc.3) (2018-04-03)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.0-rc.2...v0.1.0-rc.3)
 
 **Closed issues:**
@@ -2173,6 +2216,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Changes to support running E2E tests on minikube. [\#523](https://github.com/kubeflow/kubeflow/pull/523) ([jlewi](https://github.com/jlewi))
 
 ## [v0.1.0-rc.2](https://github.com/kubeflow/kubeflow/tree/v0.1.0-rc.2) (2018-04-02)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.0-rc.1...v0.1.0-rc.2)
 
 **Closed issues:**
@@ -2190,6 +2234,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Add tf1.7 to tensorflow-notebook images [\#543](https://github.com/kubeflow/kubeflow/pull/543) ([ankushagarwal](https://github.com/ankushagarwal))
 
 ## [v0.1.0-rc.1](https://github.com/kubeflow/kubeflow/tree/v0.1.0-rc.1) (2018-03-30)
+
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.1.0-rc.0...v0.1.0-rc.1)
 
 **Closed issues:**
@@ -2211,6 +2256,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Enable tf serving gpu test [\#497](https://github.com/kubeflow/kubeflow/pull/497) ([lluunn](https://github.com/lluunn))
 
 ## [v0.1.0-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.1.0-rc.0) (2018-03-27)
+
 **Fixed bugs:**
 
 - tf-cnn fails to create [\#458](https://github.com/kubeflow/kubeflow/issues/458)
@@ -2222,8 +2268,8 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Tf serving component should provide default HTTP image [\#511](https://github.com/kubeflow/kubeflow/issues/511)
 - Continuous testing for release branches [\#507](https://github.com/kubeflow/kubeflow/issues/507)
 - construct base object: Failed to filter components; the following components don't exist: \[ 'kubeflow-core' \] [\#481](https://github.com/kubeflow/kubeflow/issues/481)
-- Document GITHUB\_TOKEN  [\#478](https://github.com/kubeflow/kubeflow/issues/478)
--  ks env set default --namespace=kubeflow doesn't change the namespace [\#477](https://github.com/kubeflow/kubeflow/issues/477)
+- Document GITHUB_TOKEN [\#478](https://github.com/kubeflow/kubeflow/issues/478)
+- ks env set default --namespace=kubeflow doesn't change the namespace [\#477](https://github.com/kubeflow/kubeflow/issues/477)
 - Build Jupyter Notebook images for supported versions of TF [\#467](https://github.com/kubeflow/kubeflow/issues/467)
 - \[ERROR\] Can not ks apply default -c kubeflow-core with ks 0.9.5 [\#453](https://github.com/kubeflow/kubeflow/issues/453)
 - JupyterHub terminates with 500 Internal Server error [\#433](https://github.com/kubeflow/kubeflow/issues/433)
@@ -2232,16 +2278,16 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - jovyan user cannot sudo in terminal [\#425](https://github.com/kubeflow/kubeflow/issues/425)
 - Cannot not run tensorboard from Jupyter notebooks [\#422](https://github.com/kubeflow/kubeflow/issues/422)
 - IPyWidgets not displaying when using a Python 2 kernel [\#419](https://github.com/kubeflow/kubeflow/issues/419)
-- normalize libsonnets so their "all\(params\)" is only called from kubeflow/core/all.libsonnet  [\#417](https://github.com/kubeflow/kubeflow/issues/417)
+- normalize libsonnets so their "all\(params\)" is only called from kubeflow/core/all.libsonnet [\#417](https://github.com/kubeflow/kubeflow/issues/417)
 - libcublas.so.9.0: cannot open shared object file: No such file or directory [\#414](https://github.com/kubeflow/kubeflow/issues/414)
 - Executing child process 'start-notebook.sh' failed: 'Permission denied' [\#412](https://github.com/kubeflow/kubeflow/issues/412)
 - Use local NFS server as PersitentVolume [\#410](https://github.com/kubeflow/kubeflow/issues/410)
 - Create a ksonnet component to deploy seldon-core models [\#405](https://github.com/kubeflow/kubeflow/issues/405)
 - Replace two envoy containers with one in the envoy pod [\#404](https://github.com/kubeflow/kubeflow/issues/404)
-- \[ question \]  when I follow the setup tutorial, I got cannot parse dnsName problem [\#397](https://github.com/kubeflow/kubeflow/issues/397)
+- \[ question \] when I follow the setup tutorial, I got cannot parse dnsName problem [\#397](https://github.com/kubeflow/kubeflow/issues/397)
 - Build Envoy Container with JWT validation [\#394](https://github.com/kubeflow/kubeflow/issues/394)
 - \[ support \] github.com set request rate limit [\#391](https://github.com/kubeflow/kubeflow/issues/391)
-- cnn tfjob  status never change to completed [\#389](https://github.com/kubeflow/kubeflow/issues/389)
+- cnn tfjob status never change to completed [\#389](https://github.com/kubeflow/kubeflow/issues/389)
 - TFServing prototype for using GCS with service account key [\#385](https://github.com/kubeflow/kubeflow/issues/385)
 - Jupyter notebook image should pin TF version [\#375](https://github.com/kubeflow/kubeflow/issues/375)
 - ClusterRole's and ClusterRoleBindings should include namespace in the name [\#374](https://github.com/kubeflow/kubeflow/issues/374)
@@ -2253,7 +2299,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Build http proxy for TF serving as part of our release workflow [\#353](https://github.com/kubeflow/kubeflow/issues/353)
 - Better docs for http proxy [\#352](https://github.com/kubeflow/kubeflow/issues/352)
 - Failed to pull image "gcr.io/kubeflow/tf-benchmarks-gpu:.... [\#348](https://github.com/kubeflow/kubeflow/issues/348)
-- autoformat\_jsonnet.sh  unknown predicate -E [\#345](https://github.com/kubeflow/kubeflow/issues/345)
+- autoformat_jsonnet.sh unknown predicate -E [\#345](https://github.com/kubeflow/kubeflow/issues/345)
 - ambassadors are crashed and cannot be created [\#344](https://github.com/kubeflow/kubeflow/issues/344)
 - How to login the Jupyterhub on the remote server? [\#343](https://github.com/kubeflow/kubeflow/issues/343)
 - \[ksonnet\] RUNTIME ERROR: Field does not exist: core [\#340](https://github.com/kubeflow/kubeflow/issues/340)
@@ -2276,7 +2322,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - TFServing deployment should support GPUs [\#292](https://github.com/kubeflow/kubeflow/issues/292)
 - E2E Test for TFServing with GPUs [\#291](https://github.com/kubeflow/kubeflow/issues/291)
 - TFServing component should add an ambassador route [\#290](https://github.com/kubeflow/kubeflow/issues/290)
-- How to add persistent volume in jupyter\_spawner.py file ? [\#285](https://github.com/kubeflow/kubeflow/issues/285)
+- How to add persistent volume in jupyter_spawner.py file ? [\#285](https://github.com/kubeflow/kubeflow/issues/285)
 - Prow jobs should use a common docker image [\#276](https://github.com/kubeflow/kubeflow/issues/276)
 - TFJob test is failing [\#273](https://github.com/kubeflow/kubeflow/issues/273)
 - Presubmit failing: Time out waiting for Workflows [\#272](https://github.com/kubeflow/kubeflow/issues/272)
@@ -2285,12 +2331,12 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - JupyterHub spawner: upstream request timeout [\#261](https://github.com/kubeflow/kubeflow/issues/261)
 - \[bug\] TFJob dashboard UI not showing up through Ambassador reverse proxy [\#260](https://github.com/kubeflow/kubeflow/issues/260)
 - IAP component should use cert-manager to get a signed certificate [\#255](https://github.com/kubeflow/kubeflow/issues/255)
-- Run util\_test.jsonnet added in \#246 as part of E2E tests [\#254](https://github.com/kubeflow/kubeflow/issues/254)
+- Run util_test.jsonnet added in \#246 as part of E2E tests [\#254](https://github.com/kubeflow/kubeflow/issues/254)
 - tf.transform libraries in our notebooks [\#244](https://github.com/kubeflow/kubeflow/issues/244)
 - user guide - tf-serving: ClusterIP instead of LoadBalancer service [\#233](https://github.com/kubeflow/kubeflow/issues/233)
 - Typo in argo-ui rolebinding [\#230](https://github.com/kubeflow/kubeflow/issues/230)
 - JupyterHub fails to load image properly, but starts a notebook anyway [\#226](https://github.com/kubeflow/kubeflow/issues/226)
-- Move troubleshooting guide into user\_guide [\#223](https://github.com/kubeflow/kubeflow/issues/223)
+- Move troubleshooting guide into user_guide [\#223](https://github.com/kubeflow/kubeflow/issues/223)
 - Build and publish Docker images using Argo [\#221](https://github.com/kubeflow/kubeflow/issues/221)
 - E2E tests need to verify that we can submit a TFJob [\#207](https://github.com/kubeflow/kubeflow/issues/207)
 - Use kubeflow/testing to run Argo workflows [\#205](https://github.com/kubeflow/kubeflow/issues/205)
@@ -2301,7 +2347,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - TFJob controller cannot terminate job [\#193](https://github.com/kubeflow/kubeflow/issues/193)
 - Remove tensorflow/k8s as a submodule [\#190](https://github.com/kubeflow/kubeflow/issues/190)
 - Delete components/tf-controller [\#189](https://github.com/kubeflow/kubeflow/issues/189)
-- Error from server \(Forbidden\): error when creating "deploy\_crd.yaml": clusterroles.rbac.authorization.k8s.io "tf-job-operator" is forbidden [\#188](https://github.com/kubeflow/kubeflow/issues/188)
+- Error from server \(Forbidden\): error when creating "deploy_crd.yaml": clusterroles.rbac.authorization.k8s.io "tf-job-operator" is forbidden [\#188](https://github.com/kubeflow/kubeflow/issues/188)
 - tf-job.libsonnet is issuing the wrong CRD job type [\#186](https://github.com/kubeflow/kubeflow/issues/186)
 - Test failures [\#176](https://github.com/kubeflow/kubeflow/issues/176)
 - Create a repository for examples: kubeflow/examples [\#174](https://github.com/kubeflow/kubeflow/issues/174)
@@ -2336,7 +2382,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Postsubmits need to use registry components at commit being tested [\#96](https://github.com/kubeflow/kubeflow/issues/96)
 - Presubmits need to pull registry from the PR branch [\#95](https://github.com/kubeflow/kubeflow/issues/95)
 - link to ksonnet might be confusing [\#91](https://github.com/kubeflow/kubeflow/issues/91)
-- release .yaml manifest  [\#90](https://github.com/kubeflow/kubeflow/issues/90)
+- release .yaml manifest [\#90](https://github.com/kubeflow/kubeflow/issues/90)
 - Incorporate tf.transform [\#88](https://github.com/kubeflow/kubeflow/issues/88)
 - ProwTestCase library [\#83](https://github.com/kubeflow/kubeflow/issues/83)
 - Set suitable defaults for JupyterHub service type and make it configurable? [\#80](https://github.com/kubeflow/kubeflow/issues/80)
@@ -2349,14 +2395,14 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Add missing features to TfJob controller ksonnet component [\#61](https://github.com/kubeflow/kubeflow/issues/61)
 - Support IAP on GKE [\#60](https://github.com/kubeflow/kubeflow/issues/60)
 - Syntax error of juypterhub.yaml for Kubernetes 1.6 [\#58](https://github.com/kubeflow/kubeflow/issues/58)
-- Proposal: Include very basic tracking of usage by default  [\#55](https://github.com/kubeflow/kubeflow/issues/55)
+- Proposal: Include very basic tracking of usage by default [\#55](https://github.com/kubeflow/kubeflow/issues/55)
 - Should Kubeflow publish and maintain TF Serving Docker Images? [\#50](https://github.com/kubeflow/kubeflow/issues/50)
 - tf-cnn prototype doesn't add GPU resource requests [\#48](https://github.com/kubeflow/kubeflow/issues/48)
 - Remove namespace as a package parameter [\#43](https://github.com/kubeflow/kubeflow/issues/43)
 - Clean up repo after switching to ksonnet [\#41](https://github.com/kubeflow/kubeflow/issues/41)
 - Doc gen for kubeflow ksonnet registry [\#39](https://github.com/kubeflow/kubeflow/issues/39)
 - E2E Testing For Kubeflow. [\#38](https://github.com/kubeflow/kubeflow/issues/38)
-- Proposal: Discuss Kubeflow organization and community  [\#35](https://github.com/kubeflow/kubeflow/issues/35)
+- Proposal: Discuss Kubeflow organization and community [\#35](https://github.com/kubeflow/kubeflow/issues/35)
 - Proposal: our expectation on KubeFlow [\#33](https://github.com/kubeflow/kubeflow/issues/33)
 - Add LICENSE file: Apache License, Version 2.0 [\#27](https://github.com/kubeflow/kubeflow/issues/27)
 - Fault tolerant storage for Jupterhub [\#19](https://github.com/kubeflow/kubeflow/issues/19)
@@ -2377,13 +2423,13 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix instructions for tensorflow-notebook release [\#494](https://github.com/kubeflow/kubeflow/pull/494) ([ankushagarwal](https://github.com/ankushagarwal))
 - Update release instructions to ease onboarding [\#493](https://github.com/kubeflow/kubeflow/pull/493) ([willb](https://github.com/willb))
 - Add google-cloud-storage package to jupyterhub notebook [\#492](https://github.com/kubeflow/kubeflow/pull/492) ([ankushagarwal](https://github.com/ankushagarwal))
-- Update buildTemplateImage to take workflow\_name [\#488](https://github.com/kubeflow/kubeflow/pull/488) ([ankushagarwal](https://github.com/ankushagarwal))
+- Update buildTemplateImage to take workflow_name [\#488](https://github.com/kubeflow/kubeflow/pull/488) ([ankushagarwal](https://github.com/ankushagarwal))
 - Temporarily disable gpu test since it's flaky [\#487](https://github.com/kubeflow/kubeflow/pull/487) ([lluunn](https://github.com/lluunn))
 - Use a 10 minute timeout for jupyterhub backend in envoy config [\#486](https://github.com/kubeflow/kubeflow/pull/486) ([ankushagarwal](https://github.com/ankushagarwal))
 - Enhance tf serving gpu test [\#485](https://github.com/kubeflow/kubeflow/pull/485) ([lluunn](https://github.com/lluunn))
 - Add Github's rate exceeded error trobuleshooting [\#482](https://github.com/kubeflow/kubeflow/pull/482) ([inc0](https://github.com/inc0))
 - Update jsonnet tests so that it tests all files under kubeflow [\#480](https://github.com/kubeflow/kubeflow/pull/480) ([ankushagarwal](https://github.com/ankushagarwal))
-- Fix ambassador\_test.jsonnet [\#476](https://github.com/kubeflow/kubeflow/pull/476) ([ankushagarwal](https://github.com/ankushagarwal))
+- Fix ambassador_test.jsonnet [\#476](https://github.com/kubeflow/kubeflow/pull/476) ([ankushagarwal](https://github.com/ankushagarwal))
 - Tag tensorflow-notebook-images with latest [\#475](https://github.com/kubeflow/kubeflow/pull/475) ([ankushagarwal](https://github.com/ankushagarwal))
 - Set a large timeout for jupyterhub spawner [\#474](https://github.com/kubeflow/kubeflow/pull/474) ([ankushagarwal](https://github.com/ankushagarwal))
 - Update tensorflow-notebook-image workflow to pin tf and cuda version [\#471](https://github.com/kubeflow/kubeflow/pull/471) ([ankushagarwal](https://github.com/ankushagarwal))
@@ -2392,7 +2438,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix the TFCnn prototype which was broken by \#444. [\#461](https://github.com/kubeflow/kubeflow/pull/461) ([jlewi](https://github.com/jlewi))
 - Create a script to deploy minikube on a VM. [\#459](https://github.com/kubeflow/kubeflow/pull/459) ([jlewi](https://github.com/jlewi))
 - Move IAP config to initContainer on the envoy pod [\#457](https://github.com/kubeflow/kubeflow/pull/457) ([danisla](https://github.com/danisla))
-- Add jsonnet\_path\_dirs flag to test\_jsonnet script [\#456](https://github.com/kubeflow/kubeflow/pull/456) ([ankushagarwal](https://github.com/ankushagarwal))
+- Add jsonnet_path_dirs flag to test_jsonnet script [\#456](https://github.com/kubeflow/kubeflow/pull/456) ([ankushagarwal](https://github.com/ankushagarwal))
 - Fix for \#432 Provide basic tests for every ksonnet prototype. It will… [\#450](https://github.com/kubeflow/kubeflow/pull/450) ([kkasravi](https://github.com/kkasravi))
 - remove the pip install tensorboard [\#446](https://github.com/kubeflow/kubeflow/pull/446) ([kkasravi](https://github.com/kkasravi))
 - Add jsonnet unit tests for iap [\#445](https://github.com/kubeflow/kubeflow/pull/445) ([ankushagarwal](https://github.com/ankushagarwal))
@@ -2428,7 +2474,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Build http proxy image in release workflow [\#386](https://github.com/kubeflow/kubeflow/pull/386) ([lluunn](https://github.com/lluunn))
 - Add pkg install step for argo README [\#384](https://github.com/kubeflow/kubeflow/pull/384) ([pdmack](https://github.com/pdmack))
 - Add build-image option to TF serving workflow [\#383](https://github.com/kubeflow/kubeflow/pull/383) ([lluunn](https://github.com/lluunn))
-- Fix tfjob dashboard  ambassador route [\#381](https://github.com/kubeflow/kubeflow/pull/381) ([wbuchwalter](https://github.com/wbuchwalter))
+- Fix tfjob dashboard ambassador route [\#381](https://github.com/kubeflow/kubeflow/pull/381) ([wbuchwalter](https://github.com/wbuchwalter))
 - change kubeflow.io to kubeflow.org [\#379](https://github.com/kubeflow/kubeflow/pull/379) ([Jimexist](https://github.com/Jimexist))
 - add commands of how to delete a training job [\#378](https://github.com/kubeflow/kubeflow/pull/378) ([ChanYiLin](https://github.com/ChanYiLin))
 - Consolidate down to a single Dockerfile [\#366](https://github.com/kubeflow/kubeflow/pull/366) ([ojarjur](https://github.com/ojarjur))
@@ -2436,7 +2482,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Create a GPU model deployment to use for E2E testing of serving with GPUs [\#362](https://github.com/kubeflow/kubeflow/pull/362) ([jlewi](https://github.com/jlewi))
 - Example showing how to do TF serving when IAP is enabled. [\#361](https://github.com/kubeflow/kubeflow/pull/361) ([lluunn](https://github.com/lluunn))
 - Allow seperate naming of model name vs deployment name for TF Serving. [\#359](https://github.com/kubeflow/kubeflow/pull/359) ([elsonrodriguez](https://github.com/elsonrodriguez))
--  Add tensorflow-serving-api to jupyter image  [\#358](https://github.com/kubeflow/kubeflow/pull/358) ([inc0](https://github.com/inc0))
+- Add tensorflow-serving-api to jupyter image [\#358](https://github.com/kubeflow/kubeflow/pull/358) ([inc0](https://github.com/inc0))
 - Remove -E from find command as it is not supported by GNU find [\#357](https://github.com/kubeflow/kubeflow/pull/357) ([ankushagarwal](https://github.com/ankushagarwal))
 - Refactor the workflow for TF Serving [\#347](https://github.com/kubeflow/kubeflow/pull/347) ([jlewi](https://github.com/jlewi))
 - Add classify support for http-proxy [\#341](https://github.com/kubeflow/kubeflow/pull/341) ([yupbank](https://github.com/yupbank))
@@ -2456,26 +2502,26 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix \#285 and make few tweaks to notebook Dockerfile [\#311](https://github.com/kubeflow/kubeflow/pull/311) ([inc0](https://github.com/inc0))
 - Add ambassador annotation to tf-serving http proxy [\#307](https://github.com/kubeflow/kubeflow/pull/307) ([lluunn](https://github.com/lluunn))
 - Add seldon to user guide docs as example serving component [\#304](https://github.com/kubeflow/kubeflow/pull/304) ([cliveseldon](https://github.com/cliveseldon))
-- add option service\_type to set TFServing service type [\#302](https://github.com/kubeflow/kubeflow/pull/302) ([fxue](https://github.com/fxue))
+- add option service_type to set TFServing service type [\#302](https://github.com/kubeflow/kubeflow/pull/302) ([fxue](https://github.com/fxue))
 - Update the image used for the TFJob controller. [\#299](https://github.com/kubeflow/kubeflow/pull/299) ([jlewi](https://github.com/jlewi))
 - Start instructions for creating a release [\#298](https://github.com/kubeflow/kubeflow/pull/298) ([jlewi](https://github.com/jlewi))
-- Remove unused file build/check\_errorf.sh [\#287](https://github.com/kubeflow/kubeflow/pull/287) ([ankushagarwal](https://github.com/ankushagarwal))
+- Remove unused file build/check_errorf.sh [\#287](https://github.com/kubeflow/kubeflow/pull/287) ([ankushagarwal](https://github.com/ankushagarwal))
 - Update jsonnet autoformat script [\#286](https://github.com/kubeflow/kubeflow/pull/286) ([ankushagarwal](https://github.com/ankushagarwal))
 - Refactor the ksonnet configs [\#284](https://github.com/kubeflow/kubeflow/pull/284) ([jlewi](https://github.com/jlewi))
 - Add names to tfserving service ports [\#283](https://github.com/kubeflow/kubeflow/pull/283) ([ankushagarwal](https://github.com/ankushagarwal))
 - Integrate tf serving image building with prow [\#281](https://github.com/kubeflow/kubeflow/pull/281) ([lluunn](https://github.com/lluunn))
 - Fix tf-serving command and args [\#280](https://github.com/kubeflow/kubeflow/pull/280) ([ankushagarwal](https://github.com/ankushagarwal))
 - Drop imagePullPolicy override [\#279](https://github.com/kubeflow/kubeflow/pull/279) ([kflynn](https://github.com/kflynn))
-- update image to use prow\_config if exists [\#275](https://github.com/kubeflow/kubeflow/pull/275) ([lluunn](https://github.com/lluunn))
+- update image to use prow_config if exists [\#275](https://github.com/kubeflow/kubeflow/pull/275) ([lluunn](https://github.com/lluunn))
 - Fix TfJob test [\#274](https://github.com/kubeflow/kubeflow/pull/274) ([jlewi](https://github.com/jlewi))
-- add prow\_config.yaml [\#271](https://github.com/kubeflow/kubeflow/pull/271) ([lluunn](https://github.com/lluunn))
+- add prow_config.yaml [\#271](https://github.com/kubeflow/kubeflow/pull/271) ([lluunn](https://github.com/lluunn))
 - Add mount of pvc [\#270](https://github.com/kubeflow/kubeflow/pull/270) ([inc0](https://github.com/inc0))
 - Bump Ambassador version to latest \(0.26.0\) [\#269](https://github.com/kubeflow/kubeflow/pull/269) ([pdmack](https://github.com/pdmack))
 - Add seldon ksonnet integration [\#268](https://github.com/kubeflow/kubeflow/pull/268) ([cliveseldon](https://github.com/cliveseldon))
-- Fix typo in user\_guide.md [\#259](https://github.com/kubeflow/kubeflow/pull/259) ([ankushagarwal](https://github.com/ankushagarwal))
+- Fix typo in user_guide.md [\#259](https://github.com/kubeflow/kubeflow/pull/259) ([ankushagarwal](https://github.com/ankushagarwal))
 - Redirect / to /hub for the envoy pods [\#257](https://github.com/kubeflow/kubeflow/pull/257) ([ankushagarwal](https://github.com/ankushagarwal))
-- Add GPU scheduling instructions to user\_guide.md [\#256](https://github.com/kubeflow/kubeflow/pull/256) ([ankushagarwal](https://github.com/ankushagarwal))
-- Update enable\_iap.sh so that it updates the healthcheck path [\#252](https://github.com/kubeflow/kubeflow/pull/252) ([ankushagarwal](https://github.com/ankushagarwal))
+- Add GPU scheduling instructions to user_guide.md [\#256](https://github.com/kubeflow/kubeflow/pull/256) ([ankushagarwal](https://github.com/ankushagarwal))
+- Update enable_iap.sh so that it updates the healthcheck path [\#252](https://github.com/kubeflow/kubeflow/pull/252) ([ankushagarwal](https://github.com/ankushagarwal))
 - Remove vim's .swp files from git [\#249](https://github.com/kubeflow/kubeflow/pull/249) ([inc0](https://github.com/inc0))
 - Fix link to prow jobs dashboard [\#248](https://github.com/kubeflow/kubeflow/pull/248) ([jonas](https://github.com/jonas))
 - Fix short description typo in tf-job.jsonnet [\#247](https://github.com/kubeflow/kubeflow/pull/247) ([ankushagarwal](https://github.com/ankushagarwal))
@@ -2518,7 +2564,7 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Fix model path. [\#162](https://github.com/kubeflow/kubeflow/pull/162) ([jlewi](https://github.com/jlewi))
 - add namespace setup to top-level readme quick-start section [\#161](https://github.com/kubeflow/kubeflow/pull/161) ([cliveseldon](https://github.com/cliveseldon))
 - Updating the verbiage in the README to clarify project motivation. [\#160](https://github.com/kubeflow/kubeflow/pull/160) ([dynamicwebpaige](https://github.com/dynamicwebpaige))
-- fix prow\_artifacts.py [\#158](https://github.com/kubeflow/kubeflow/pull/158) ([lluunn](https://github.com/lluunn))
+- fix prow_artifacts.py [\#158](https://github.com/kubeflow/kubeflow/pull/158) ([lluunn](https://github.com/lluunn))
 - Fix the instruction for setting up cluster to run test [\#152](https://github.com/kubeflow/kubeflow/pull/152) ([lluunn](https://github.com/lluunn))
 - Run jsonnet's autoformat tool to autoformat all our jsonnet files. [\#149](https://github.com/kubeflow/kubeflow/pull/149) ([jlewi](https://github.com/jlewi))
 - fix guide typo [\#144](https://github.com/kubeflow/kubeflow/pull/144) ([lluunn](https://github.com/lluunn))
@@ -2580,6 +2626,4 @@ Release information for the overall _Kubeflow Platform_ is available on the [Kub
 - Create specs for running distributed training with/without GPUs. [\#2](https://github.com/kubeflow/kubeflow/pull/2) ([jlewi](https://github.com/jlewi))
 - Updates to the Readme that include mission [\#1](https://github.com/kubeflow/kubeflow/pull/1) ([aronchick](https://github.com/aronchick))
 
-
-
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*
+\* _This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)_
