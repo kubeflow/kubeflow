@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: volumes-web-app
-        image: docker.io/kubeflownotebookswg/volumes-web-app
+        image: ghcr.io/kubeflow/kubeflow/volumes-web-app
         ports:
         - containerPort: 5000
         env:
@@ -21,7 +21,7 @@ spec:
         - name: APP_SECURE_COOKIES
           value: $(VWA_APP_SECURE_COOKIES)
         - name: VOLUME_VIEWER_IMAGE
-          value: filebrowser/filebrowser:v2.25.0
+          value: filebrowser/filebrowser:v2.32.0
         - name: METRICS
           value: $(VWA_APP_ENABLE_METRICS)
         volumeMounts: 

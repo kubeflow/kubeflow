@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: centraldashboard-angular
-        image: docker.io/kubeflownotebookswg/centraldashboard-angular
+        image: ghcr.io/kubeflow/kubeflow/centraldashboard-angular
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

@@ -1,8 +1,8 @@
-name: PodDefaults Intergration Test
+name: CentralDashboard Integration Test
 on:
   pull_request:
     paths:
-      - components/admission-webhook/**
+      - components/centraldashboard/**
       - releasing/version/VERSION
     branches:
       - master
@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMG: poddefaults-webhook
-  TAG: intergration-test
+  IMG: ghcr.io/kubeflow/kubeflow/central-dashboard
+  TAG: integration-test
 
 jobs:
   build:
@@ -26,10 +26,10 @@ jobs:
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build PodDefaults Image
+    - name: Build CentralDashboard Image
       run: |
-        cd components/admission-webhook
-        make docker-build-multi-arch
+        cd components/centraldashboard
+        ARCH=linux/amd64 make docker-build-multi-arch
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -47,23 +47,20 @@ jobs:
     - name: Install Istio
       run: ./components/testing/gh-actions/install_istio.sh
 
-    - name: Install cert-manager
-      run: ./components/testing/gh-actions/install_cert_manager.sh
-
     - name: Build & Apply manifests
       run: |
-        cd components/admission-webhook/manifests
+        cd components/centraldashboard/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_IMAGE="docker.io/kubeflownotebookswg/${IMG}"
+        export CURRENT_IMAGE="${IMG}"
         export PR_IMAGE="${IMG}:${TAG}"
 
         # escape "." in the image names, as it is a special characters in sed
         export CURRENT_IMAGE=$(echo "$CURRENT_IMAGE" | sed 's|\.|\\.|g')
         export PR_IMAGE=$(echo "$PR_IMAGE" | sed 's|\.|\\.|g')
 
-        kustomize build overlays/cert-manager \
+        kustomize build overlays/kserve \
           | sed "s|${CURRENT_IMAGE}:[a-zA-Z0-9_.-]*|${PR_IMAGE}|g" \
           | kubectl apply -f -
 
-        kubectl wait pods -n kubeflow -l app=poddefaults --for=condition=Ready --timeout=300s
+        kubectl wait pods -n kubeflow -l app=centraldashboard --for=condition=Ready --timeout=300s

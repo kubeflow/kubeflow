@@ -16,8 +16,8 @@ commonLabels:
   app.kubernetes.io/component: centraldashboard-angular
   app.kubernetes.io/name: centraldashboard-angular
 images:
-- name: docker.io/kubeflownotebookswg/centraldashboard-angular
-  newName: docker.io/kubeflownotebookswg/centraldashboard-angular
+- name: ghcr.io/kubeflow/kubeflow/centraldashboard-angular
+  newName: ghcr.io/kubeflow/kubeflow/centraldashboard-angular
   newTag: latest
 configMapGenerator:
 - envs:

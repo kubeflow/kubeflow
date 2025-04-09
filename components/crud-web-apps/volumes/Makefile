@@ -1,4 +1,4 @@
-IMG ?= volumes-web-app
+IMG ?= ghcr.io/kubeflow/kubeflow/volumes-web-app
 TAG ?= $(shell git describe --tags --always --dirty)
 ARCH ?= linux/amd64
 

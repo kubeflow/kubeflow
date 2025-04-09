@@ -1,4 +1,4 @@
-IMG ?= jupyter-web-app
+IMG ?= ghcr.io/kubeflow/kubeflow/jupyter-web-app
 TAG ?= $(shell git describe --tags --always --dirty)
 DOCKERFILE ?= jupyter/Dockerfile
 ARCH ?= linux/amd64

@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: my-notebook
-          image: kubeflownotebookswg/jupyter:master
+          image: ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter:latest
 ```
 
 The required fields are `containers[0].image` and (`containers[0].command` and/or `containers[0].args`).
