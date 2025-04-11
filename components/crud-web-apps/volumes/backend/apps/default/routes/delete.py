@@ -37,7 +37,7 @@ def delete_pvc(pvc, namespace):
                 "required to identify its parent",
                 namespace,
                 viewer_pod.metadata.name,
-                viewer_utils.VIEWER_LABEL,
+                viewer_utils.POD_PARENT_VIEWER_LABEL_KEY,
             )
         delete_viewer(viewer, namespace)
 
