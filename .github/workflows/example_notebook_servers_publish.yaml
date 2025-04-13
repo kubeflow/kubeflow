@@ -11,6 +11,7 @@ on:
 jobs:
   base_images:
     name: Build & Push - Base
+    if: ${{ github.repository == 'kubeflow/kubeflow' }}
     uses: ./.github/workflows/example_notebook_servers_publish_TEMPLATE.yaml
     secrets: inherit
     with:
