@@ -47,6 +47,7 @@ spawnerFormDefaults:
       - ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-pytorch-gaudi-full:latest
       - ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-full:latest
       - ghcr.io/kubeflow/kubeflow/notebook-servers/jupyter-tensorflow-cuda-full:latest
+      - docker.io/intel/intel-extension-for-pytorch:2.6.10-xpu-pip-jupyter
 
   ################################################################
   # VSCode-like Container Images (Group 1)
@@ -137,6 +138,10 @@ spawnerFormDefaults:
           uiName: "AMD"
         - limitsKey: "habana.ai/gaudi"
           uiName: "Intel Gaudi"
+        - limitsKey: "gpu.intel.com/i915"
+          uiName: "Intel i915 Graphics"
+        - limitsKey: "gpu.intel.com/xe"
+          uiName: "Intel Xe Graphics"
 
       # the default value of the limit
       # (possible values: "none", "1", "2", "4", "8")
