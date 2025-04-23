@@ -50,3 +50,63 @@ class TestStatusFromContainerState(unittest.TestCase):
             ("warning",
              "PodInitializing: No available message for container state.")
         )
+
+class TestStatusFromConditions(unittest.TestCase):
+    """Test the different cases of status from conditions"""
+
+    def test_no_status(self):
+        notebook = {}
+
+        self.assertEqual(status.get_status_from_conditions(notebook),
+                         (None, None))
+
+    def test_no_conditions(self):
+        notebook = {
+            "status": {}
+        }
+
+        self.assertEqual(status.get_status_from_conditions(notebook),
+                         (None, None))
+
+    def test_no_reason_conditions(self):
+        notebook = {
+            "status": {
+                "conditions": [{
+                    "status": "True",
+                    "type": "Initialized",
+                }]
+            }
+        }
+
+        self.assertEqual(status.get_status_from_conditions(notebook),
+                         (None, None))
+
+    def test_conditions_with_reason_and_message(self):
+        notebook = {
+            "status": {
+                "conditions": [{
+                    "status": "False",
+                    "type": "Warning",
+                    "reason": "FailedScheduling",
+                    "message": "0/1 nodes are available."
+                }]
+            }
+        }
+
+        self.assertEqual(
+            status.get_status_from_conditions(notebook),
+            ("warning", "FailedScheduling: 0/1 nodes are available."))
+
+    def test_conditions_with_reason_no_message(self):
+        notebook = {
+            "status": {
+                "conditions": [{
+                    "status": "False",
+                    "type": "Ready",
+                    "reason": "PodFailed",
+                }]
+            }
+        }
+
+        self.assertEqual(status.get_status_from_conditions(notebook),
+                         ("warning", "PodFailed: No available message."))
