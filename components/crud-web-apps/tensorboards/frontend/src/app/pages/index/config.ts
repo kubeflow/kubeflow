@@ -7,6 +7,7 @@ import {
   TableColumn,
   TableConfig,
   DateTimeValue,
+  DialogConfig,
 } from 'kubeflow';
 
 const tableConfig: TableConfig = {
@@ -65,6 +66,15 @@ const actionsCol: TableColumn = {
       text: $localize`CONNECT`,
     }),
     new ActionIconValue({
+      name: 'start-stop',
+      tooltipInit: $localize`Stop this Tensorboard server`,
+      tooltipReady: $localize`Start this Tensorboard server`,
+      color: '',
+      field: 'startStopAction',
+      iconInit: 'material:stop',
+      iconReady: 'material:play_arrow',
+    }),
+    new ActionIconValue({
       name: 'delete',
       tooltip: $localize`Delete Tensorboard`,
       color: 'warn',
@@ -80,3 +90,17 @@ export const defaultConfig: TableConfig = {
   newButtonText: tableConfig.newButtonText,
   columns: tableConfig.columns.concat(actionsCol),
 };
+
+export function getStopDialogConfig(name: string): DialogConfig {
+  return {
+    title: $localize`Are you sure you want to stop this tensorboard? ${name}`,
+    message: $localize`Warning: Your data might be lost if the tensorboard
+                       is not backed by persistent storage.`,
+    accept: $localize`STOP`,
+    confirmColor: 'primary',
+    cancel: $localize`CANCEL`,
+    error: '',
+    applying: $localize`STOPPING`,
+    width: '600px',
+  };
+}
