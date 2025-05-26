@@ -3,5 +3,6 @@
   "dest": "../../dist/kubeflow",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": ["src/styles"]
 }
