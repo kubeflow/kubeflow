@@ -14,6 +14,18 @@ import {
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
 
+export function getConfigForUser(UserisAdmin: boolean): TableConfig {
+  const allowed = ['status', 'name', 'action1', 'action2'];
+  if (UserisAdmin) {
+    return defaultConfig;
+  }
+  return {
+    ...defaultConfig,
+    columns: defaultConfig.columns!.filter(
+      col => allowed.includes(col.matColumnDef)
+    ),
+  };
+}
 // --- Config for the Resource Table ---
 export const defaultConfig: TableConfig = {
   dynamicNamespaceColumn: true,
@@ -114,15 +126,21 @@ export const defaultConfig: TableConfig = {
 
     {
       matHeaderCellDef: '',
-      matColumnDef: 'actions',
+      matColumnDef: 'action1',
       value: new ActionListValue([
         new ActionButtonValue({
           name: 'connect',
           tooltip: $localize`Connect to this notebook server`,
           color: 'primary',
           field: 'connectAction',
-          text: $localize`CONNECT`,
+          text: $localize`Activate`,
         }),
+      ]),
+    },
+    {
+      matHeaderCellDef: '',
+      matColumnDef: 'action2',
+      value: new ActionListValue([
         new ActionIconValue({
           name: 'start-stop',
           tooltipInit: $localize`Stop this notebook server`,
@@ -132,6 +150,12 @@ export const defaultConfig: TableConfig = {
           iconInit: 'material:stop',
           iconReady: 'material:play_arrow',
         }),
+      ]),
+    },
+    {
+      matHeaderCellDef: '',
+      matColumnDef: 'action3',
+      value: new ActionListValue([
         new ActionIconValue({
           name: 'delete',
           tooltip: $localize`Delete this notebook server`,

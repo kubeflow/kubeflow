@@ -19,7 +19,10 @@ RUN npm ci \
 # Step 2: Packages assets for serving
 FROM node:16.20.2-alpine AS serve
 
-RUN apk add --no-cache tini
+#RUN apk add --no-cache tini
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories && \
+    apk add --no-cache tini
+
 
 USER node
 

@@ -6,4 +6,5 @@ export interface EnvInfo {
   platform?: PlatformInfo;
   namespaces?: Namespace[];
   isClusterAdmin?: boolean;
+  userrole?: string;
 }

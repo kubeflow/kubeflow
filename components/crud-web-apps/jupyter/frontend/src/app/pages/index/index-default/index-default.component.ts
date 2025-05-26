@@ -15,10 +15,11 @@ import {
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Subscription } from 'rxjs';
-import { defaultConfig } from './config';
+import { getConfigForUser } from './config';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
 import { Router } from '@angular/router';
 import { ActionsService } from 'src/app/services/actions.service';
+import { EnvService, EnvInfo } from 'src/app/services/env.service';
 
 @Component({
   selector: 'app-index-default',
@@ -30,9 +31,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   nsSub = new Subscription();
   pollSub = new Subscription();
+  envSub  = new Subscription();    // ← thêm
 
   currNamespace: string | string[];
-  config = defaultConfig;
+  config = null;
   processedData: NotebookProcessedObject[] = [];
   dashboardDisconnectedState = DashboardState.Disconnected;
 
@@ -55,9 +57,19 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     public router: Router,
     public poller: PollerService,
     public actions: ActionsService,
+    private envService: EnvService,   // ← inject EnvService
   ) {}
 
   ngOnInit(): void {
+  this.envSub = this.envService.getEnvInfo().subscribe((env: EnvInfo) => {
+    const UserisAdmin = env.userrole === 'admin';
+    if (!UserisAdmin) {this.buttons = []}
+    this.config    = getConfigForUser(UserisAdmin);
+  }, err => {
+    console.error('Cannot load env-info', err);
+    this.config = getConfigForUser(false);
+  });
+
     // Reset the poller whenever the selected namespace changes
     this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
       this.currNamespace = ns;
@@ -69,6 +81,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.nsSub.unsubscribe();
     this.pollSub.unsubscribe();
+    this.envSub.unsubscribe();
   }
 
   public poll(ns: string | string[]) {

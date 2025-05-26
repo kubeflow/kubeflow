@@ -5,7 +5,7 @@ DOCKERFILE ?= Dockerfile
 ARCH ?= linux/amd64
 
 
-all: build
+all: docker-build 
 
 clean:
 	rm -rf coverage/ dist/ node_modules/ .nyc_output/

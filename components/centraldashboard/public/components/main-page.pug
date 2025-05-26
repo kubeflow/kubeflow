@@ -18,58 +18,56 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
-        div.flex.scrollable
-            a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
-                paper-item.menu-item#home
-                    iron-icon(icon='home')
-                    | Home
+        app(removed$='[[notAdmin]]')    
+            div.flex.scrollable
+                a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
+                    paper-item.menu-item#home
+                        iron-icon(icon='home')
+                        | Home
 
-            template(is='dom-repeat', items='[[menuLinks]]')
-                template(is='dom-if', if='[[equals(item.type, "section")]]')
-                    paper-item.menu-item.section-item(on-click='_toggleMenuSection')
-                        iron-icon(icon='[[item.icon]]')
-                        | [[item.text]]
-                    iron-collapse
-                        template(is='dom-repeat', items='[[item.items]]')
-                            iframe-link(href$="[[_buildHref(item.link, queryParams.*)]]")
-                                paper-item.menu-item.inner-menu-item
-                                    | [[item.text]]
-                template(is='dom-if', if='[[!equals(item.type, "section")]]')
-                    iframe-link(href$="[[_buildHref(item.link, queryParams.*)]]")
-                        paper-item.menu-item
+                template(is='dom-repeat', items='[[menuLinks]]')
+                    template(is='dom-if', if='[[equals(item.type, "section")]]')
+                        paper-item.menu-item.section-item(on-click='_toggleMenuSection')
                             iron-icon(icon='[[item.icon]]')
                             | [[item.text]]
-            template(is='dom-repeat', items='[[externalLinks]]')
-                template(is='dom-if', if='[[item.iframe]]')
-                    iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                        paper-item.menu-item
-                            iron-icon(icon='[[item.icon]]')
-                            | [[item.text]]
-                template(is='dom-if', if='[[!item.iframe]]')
-                    a(href$="[[_buildExternalHref(item.link, queryParams.*)]]", tabindex='-1', target="_blank")
-                        paper-item.menu-item
-                            iron-icon(icon='[[item.icon]]')
-                            | [[item.text]]
-                            iron-icon.external(icon="launch")
-            template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
+                        iron-collapse
+                            template(is='dom-repeat', items='[[item.items]]')
+                                iframe-link(href$="[[_buildHref(item.link, queryParams.*)]]")
+                                    paper-item.menu-item.inner-menu-item
+                                        | [[item.text]]
+                    template(is='dom-if', if='[[!equals(item.type, "section")]]')
+                        iframe-link(href$="[[_buildHref(item.link, queryParams.*)]]")
+                            paper-item.menu-item
+                                iron-icon(icon='[[item.icon]]')
+                                | [[item.text]]
+                template(is='dom-repeat', items='[[externalLinks]]')
+                    template(is='dom-if', if='[[item.iframe]]')
+                        iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                            paper-item.menu-item
+                                iron-icon(icon='[[item.icon]]')
+                                | [[item.text]]
+                    template(is='dom-if', if='[[!item.iframe]]')
+                        a(href$="[[_buildExternalHref(item.link, queryParams.*)]]", tabindex='-1', target="_blank")
+                            paper-item.menu-item
+                                iron-icon(icon='[[item.icon]]')
+                                | [[item.text]]
+                                iron-icon.external(icon="launch")
+                template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
+                    aside.divider
+                    a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
+                        paper-item.menu-item#contributors Manage Contributors
                 aside.divider
-                a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
-                    paper-item.menu-item#contributors Manage Contributors
-            aside.divider
-            a(href='https://github.com/kubeflow/kubeflow',
-                tabindex='-1', target="_blank")
-                paper-item.menu-item GitHub
-                    iron-icon.external(icon="launch")
-            a(href='https://www.kubeflow.org/docs/about/kubeflow/',
-                tabindex='-1', target="_blank")
-                paper-item.menu-item Documentation
-                    iron-icon.external(icon="launch")
+                a(href='https://github.com/kubeflow/kubeflow',
+                    tabindex='-1', target="_blank")
+                    paper-item.menu-item GitHub
+                        iron-icon.external(icon="launch")
+                a(href='https://www.kubeflow.org/docs/about/kubeflow/',
+                    tabindex='-1', target="_blank")
+                    paper-item.menu-item Documentation
+                        iron-icon.external(icon="launch")
         footer.footer
             section.build
-                | build version -
-                |
-                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]] | Isolation-Mode: [[isolationMode]]")
-                    | [[buildVersion]]
+                | Distributed Cloud & Network Laboratory @ 2025
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
@@ -79,6 +77,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         figure.Logo
                             |!{logo}
                 namespace-selector#NamespaceSelector(
+                    removed$='[[notAdmin]]'
                     query-params='{{queryParams}}', route='{{route}}',
                     namespaces='[[namespaces]]', selected='{{namespace}}',
                     hides, hidden$='[[hideNamespaces]]'
@@ -96,10 +95,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
-                neon-animatable(page='dashboard')
+                neon-animatable(page='dashboard', removed$="[[notAdmin]]")
                     dashboard-view(namespace='[[queryParams.ns]]',
                         platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]' metrics='[[metrics]]')
-                neon-animatable(page='activity')
+                neon-animatable(page='activity', removed$="[[notAdmin]]")
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')
                     manage-users-view(

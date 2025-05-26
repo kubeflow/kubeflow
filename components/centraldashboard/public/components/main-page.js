@@ -99,6 +99,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             allNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
             registrationFlow: {type: Boolean, value: false, readOnly: true},
+            notAdmin: {type: Boolean, value: true, readOnly: true},
             workgroupStatusHasLoaded: {
                 type: Boolean,
                 value: false,
@@ -107,6 +108,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             namespaces: Array,
             namespace: String,
             user: String,
+            userrole: String,
             isClusterAdmin: {type: Boolean, value: false},
             isolationMode: {type: String, value: 'undecided', readOnly: true},
             _shouldFetchEnv: {
@@ -228,6 +230,80 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         }
     }
 
+    _onEnvInfoResponse(responseEvent) {
+        const {
+            platform, user, namespaces, isClusterAdmin, userrole,
+        } = responseEvent.detail.response;
+
+
+        Object.assign(this, {user, isClusterAdmin, userrole});
+        this.namespaces = namespaces;
+        if (this.namespaces.length) {
+            this._setRegistrationFlow(false);
+        } else if (this.isolationMode == 'single-user') {
+            // This case is for non-identity networks, that have no namespaces
+            this._setRegistrationFlow(true);
+        }
+
+        if (this.userrole !== 'admin') {
+            const defaultNs =
+            this.queryParams.ns ||
+            (
+                this.namespaces &&
+                this.namespaces.length > 0 &&
+                this.namespaces[0].namespace
+            ) ||
+            '';
+            // Xác định endpoint Jupyter
+            const endpoint = IFRAME_LINK_PREFIX + '/jupyter/';
+            // Tạo URL và thêm param ns
+            const jupyterUrl = new URL(
+                endpoint,
+                window.location.origin
+            );
+            jupyterUrl.searchParams.set('ns', defaultNs);
+            // Redirect nếu cần
+            if (
+                window.location.pathname !== jupyterUrl.pathname ||
+                window.location.search !== jupyterUrl.search
+            ) {
+                window.location.href = jupyterUrl.toString();
+                return;
+            }
+        }
+
+        const ownedNamespaces = [];
+        const editNamespaces = [];
+        const viewNamespaces = [];
+        if (this.namespaces.length) {
+            this.namespaces.forEach((ns) => {
+                if (ns.role === 'owner') {
+                    ownedNamespaces.push(ns);
+                } else if (ns.role === 'contributor') {
+                    editNamespaces.push(ns);
+                } else if (ns.role === 'viewer') {
+                    viewNamespaces.push(ns);
+                }
+            });
+            this.ownedNamespaces = ownedNamespaces;
+            this.editNamespaces = editNamespaces;
+            this.viewNamespaces = viewNamespaces;
+            this.hasNamespaces = true;
+        }
+        this.platformInfo = platform;
+        const kVer = this.platformInfo.kubeflowVersion;
+        if (kVer && kVer != 'unknown') {
+            this.buildVersion = this.platformInfo.kubeflowVersion;
+        }
+        if (platform.logoutUrl) {
+            this.logoutUrl = platform.logoutUrl;
+        }
+        // trigger template render
+        this.menuLinks = JSON.parse(JSON.stringify(this.menuLinks));
+        this._enableAllNamespaceOption();
+    }
+
+
     /**
      * Handles route changes by evaluating the page path component
      * @param {string} newPage
@@ -241,6 +317,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let hideNamespaces = false;
         let allNamespaces = false;
         let hideSidebar = false;
+        let notAdmin = true;
 
         switch (newPage) {
         case 'logout':
@@ -269,7 +346,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             break;
         case '':
             this.page = 'dashboard';
-            hideTabs = false;
+            hideTabs = true;
             this._setActiveLink(this.$.home);
             break;
         default:
@@ -285,12 +362,17 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             }
         }
 
+        if (this.userrole == 'admin') {
+            notAdmin = false;
+        }
+
         this._setNotFoundInIframe(notFoundInIframe);
         this._setHideTabs(hideTabs);
         this._setAllNamespaces(allNamespaces);
         this._setHideNamespaces(hideNamespaces);
         this._setInIframe(isIframe);
         this._setHideSidebar(hideSidebar);
+        this._setNotAdmin(notAdmin);
 
         // If iframe <-> [non-frame OR other iframe]
         if (!this.persistent || hideSidebar || isIframe !== this.inIframe) {
@@ -359,6 +441,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * Builds the new iframeSrc string based on the subroute path, current
      * hash fragment, and the query string parameters other than ns.
      */
+    _setIframeSrc() {
+        const iframeUrl = new URL(this.subRouteData.path,
     _setIframeSrc() {
         const iframeUrl = new URL(this.subRouteData.path,
             window.location.origin);
@@ -488,49 +572,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * Handles the AJAX response from the platform-info API.
      * @param {Event} responseEvent AJAX-response
      */
-    _onEnvInfoResponse(responseEvent) {
-        const {
-            platform, user, namespaces, isClusterAdmin,
-        } = responseEvent.detail.response;
-        Object.assign(this, {user, isClusterAdmin});
-        this.namespaces = namespaces;
-        if (this.namespaces.length) {
-            this._setRegistrationFlow(false);
-        } else if (this.isolationMode == 'single-user') {
-            // This case is for non-identity networks, that have no namespaces
-            this._setRegistrationFlow(true);
-        }
-        const ownedNamespaces = [];
-        const editNamespaces = [];
-        const viewNamespaces = [];
-        if (this.namespaces.length) {
-            this.namespaces.forEach((ns) => {
-                if (ns.role === 'owner') {
-                    ownedNamespaces.push(ns);
-                } else if (ns.role === 'contributor') {
-                    editNamespaces.push(ns);
-                } else if (ns.role === 'viewer') {
-                    viewNamespaces.push(ns);
-                }
-            });
-            this.ownedNamespaces = ownedNamespaces;
-            this.editNamespaces = editNamespaces;
-            this.viewNamespaces = viewNamespaces;
-            this.hasNamespaces = true;
-        }
-        this.platformInfo = platform;
-        const kVer = this.platformInfo.kubeflowVersion;
-        if (kVer && kVer != 'unknown') {
-            this.buildVersion = this.platformInfo.kubeflowVersion;
-        }
-        if (platform.logoutUrl) {
-            this.logoutUrl = platform.logoutUrl;
-        }
-        // trigger template render
-        this.menuLinks = JSON.parse(JSON.stringify(this.menuLinks));
-        this._enableAllNamespaceOption();
-    }
 
+    which includes "All Namespaces" when enabled for user pick.
+    */
+    _enableAllNamespaceOption(iframeSrc) {
+        if (!iframeSrc) {
     _enableAllNamespaceOption(iframeSrc) {
         if (!iframeSrc) {
             iframeSrc = this.iframeSrc;

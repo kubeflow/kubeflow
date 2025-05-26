@@ -12,6 +12,7 @@ const routes: Routes = [
     path: 'notebook/details/:namespace/:notebookName',
     component: NotebookPageComponent,
   },
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({

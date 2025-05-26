@@ -35,6 +35,7 @@ interface EnvironmentInfo {
     platform: PlatformInfo;
     user: string;
     isClusterAdmin: boolean;
+    userrole: string;
 }
 
 export type SimpleRole = 'owner' | 'contributor' | 'viewer';
@@ -140,7 +141,7 @@ export class WorkgroupApi {
                 user,
             ),
         ]);
-        return {user: user.email, platform, namespaces, isClusterAdmin};
+        return {user: user.email, userrole: user.userrole, platform, namespaces, isClusterAdmin};
     }
 
     /**
@@ -153,6 +154,7 @@ export class WorkgroupApi {
         ]);
         return {
             user: user.email,
+            userrole: user.userrole,
             platform,
             namespaces,
             isClusterAdmin: true,

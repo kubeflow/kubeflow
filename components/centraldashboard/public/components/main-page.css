@@ -326,6 +326,10 @@ neon-animatable {
     display: none !important
 }
 
+[removed] {
+    display: none
+}
+
 a[href] {
     text-decoration: none;
     color: inherit;
