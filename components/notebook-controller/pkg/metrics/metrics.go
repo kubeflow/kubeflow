@@ -80,6 +80,9 @@ func (m *Metrics) Collect(ch chan<- prometheus.Metric) {
 
 // scrape gets current running notebook statefulsets.
 func (m *Metrics) scrape() {
+	// Reset the current metrics to clear previous data
+	m.runningNotebooks.Reset()
+
 	stsList := &appsv1.StatefulSetList{}
 	err := m.cli.List(context.TODO(), stsList)
 	if err != nil {
