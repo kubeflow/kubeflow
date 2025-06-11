@@ -25,7 +25,7 @@ Backend server side code resides in the [backend](./backend) directory. The serv
 ```
 cd components/centraldashboard-angular/backend
 npm i
-npm run backend
+npm run dev
 ```
 
 This starts the Express API server at http://localhost:8082. Requests from the front-end starting with `/api` are proxied to the Express server. All other requests are handled by the front-end server which mirrors the production configuration.
