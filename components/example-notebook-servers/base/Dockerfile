@@ -102,7 +102,9 @@ RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETA
  && chmod +x /usr/local/bin/kubectl
 
 # create user and set required ownership
-RUN useradd -M -N \
+# Ubuntu 23.04 and later ship with a default user 'ubuntu' with UID 1000
+RUN userdel -r ubuntu || true \
+  && useradd -M -N \
     --shell /bin/bash \
     --home ${HOME} \
     --uid ${NB_UID} \
