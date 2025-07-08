@@ -9,33 +9,30 @@
 
 [Kubeflow](https://www.kubeflow.org/) is the foundation of tools for AI Platforms on Kubernetes.
 
-Kubeflow tools address each stage in [AI Lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle)
+Kubeflow projects address each stage in [AI Lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle)
 with support for best-in-class open source [tools and frameworks](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem).
 
 Please refer to the official [documentation](https://www.kubeflow.org/docs/) for more information.
 
-## Kubeflow Tools
+## Kubeflow Projects
 
-The [Kubeflow Foundation](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem)
-is composed of several projects known as _Kubeflow Tools_.
+Kubeflow is composed of several open source projects listed in the following table with their
+respective code repositories:
 
-The following table lists the tools and their respective source code repositories:
-
-| Kubeflow Tool                                                                               | Source Code                                                             |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [KServe](https://www.kubeflow.org/docs/external-add-ons/kserve/)                            | [`kserve/kserve`](https://github.com/kserve/kserve)                     |
-| [Kubeflow Katib](https://www.kubeflow.org/docs/components/katib/)                           | [`kubeflow/katib`](https://github.com/kubeflow/katib)                   |
-| [Kubeflow Model Registry](https://www.kubeflow.org/docs/components/model-registry/)         | [`kubeflow/model-registry`](https://github.com/kubeflow/model-registry) |
-| [Kubeflow MPI Operator](https://www.kubeflow.org/docs/components/training/user-guides/mpi/) | [`kubeflow/mpi-operator`](https://github.com/kubeflow/mpi-operator)     |
-| [Kubeflow Notebooks](https://www.kubeflow.org/docs/components/notebooks/)                   | [`kubeflow/notebooks`](https://github.com/kubeflow/notebooks)           |
-| [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/)                   | [`kubeflow/pipelines`](https://github.com/kubeflow/pipelines)           |
-| [Kubeflow Spark Operator](https://www.kubeflow.org/docs/components/spark-operator/)         | [`kubeflow/spark-operator`](https://github.com/kubeflow/spark-operator) |
-| [Kubeflow Trainer](https://www.kubeflow.org/docs/components/trainer/)                       | [`kubeflow/trainer`](https://github.com/kubeflow/trainer)               |
+| Kubeflow Tool                                                                       | Source Code                                                             |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [KServe](https://www.kubeflow.org/docs/external-add-ons/kserve/)                    | [`kserve/kserve`](https://github.com/kserve/kserve)                     |
+| [Kubeflow Katib](https://www.kubeflow.org/docs/components/katib/)                   | [`kubeflow/katib`](https://github.com/kubeflow/katib)                   |
+| [Kubeflow Model Registry](https://www.kubeflow.org/docs/components/model-registry/) | [`kubeflow/model-registry`](https://github.com/kubeflow/model-registry) |
+| [Kubeflow Notebooks](https://www.kubeflow.org/docs/components/notebooks/)           | [`kubeflow/notebooks`](https://github.com/kubeflow/notebooks)           |
+| [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/)           | [`kubeflow/pipelines`](https://github.com/kubeflow/pipelines)           |
+| [Kubeflow Spark Operator](https://www.kubeflow.org/docs/components/spark-operator/) | [`kubeflow/spark-operator`](https://github.com/kubeflow/spark-operator) |
+| [Kubeflow Trainer](https://www.kubeflow.org/docs/components/trainer/)               | [`kubeflow/trainer`](https://github.com/kubeflow/trainer)               |
 
 ## Kubeflow Reference AI Platform
 
 The [Kubeflow Reference AI Platform](https://www.kubeflow.org/docs/started/introduction/#what-is-kubeflow-platform)
-refers to the full suite of Kubeflow Tools bundled together with additional integration and management tools.
+refers to the full suite of Kubeflow Project bundled together with additional integration and management tools.
 
 The following table lists the platform tools and their respective source code repositories:
 
