@@ -7,9 +7,9 @@
 
 ## What is Kubeflow
 
-[Kubeflow](https://www.kubeflow.org/) is the foundation of tools for AI Platforms on Kubernetes.
+[Kubeflow](https://www.kubeflow.org/) is the foundation of tools for AI platforms on Kubernetes.
 
-Kubeflow projects address each stage in [AI Lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle)
+Kubeflow projects address each stage in [AI lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-components-in-the-ml-lifecycle)
 with support for best-in-class open source [tools and frameworks](https://www.kubeflow.org/docs/started/architecture/#kubeflow-ecosystem).
 
 Please refer to the official [documentation](https://www.kubeflow.org/docs/) for more information.
