@@ -3,6 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
 import { of } from 'rxjs';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -35,6 +36,7 @@ describe('FormGpusComponent', () => {
           ReactiveFormsModule,
           MatInputModule,
           MatSelectModule,
+          MatRadioModule,
         ],
         providers: [
           { provide: JWABackendService, useValue: JWABackendServiceStub },
@@ -51,6 +53,9 @@ describe('FormGpusComponent', () => {
       gpus: new FormGroup({
         vendor: new FormControl(),
         num: new FormControl(),
+        fractional: new FormControl(),
+        fractionalType: new FormControl(),
+        fractionalMemory: new FormControl(),
       }),
     });
 

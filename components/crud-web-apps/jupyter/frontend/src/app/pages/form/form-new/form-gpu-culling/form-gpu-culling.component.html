@@ -1,0 +1,219 @@
+<lib-form-section
+  title="GPU-Based Culling"
+  i18n-title="Title for the GPU-Based Culling form section"
+  helpText="Configure intelligent GPU-based culling that monitors actual GPU usage to optimize expensive GPU resources. This works alongside traditional time-based culling."
+  *ngIf="hasGPUResources"
+>
+  <!-- Enable/Disable GPU Culling -->
+  <div class="row">
+    <mat-slide-toggle
+      class="column"
+      [formControl]="parentForm.get('gpuCulling.enabled')"
+      color="primary"
+      data-cy-form-gpu-culling-enabled
+    >
+      <span i18n>Enable GPU-based culling</span>
+    </mat-slide-toggle>
+  </div>
+
+  <div class="hint-text" i18n>
+    GPU-based culling monitors actual GPU memory usage, compute utilization, and kernel activity to make intelligent culling decisions
+  </div>
+
+  <!-- Validation Summary -->
+  <div *ngIf="parentForm.get('gpuCulling.enabled').value && hasValidationErrors()" class="validation-summary">
+    <mat-icon>warning</mat-icon>
+    <div class="validation-content">
+      <div class="validation-title" i18n>Please fix the following issues:</div>
+      <ul class="validation-list">
+        <li *ngFor="let error of getValidationErrors()" [innerHTML]="error"></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- GPU Culling Settings (shown when enabled) -->
+  <div *ngIf="parentForm.get('gpuCulling.enabled').value" class="gpu-culling-settings">
+    
+    <!-- Culling Mode -->
+    <div class="row">
+      <mat-form-field appearance="outline" class="column">
+        <mat-label i18n>Culling Mode</mat-label>
+        <mat-select [formControl]="parentForm.get('gpuCulling.mode')" data-cy-form-gpu-culling-mode>
+          <mat-option value="gpu-priority" i18n>GPU Priority (GPU metrics first, fallback to time-based)</mat-option>
+          <mat-option value="gpu-only" i18n>GPU Only (Only use GPU metrics for culling)</mat-option>
+          <mat-option value="time-priority" i18n>Time Priority (Time-based first, GPU as additional criteria)</mat-option>
+        </mat-select>
+        <mat-hint i18n>How GPU and time-based culling interact</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- GPU Memory Threshold -->
+    <div class="row">
+      <mat-form-field appearance="outline" class="column">
+        <mat-label i18n>GPU Memory Threshold (%)</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          max="100"
+          [formControl]="parentForm.get('gpuCulling.memoryThreshold')"
+          placeholder="10"
+          i18n-placeholder
+          data-cy-form-gpu-memory-threshold
+        />
+        <mat-hint i18n>Notebooks using less than this percentage of allocated GPU memory may be culled</mat-hint>
+        <mat-error *ngIf="parentForm.get('gpuCulling.memoryThreshold').hasError('required')" i18n>
+          GPU memory threshold is required
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('gpuCulling.memoryThreshold').hasError('min')" i18n>
+          GPU memory threshold must be at least 1%
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('gpuCulling.memoryThreshold').hasError('max')" i18n>
+          GPU memory threshold cannot exceed 100%
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="column">
+        <mat-label i18n>GPU Compute Threshold (%)</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          max="100"
+          [formControl]="parentForm.get('gpuCulling.computeThreshold')"
+          placeholder="5"
+          i18n-placeholder
+          data-cy-form-gpu-compute-threshold
+        />
+        <mat-hint i18n>Notebooks with less than this percentage of GPU utilization may be culled</mat-hint>
+        <mat-error *ngIf="parentForm.get('gpuCulling.computeThreshold').hasError('required')" i18n>
+          GPU compute threshold is required
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('gpuCulling.computeThreshold').hasError('min')" i18n>
+          GPU compute threshold must be at least 1%
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('gpuCulling.computeThreshold').hasError('max')" i18n>
+          GPU compute threshold cannot exceed 100%
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Advanced GPU Settings -->
+    <lib-advanced-options>
+      <!-- GPU Kernel Timeout -->
+      <div class="row">
+        <mat-form-field appearance="outline" class="column">
+          <mat-label i18n>GPU Kernel Timeout</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            [formControl]="parentForm.get('gpuCulling.kernelTimeoutValue')"
+            placeholder="5"
+            i18n-placeholder
+            data-cy-form-gpu-kernel-timeout
+          />
+          <mat-hint i18n>Time since last GPU kernel execution before considering for culling</mat-hint>
+          <mat-error *ngIf="parentForm.get('gpuCulling.kernelTimeoutValue').hasError('required')" i18n>
+            GPU kernel timeout is required
+          </mat-error>
+          <mat-error *ngIf="parentForm.get('gpuCulling.kernelTimeoutValue').hasError('min')" i18n>
+            GPU kernel timeout must be at least 1
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="column time-unit">
+          <mat-label i18n>Unit</mat-label>
+          <mat-select [formControl]="parentForm.get('gpuCulling.kernelTimeoutUnit')" data-cy-form-gpu-kernel-unit>
+            <mat-option value="minutes" i18n>Minutes</mat-option>
+            <mat-option value="hours" i18n>Hours</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- GPU Sustained Duration -->
+      <div class="row">
+        <mat-form-field appearance="outline" class="column">
+          <mat-label i18n>Sustained Duration</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            [formControl]="parentForm.get('gpuCulling.sustainedDurationValue')"
+            placeholder="10"
+            i18n-placeholder
+            data-cy-form-gpu-sustained-duration
+          />
+          <mat-hint i18n>How long low GPU usage must persist before triggering culling</mat-hint>
+          <mat-error *ngIf="parentForm.get('gpuCulling.sustainedDurationValue').hasError('required')" i18n>
+            Sustained duration is required
+          </mat-error>
+          <mat-error *ngIf="parentForm.get('gpuCulling.sustainedDurationValue').hasError('min')" i18n>
+            Sustained duration must be at least 1
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="column time-unit">
+          <mat-label i18n>Unit</mat-label>
+          <mat-select [formControl]="parentForm.get('gpuCulling.sustainedDurationUnit')" data-cy-form-gpu-sustained-unit>
+            <mat-option value="minutes" i18n>Minutes</mat-option>
+            <mat-option value="hours" i18n>Hours</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </lib-advanced-options>
+  </div>
+
+  <!-- GPU Policy Information Display -->
+  <mat-divider *ngIf="effectiveGPUPolicy"></mat-divider>
+  <app-gpu-policy-display
+    *ngIf="effectiveGPUPolicy"
+    [policy]="effectiveGPUPolicy"
+    [title]="'Effective GPU Culling Policy'"
+    [showHierarchy]="true"
+    [showOverrideInfo]="!parentForm.get('gpuCulling.enabled').value"
+    [canOverride]="true">
+  </app-gpu-policy-display>
+
+  <!-- GPU Metrics Preview (if available) -->
+  <mat-divider *ngIf="gpuMetrics"></mat-divider>
+  <div *ngIf="gpuMetrics" class="gpu-metrics-preview">
+    <h4 i18n>Current GPU Usage</h4>
+    <div class="metrics-grid">
+      <div class="metric-card" *ngFor="let device of gpuMetrics.devices">
+        <div class="metric-header">
+          <mat-icon>memory</mat-icon>
+          <span>GPU {{device.virtualDeviceID}}</span>
+        </div>
+        <div class="metric-content">
+          <div class="metric-row">
+            <span i18n>Memory:</span>
+            <span [class]="getUsageClass(device.memoryUsage.utilizationPercentage)">
+              {{device.memoryUsage.utilizationPercentage | number:'1.1-1'}}%
+            </span>
+          </div>
+          <div class="metric-row">
+            <span i18n>Compute:</span>
+            <span [class]="getUsageClass(device.computeUtilization.utilizationPercentage)">
+              {{device.computeUtilization.utilizationPercentage | number:'1.1-1'}}%
+            </span>
+          </div>
+          <div class="metric-row">
+            <span i18n>Last Kernel:</span>
+            <span>{{getLastKernelText(device.secondsSinceLastKernel)}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="metrics-note" i18n>
+      <mat-icon>info</mat-icon>
+      These are current GPU usage metrics. Culling decisions are based on sustained usage patterns over time.
+    </div>
+  </div>
+</lib-form-section>
+
+<!-- Warning when no GPU resources -->
+<div *ngIf="!hasGPUResources && showGPUWarning" class="gpu-warning">
+  <mat-icon>info</mat-icon>
+  <span i18n>GPU-based culling is only available when GPU resources are allocated to the notebook.</span>
+</div>

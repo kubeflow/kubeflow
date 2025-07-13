@@ -48,6 +48,10 @@ const APP_API_GROUP = 'app.k8s.io';
 const APP_API_VERSION = 'v1beta1';
 const APP_API_NAME = 'applications';
 
+const PROFILE_API_GROUP = 'kubeflow.org';
+const PROFILE_API_VERSION = 'v1beta1';
+const PROFILE_API_NAME = 'profiles';
+
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
   private namespace = process.env.POD_NAMESPACE || 'kubeflow';
@@ -175,5 +179,44 @@ export class KubernetesService {
       console.error('Unable to fetch Application information:', err.body || err);
     }
     return version;
+  }
+
+  /** Retrieves a specific ConfigMap from a namespace. */
+  async getNamespacedConfigMap(name: string, namespace: string): Promise<k8s.V1ConfigMap> {
+    try {
+      const { body } = await this.coreAPI.readNamespacedConfigMap(name, namespace);
+      return body;
+    } catch (err) {
+      console.error(`Unable to fetch ConfigMap ${name} in namespace ${namespace}:`, err.body || err);
+      throw err;
+    }
+  }
+
+  /** Retrieves a Profile CRD by name. */
+  // tslint:disable-next-line:no-any
+  async getProfile(name: string): Promise<any> {
+    try {
+      const response = await this.customObjectsAPI.getClusterCustomObject(
+        PROFILE_API_GROUP, PROFILE_API_VERSION, PROFILE_API_NAME, name
+      );
+      return response.body;
+    } catch (err) {
+      console.error(`Unable to fetch Profile ${name}:`, err.body || err);
+      throw err;
+    }
+  }
+
+  /** Updates a Profile CRD. */
+  // tslint:disable-next-line:no-any
+  async updateProfile(name: string, profile: any): Promise<any> {
+    try {
+      const response = await this.customObjectsAPI.replaceClusterCustomObject(
+        PROFILE_API_GROUP, PROFILE_API_VERSION, PROFILE_API_NAME, name, profile
+      );
+      return response.body;
+    } catch (err) {
+      console.error(`Unable to update Profile ${name}:`, err.body || err);
+      throw err;
+    }
   }
 }

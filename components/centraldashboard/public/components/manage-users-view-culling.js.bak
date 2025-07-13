@@ -1,0 +1,215 @@
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icons/hardware-icons.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-slider/paper-slider.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-toast/paper-toast.js';
+
+import {html, PolymerElement} from '@polymer/polymer';
+
+import css from './manage-users-view-culling.css';
+import template from './manage-users-view-culling.pug';
+import utilitiesMixin from './utilities-mixin.js';
+
+export class ManageUsersViewCulling extends utilitiesMixin(PolymerElement) {
+    static get template() {
+        return html([`
+            <style>${css.toString()}</style>
+            ${template()}
+        `]);
+    }
+
+    static get properties() {
+        return {
+            ownedNamespace: {type: Object, value: () => ({})},
+            cullingConfig: {
+                type: Object,
+                value: () => ({
+                    enabled: false,
+                    defaultIdleTime: '480',
+                    defaultCheckPeriod: '5',
+                    minIdleTime: '60',
+                    maxIdleTime: '1440',
+                    allowUserExemption: true,
+                    exemptNotebooks: [],
+                    overrideClusterDefaults: false,
+                    gpuEnabled: false,
+                    gpuMode: 'gpu-priority',
+                    gpuMemoryThreshold: 10,
+                    gpuComputeThreshold: 5,
+                    gpuKernelTimeout: '5m',
+                    gpuSustainedDuration: '10m'
+                }),
+                observer: '_cullingConfigChanged'
+            },
+            clusterDefaults: {
+                type: Object,
+                value: () => ({
+                    enabled: true,
+                    defaultIdleTime: '1440',
+                    defaultMinIdleTime: '60',
+                    defaultMaxIdleTime: '2880',
+                    allowUserExemption: true
+                })
+            },
+            exemptNotebooksText: {
+                type: String,
+                value: '',
+                observer: '_exemptNotebooksTextChanged'
+            },
+            gpuModeIndex: {
+                type: Number,
+                value: 1,
+                observer: '_gpuModeIndexChanged'
+            },
+            hasChanges: {type: Boolean, value: false},
+            cullingConfigError: String,
+            cullingConfigFetchError: String,
+            clusterDefaultsError: String,
+            originalConfig: Object
+        };
+    }
+
+    ready() {
+        super.ready();
+        this.originalConfig = {};
+    }
+
+    _cullingConfigChanged(newConfig) {
+        if (newConfig && newConfig.exemptNotebooks) {
+            this.exemptNotebooksText = newConfig.exemptNotebooks.join(',');
+        }
+        if (newConfig && newConfig.gpuMode) {
+            this.gpuModeIndex = this._getGpuModeIndex(newConfig.gpuMode);
+        }
+        this._updateOriginalConfig(newConfig);
+    }
+
+    _exemptNotebooksTextChanged(newText) {
+        if (this.cullingConfig && newText !== undefined) {
+            this.set('cullingConfig.exemptNotebooks', 
+                newText.split(',').map(n => n.trim()).filter(n => n));
+            this._checkForChanges();
+        }
+    }
+
+    _gpuModeIndexChanged(newIndex) {
+        const modes = ['gpu-only', 'gpu-priority', 'time-priority'];
+        if (this.cullingConfig && modes[newIndex]) {
+            this.set('cullingConfig.gpuMode', modes[newIndex]);
+            this._checkForChanges();
+        }
+    }
+
+    _getGpuModeIndex(mode) {
+        const modes = ['gpu-only', 'gpu-priority', 'time-priority'];
+        return Math.max(0, modes.indexOf(mode));
+    }
+
+    _updateOriginalConfig(config) {
+        if (config && Object.keys(this.originalConfig).length === 0) {
+            this.originalConfig = JSON.parse(JSON.stringify(config));
+        }
+    }
+
+    _checkForChanges() {
+        if (!this.originalConfig ||
+            this.hasChanges = false;
+            return;
+        }
+        
+        const current = JSON.stringify(this.cullingConfig);
+        const original = JSON.stringify(this.originalConfig);
+        this.hasChanges = current !== original;
+    }
+
+    onCullingEnabledChange() {
+        this._checkForChanges();
+    }
+
+    onGpuCullingEnabledChange() {
+        this._checkForChanges();
+    }
+
+    onConfigChange() {
+        this._checkForChanges();
+    }
+
+    onExemptNotebooksChange(e) {
+        this.exemptNotebooksText = e.target.value;
+    }
+
+    onGpuModeChange(e) {
+        const selectedItem = e.detail.item;
+        if (selectedItem) {
+            const mode = selectedItem.getAttribute('data-value');
+            this.set('cullingConfig.gpuMode', mode);
+            this._checkForChanges();
+        }
+    }
+
+    getHierarchyItemClass(level) {
+        if (level === 'cluster') {
+            return 'cluster-level';
+        } else if (level === 'profile') {
+            return this.cullingConfig.enabled ? 'profile-level active' : 'profile-level inactive';
+        }
+        return '';
+    }
+
+    getBooleanText(value) {
+        return value ? 'Yes' : 'No';
+    }
+
+    saveCullingConfig() {
+        const api = this.$.UpdateCullingConfigAjax;
+        api.body = this.cullingConfig;
+        api.generateRequest();
+    }
+
+    resetCullingConfig() {
+        if (this.originalConfig) {
+            this.cullingConfig = JSON.parse(JSON.stringify(this.originalConfig));
+            this.hasChanges = false;
+        }
+    }
+
+    handleCullingConfigUpdate(e) {
+        if (e.detail.error) {
+            const error = this._isolateErrorFromIronRequest(e);
+            this.cullingConfigError = error;
+            this.$.CullingConfigError.show();
+            return;
+        }
+        
+        // Update successful
+        this.originalConfig = JSON.parse(JSON.stringify(this.cullingConfig));
+        this.hasChanges = false;
+        this.$.CullingConfigSuccess.show();
+    }
+
+    onCullingConfigFetchError(e) {
+        const error = this._isolateErrorFromIronRequest(e);
+        this.cullingConfigFetchError = error;
+        this.$.CullingConfigFetchError.show();
+    }
+
+    onClusterDefaultsFetchError(e) {
+        const error = this._isolateErrorFromIronRequest(e);
+        this.clusterDefaultsError = error;
+        this.$.ClusterDefaultsError.show();
+    }
+
+    _isolateErrorFromIronRequest(e) {
+        const bd = e.detail.request.response || {};
+        return bd.error || e.detail.error || e.detail;
+    }
+}
+
+customElements.define('manage-users-view-culling', ManageUsersViewCulling);

@@ -1,3 +1,35 @@
 .mat-slide-toggle {
   margin-bottom: 0.6rem;
 }
+
+.fractional-gpu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem;
+}
+
+.section-label {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.allocation-type-group {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.allocation-type-group .mat-radio-button {
+  margin-right: 1rem;
+}
+
+.fractional-input {
+  width: 100%;
+  max-width: 400px;
+}

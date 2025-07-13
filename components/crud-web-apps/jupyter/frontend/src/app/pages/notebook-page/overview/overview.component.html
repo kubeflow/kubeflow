@@ -14,6 +14,32 @@
   {{ notebookCreator }}
 </lib-details-list-item>
 
+<!-- Culling Information -->
+<lib-content-list-item key="Culling Configuration" *ngIf="cullingInfo">
+  <app-policy-display
+    [policy]="cullingInfo"
+    [title]="''"
+    [showHierarchy]="false"
+    [showOverrideInfo]="false"
+    [canOverride]="false">
+  </app-policy-display>
+</lib-content-list-item>
+
+<!-- GPU Culling Information -->
+<lib-content-list-item key="GPU Culling Configuration" *ngIf="gpuCullingInfo">
+  <app-gpu-policy-display
+    [policy]="gpuCullingInfo"
+    [title]="''"
+    [showHierarchy]="false"
+    [showOverrideInfo]="false"
+    [canOverride]="false">
+  </app-gpu-policy-display>
+</lib-content-list-item>
+
+<lib-details-list-item *ngIf="lastActivity" key="Last Activity">
+  {{ lastActivity }}
+</lib-details-list-item>
+
 <lib-content-list-item class="configurations" key="Configurations">
   <app-configurations [configurations]="configurations">
     {{ podDefaultsMessage }}

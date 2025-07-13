@@ -83,4 +83,26 @@ export interface Config {
     value: string[];
     readOnly?: boolean;
   };
+
+  culling?: {
+    value?: {
+      enabled: boolean;
+      idleTimeout: string;
+      checkPeriod: string;
+      exempt: boolean;
+    };
+    readOnly?: boolean;
+  };
+
+  gpuCulling?: {
+    value?: {
+      enabled: boolean;
+      mode: string;
+      memoryThreshold: number;
+      computeThreshold: number;
+      kernelTimeout: string;
+      sustainedDuration: string;
+    };
+    readOnly?: boolean;
+  };
 }

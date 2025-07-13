@@ -23,6 +23,32 @@ interface AddOrRemoveContributorRequest {
     contributor?: string;
 }
 
+interface ProfileCullingConfig {
+    enabled?: boolean;
+    defaultIdleTime?: string;
+    defaultCheckPeriod?: string;
+    minIdleTime?: string;
+    maxIdleTime?: string;
+    allowUserExemption?: boolean;
+    exemptNotebooks?: string[];
+    overrideClusterDefaults?: boolean;
+    // GPU culling configuration
+    gpuEnabled?: boolean;
+    gpuMode?: string;
+    gpuMemoryThreshold?: number;
+    gpuComputeThreshold?: number;
+    gpuKernelTimeout?: string;
+    gpuSustainedDuration?: string;
+}
+
+interface ClusterCullingDefaults {
+    enabled: boolean;
+    defaultIdleTime: string;
+    defaultMinIdleTime: string;
+    defaultMaxIdleTime: string;
+    allowUserExemption: boolean;
+}
+
 interface HasWorkgroupResponse {
     user: string;
     hasAuth: boolean;
@@ -389,6 +415,182 @@ export class WorkgroupApi {
         })
         .delete('/remove-contributor/:namespace', async (req: Request, res: Response) => {
             this.handleContributor('remove', req, res);
+        })
+        .get('/profile-culling-config/:namespace', async (req: Request, res: Response) => {
+            const {namespace} = req.params;
+            try {
+                const config = await this.getProfileCullingConfig(namespace);
+                res.json(config);
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: `Unable to fetch culling configuration for ${namespace}`,
+                    err,
+                });
+            }
+        })
+        .put('/profile-culling-config/:namespace', async (req: Request, res: Response) => {
+            const {namespace} = req.params;
+            const config = req.body as ProfileCullingConfig;
+            try {
+                await this.updateProfileCullingConfig(namespace, config);
+                res.json({message: `Updated culling configuration for ${namespace}`});
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: `Unable to update culling configuration for ${namespace}`,
+                    err,
+                });
+            }
+        })
+        .get('/cluster-culling-defaults', async (req: Request, res: Response) => {
+            try {
+                const defaults = await this.getClusterCullingDefaults();
+                res.json(defaults);
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: 'Unable to fetch cluster culling defaults',
+                    err,
+                });
+            }
         });
+    }
+
+    /**
+     * Get profile culling configuration from Profile CRD annotations
+     */
+    async getProfileCullingConfig(namespace: string): Promise<ProfileCullingConfig> {
+        try {
+            // Get the Profile CRD for this namespace
+            const profile = await this.k8sService.getProfile(namespace);
+            const annotations = profile.metadata?.annotations || {};
+
+            // Parse culling annotations
+            const config: ProfileCullingConfig = {
+                enabled: annotations['culling.kubeflow.org/enabled'] === 'true',
+                defaultIdleTime: annotations['culling.kubeflow.org/default-idle-time'],
+                defaultCheckPeriod: annotations['culling.kubeflow.org/default-check-period'],
+                minIdleTime: annotations['culling.kubeflow.org/min-idle-time'],
+                maxIdleTime: annotations['culling.kubeflow.org/max-idle-time'],
+                allowUserExemption: annotations['culling.kubeflow.org/allow-user-exemption'] === 'true',
+                exemptNotebooks: annotations['culling.kubeflow.org/exempt-notebooks']?.split(',').filter((n: string) => n.trim()) || [],
+                overrideClusterDefaults: annotations['culling.kubeflow.org/override-cluster-defaults'] === 'true',
+
+                // GPU culling configuration
+                gpuEnabled: annotations['culling.kubeflow.org/gpu-enabled'] === 'true',
+                gpuMode: annotations['culling.kubeflow.org/gpu-mode'] || 'gpu-priority',
+                gpuMemoryThreshold: Number(annotations['culling.kubeflow.org/gpu-memory-threshold']) || 10,
+                gpuComputeThreshold: Number(annotations['culling.kubeflow.org/gpu-compute-threshold']) || 5,
+                gpuKernelTimeout: annotations['culling.kubeflow.org/gpu-kernel-timeout'] || '5m',
+                gpuSustainedDuration: annotations['culling.kubeflow.org/gpu-sustained-duration'] || '10m',
+            };
+
+            return config;
+        } catch (err) {
+            throw new Error(`Failed to get profile culling config: ${err.message}`);
+        }
+    }
+
+    /**
+     * Update profile culling configuration by modifying Profile CRD annotations
+     */
+    async updateProfileCullingConfig(namespace: string, config: ProfileCullingConfig): Promise<void> {
+        try {
+            // Get the current Profile CRD
+            const profile = await this.k8sService.getProfile(namespace);
+
+            // Ensure annotations object exists
+            if (!profile.metadata) {
+                profile.metadata = {};
+            }
+            if (!profile.metadata.annotations) {
+                profile.metadata.annotations = {};
+            }
+
+            // Update culling annotations
+            const annotations = profile.metadata.annotations;
+
+            // Basic culling configuration
+            if (config.enabled !== undefined) {
+                annotations['culling.kubeflow.org/enabled'] = config.enabled.toString();
+            }
+            if (config.defaultIdleTime) {
+                annotations['culling.kubeflow.org/default-idle-time'] = config.defaultIdleTime;
+            }
+            if (config.defaultCheckPeriod) {
+                annotations['culling.kubeflow.org/default-check-period'] = config.defaultCheckPeriod;
+            }
+            if (config.minIdleTime) {
+                annotations['culling.kubeflow.org/min-idle-time'] = config.minIdleTime;
+            }
+            if (config.maxIdleTime) {
+                annotations['culling.kubeflow.org/max-idle-time'] = config.maxIdleTime;
+            }
+            if (config.allowUserExemption !== undefined) {
+                annotations['culling.kubeflow.org/allow-user-exemption'] = config.allowUserExemption.toString();
+            }
+            if (config.exemptNotebooks) {
+                annotations['culling.kubeflow.org/exempt-notebooks'] = config.exemptNotebooks.join(',');
+            }
+            if (config.overrideClusterDefaults !== undefined) {
+                annotations['culling.kubeflow.org/override-cluster-defaults'] = config.overrideClusterDefaults.toString();
+            }
+
+            // GPU culling configuration
+            if (config.gpuEnabled !== undefined) {
+                annotations['culling.kubeflow.org/gpu-enabled'] = config.gpuEnabled.toString();
+            }
+            if (config.gpuMode) {
+                annotations['culling.kubeflow.org/gpu-mode'] = config.gpuMode;
+            }
+            if (config.gpuMemoryThreshold !== undefined) {
+                annotations['culling.kubeflow.org/gpu-memory-threshold'] = config.gpuMemoryThreshold.toString();
+            }
+            if (config.gpuComputeThreshold !== undefined) {
+                annotations['culling.kubeflow.org/gpu-compute-threshold'] = config.gpuComputeThreshold.toString();
+            }
+            if (config.gpuKernelTimeout) {
+                annotations['culling.kubeflow.org/gpu-kernel-timeout'] = config.gpuKernelTimeout;
+            }
+            if (config.gpuSustainedDuration) {
+                annotations['culling.kubeflow.org/gpu-sustained-duration'] = config.gpuSustainedDuration;
+            }
+
+            // Update the Profile CRD
+            await this.k8sService.updateProfile(namespace, profile);
+        } catch (err) {
+            throw new Error(`Failed to update profile culling config: ${err.message}`);
+        }
+    }
+
+    /**
+     * Get cluster-level culling defaults from ConfigMap
+     */
+    async getClusterCullingDefaults(): Promise<ClusterCullingDefaults> {
+        try {
+            // Get cluster culling configuration from ConfigMap
+            const configMap = await this.k8sService.getNamespacedConfigMap('cluster-culling-config', 'kubeflow');
+            const data = configMap.data || {};
+
+            const defaults: ClusterCullingDefaults = {
+                enabled: data['cluster-enable-culling'] === 'true',
+                defaultIdleTime: data['cluster-default-idle-time'] || '1440',
+                defaultMinIdleTime: data['cluster-default-min-idle-time'] || '60',
+                defaultMaxIdleTime: data['cluster-default-max-idle-time'] || '2880',
+                allowUserExemption: data['cluster-allow-user-exemption'] === 'true',
+            };
+
+            return defaults;
+        } catch (err) {
+            // Return sensible defaults if ConfigMap doesn't exist
+            return {
+                enabled: true,
+                defaultIdleTime: '1440', // 24 hours
+                defaultMinIdleTime: '60', // 1 hour
+                defaultMaxIdleTime: '2880', // 48 hours
+                allowUserExemption: true,
+            };
+        }
     }
 }

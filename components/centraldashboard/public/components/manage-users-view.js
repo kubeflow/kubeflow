@@ -2,6 +2,9 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-icons/social-icons.js';
+import '@polymer/iron-pages/iron-pages.js';
+import '@polymer/paper-tabs/paper-tabs.js';
+import '@polymer/paper-tabs/paper-tab.js';
 import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
@@ -17,6 +20,7 @@ import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
 
 import './manage-users-view-contributor.js';
+import './manage-users-view-culling.js';
 import utilitiesMixin from './utilities-mixin.js';
 
 export class ManageUsersView extends utilitiesMixin(PolymerElement) {
@@ -39,6 +43,8 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
             ownedNamespaces: {type: Array, value: []},
             editNamespaces: {type: Array, value: []},
             viewNamespaces: {type: Array, value: []},
+            selectedTab: {type: Number, value: 0},
+            selectedNamespaceIndex: {type: Number, value: 0},
         };
     }
     /**
@@ -104,6 +110,35 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
      */
     shouldFetchAllNamespaces(isClusterAdmin) {
         return isClusterAdmin;
+    }
+
+    /**
+     * Check if there are multiple namespaces to show the selector
+     * @param {Array} ownedNamespaces Array of owned namespaces
+     * @return {boolean} True if there are multiple namespaces
+     */
+    _hasMultipleNamespaces(ownedNamespaces) {
+        return ownedNamespaces && ownedNamespaces.length > 1;
+    }
+
+    /**
+     * Get the currently selected namespace
+     * @param {Array} ownedNamespaces Array of owned namespaces
+     * @param {number} selectedIndex Index of selected namespace
+     * @return {Object} Selected namespace object
+     */
+    _getSelectedNamespace(ownedNamespaces, selectedIndex) {
+        if (!ownedNamespaces || !ownedNamespaces.length) return null;
+        const index = selectedIndex || 0;
+        return ownedNamespaces[index] || ownedNamespaces[0];
+    }
+
+    /**
+     * Handle namespace selection change
+     * @param {Event} e Selection change event
+     */
+    _onNamespaceSelectionChange(e) {
+        this.selectedNamespaceIndex = parseInt(e.target.value, 10);
     }
 }
 

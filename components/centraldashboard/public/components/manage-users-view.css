@@ -57,3 +57,49 @@ vaadin-grid {
 #NoNamespaceError {margin-top: 1em}
 
 [hidden] {display: none !important}
+
+/* Profile Settings Tab Styling */
+.Profile-Settings {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.profile-tabs {
+    border-bottom: 1px solid #e0e0e0;
+    --paper-tabs-selection-bar-color: #1976d2;
+}
+
+.profile-tabs paper-tab {
+    --paper-tab-ink: #1976d2;
+    font-weight: 500;
+}
+
+.profile-content {
+    min-height: 400px;
+}
+
+.tab-content {
+    padding: 0;
+}
+
+.namespace-selector {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+}
+
+.namespace-selector label {
+    font-weight: 500;
+    margin-right: 12px;
+    color: #333;
+}
+
+.namespace-selector select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+}

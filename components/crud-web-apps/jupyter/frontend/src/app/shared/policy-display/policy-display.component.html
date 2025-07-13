@@ -1,0 +1,143 @@
+<div class="policy-display" *ngIf="policy">
+  <div class="policy-header">
+    <h4>
+      <mat-icon [ngClass]="getIconClass()">{{ getIcon() }}</mat-icon>
+      {{ title || 'Culling Policy' }}
+    </h4>
+    <div class="policy-source" [ngClass]="'policy-' + policy.source">
+      <mat-icon>{{ getIcon() }}</mat-icon>
+      {{ getPolicySourceLabel(policy.source) }}
+    </div>
+  </div>
+  
+  <div class="policy-content">
+    <div class="policy-section">
+      <div class="policy-row">
+        <span class="policy-label" i18n>Status:</span>
+        <div class="policy-value" [ngClass]="policy.enabled ? 'enabled' : 'disabled'">
+          <mat-icon>{{ policy.enabled ? 'check_circle' : 'cancel' }}</mat-icon>
+          {{ policy.enabled ? 'Enabled' : 'Disabled' }}
+        </div>
+      </div>
+
+      <div class="policy-row" *ngIf="policy.enabled">
+        <span class="policy-label" i18n>Idle Timeout:</span>
+        <div class="policy-value">
+          <mat-icon>schedule</mat-icon>
+          {{ formatDuration(policy.idleTimeout) }}
+        </div>
+      </div>
+
+      <div class="policy-row" *ngIf="policy.enabled">
+        <span class="policy-label" i18n>Check Period:</span>
+        <div class="policy-value">
+          <mat-icon>refresh</mat-icon>
+          {{ formatDuration(policy.checkPeriod) }}
+        </div>
+      </div>
+
+      <div class="policy-row" *ngIf="policy.exempt">
+        <span class="policy-label" i18n>Exemption:</span>
+        <div class="policy-value enabled">
+          <mat-icon>security</mat-icon>
+          Exempt from Culling
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hierarchy Visualization -->
+    <div class="policy-hierarchy" *ngIf="showHierarchy">
+      <h5 i18n>Policy Resolution Hierarchy</h5>
+      <div class="hierarchy-list">
+        <div class="hierarchy-item"
+             [ngClass]="{
+               'active': policy.source === 'notebook',
+               'higher-priority': isHigherPriority('notebook'),
+               'lower-priority': !isHigherPriority('notebook') && policy.source !== 'notebook'
+             }"
+             matTooltip="Notebook-level annotations (highest priority)"
+             i18n-matTooltip>
+          <mat-icon>description</mat-icon>
+          <span>Notebook Level</span>
+          <mat-icon class="hierarchy-status">
+            {{ isCurrentSource('notebook') ? 'check_circle' : (isHigherPriority('notebook') ? 'radio_button_unchecked' : 'remove_circle_outline') }}
+          </mat-icon>
+        </div>
+
+        <div class="hierarchy-item"
+             [ngClass]="{
+               'active': policy.source === 'profile',
+               'higher-priority': isHigherPriority('profile'),
+               'lower-priority': !isHigherPriority('profile') && policy.source !== 'profile'
+             }"
+             matTooltip="Profile-level annotations"
+             i18n-matTooltip>
+          <mat-icon>account_circle</mat-icon>
+          <span>Profile Level</span>
+          <mat-icon class="hierarchy-status">
+            {{ isCurrentSource('profile') ? 'check_circle' : (isHigherPriority('profile') ? 'radio_button_unchecked' : 'remove_circle_outline') }}
+          </mat-icon>
+        </div>
+
+        <div class="hierarchy-item"
+             [ngClass]="{
+               'active': policy.source === 'cluster',
+               'higher-priority': isHigherPriority('cluster'),
+               'lower-priority': !isHigherPriority('cluster') && policy.source !== 'cluster'
+             }"
+             matTooltip="Cluster-level configuration"
+             i18n-matTooltip>
+          <mat-icon>cloud</mat-icon>
+          <span>Cluster Level</span>
+          <mat-icon class="hierarchy-status">
+            {{ isCurrentSource('cluster') ? 'check_circle' : (isHigherPriority('cluster') ? 'radio_button_unchecked' : 'remove_circle_outline') }}
+          </mat-icon>
+        </div>
+
+        <div class="hierarchy-item"
+             [ngClass]="{
+               'active': policy.source === 'default',
+               'lower-priority': policy.source !== 'default'
+             }"
+             matTooltip="System default settings (lowest priority)"
+             i18n-matTooltip>
+          <mat-icon>settings</mat-icon>
+          <span>System Default</span>
+          <mat-icon class="hierarchy-status">
+            {{ isCurrentSource('default') ? 'check_circle' : 'remove_circle_outline' }}
+          </mat-icon>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Override Information -->
+    <div class="override-info" *ngIf="showOverrideInfo && canOverride && policy.source !== 'notebook'">
+      <mat-icon>info</mat-icon>
+      <div class="override-content">
+        <div class="override-title" i18n>Override Available</div>
+        <div class="override-text" i18n>
+          You can override this {{ policy.source }}-level policy by configuring notebook-specific settings above.
+        </div>
+      </div>
+    </div>
+
+    <!-- Benefits Section -->
+    <div class="benefits-section" *ngIf="policy.enabled">
+      <h5 i18n>Benefits of Culling</h5>
+      <div class="benefits-list">
+        <div class="benefit-item">
+          <mat-icon>savings</mat-icon>
+          <span i18n>Reduces resource costs by stopping idle notebooks</span>
+        </div>
+        <div class="benefit-item">
+          <mat-icon>speed</mat-icon>
+          <span i18n>Improves cluster performance and resource availability</span>
+        </div>
+        <div class="benefit-item">
+          <mat-icon>eco</mat-icon>
+          <span i18n>Promotes efficient resource usage across the platform</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

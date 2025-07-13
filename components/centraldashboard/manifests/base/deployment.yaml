@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: centraldashboard
-        image: ghcr.io/kubeflow/kubeflow/central-dashboard
+        image: ghcr.io/thuanpham582002/kubeflow/centraldashboard:profile-culling-v1.0.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

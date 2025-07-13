@@ -171,6 +171,36 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       text: notebook.name,
       url: `/notebook/details/${notebook.namespace}/${notebook.name}`,
     };
+
+    // Add GPU resources detection for GPU culling status
+    notebook.hasGPUResources = this.hasGPUResources(notebook);
+  }
+
+  private hasGPUResources(notebook: NotebookProcessedObject): boolean {
+    // Check if notebook has GPU resources allocated
+    if (notebook.gpus && notebook.gpus.count && String(notebook.gpus.count) !== '0') {
+      return true;
+    }
+
+    // Also check the raw notebook spec for GPU resources
+    try {
+      const containers = (notebook as any).spec?.template?.spec?.containers || [];
+      for (const container of containers) {
+        const resources = container.resources;
+        if (resources?.requests || resources?.limits) {
+          const allResources = { ...resources.requests, ...resources.limits };
+          for (const resourceName of Object.keys(allResources)) {
+            if (resourceName.includes('gpu') || resourceName.includes('nvidia.com')) {
+              return true;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error checking GPU resources:', error);
+    }
+
+    return false;
   }
 
   processIncomingData(notebooks: NotebookResponseObject[]) {

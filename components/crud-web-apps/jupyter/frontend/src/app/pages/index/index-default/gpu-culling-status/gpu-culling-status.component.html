@@ -1,0 +1,105 @@
+<div class="gpu-culling-status" *ngIf="element">
+  <!-- GPU Culling Status Indicator -->
+  <div class="status-indicator" [class]="getStatusClass()" [matTooltip]="getStatusTooltip()">
+    <mat-icon>{{ getStatusIcon() }}</mat-icon>
+    <span class="status-text">{{ getStatusText() }}</span>
+  </div>
+
+  <!-- GPU Metrics Display (if available) -->
+  <div class="gpu-metrics" *ngIf="gpuMetrics && gpuMetrics.hasGPUResources">
+    <div class="metrics-row">
+      <div class="metric-item" [matTooltip]="'GPU Memory Usage'">
+        <mat-icon class="metric-icon">memory</mat-icon>
+        <span class="metric-value" [class]="getUsageClass(avgMemoryUsage)">
+          {{ avgMemoryUsage | number:'1.0-1' }}%
+        </span>
+      </div>
+      
+      <div class="metric-item" [matTooltip]="'GPU Compute Usage'">
+        <mat-icon class="metric-icon">speed</mat-icon>
+        <span class="metric-value" [class]="getUsageClass(avgComputeUsage)">
+          {{ avgComputeUsage | number:'1.0-1' }}%
+        </span>
+      </div>
+      
+      <div class="metric-item" [matTooltip]="'Time Since Last Kernel'">
+        <mat-icon class="metric-icon">schedule</mat-icon>
+        <span class="metric-value">{{ getLastKernelText() }}</span>
+      </div>
+    </div>
+
+    <!-- GPU Usage Progress Bars -->
+    <div class="progress-bars" *ngIf="showDetailedMetrics">
+      <div class="progress-item">
+        <span class="progress-label">Memory</span>
+        <mat-progress-bar 
+          mode="determinate" 
+          [value]="avgMemoryUsage"
+          [color]="getProgressColor(avgMemoryUsage)">
+        </mat-progress-bar>
+        <span class="progress-value">{{ avgMemoryUsage | number:'1.0-1' }}%</span>
+      </div>
+      
+      <div class="progress-item">
+        <span class="progress-label">Compute</span>
+        <mat-progress-bar 
+          mode="determinate" 
+          [value]="avgComputeUsage"
+          [color]="getProgressColor(avgComputeUsage)">
+        </mat-progress-bar>
+        <span class="progress-value">{{ avgComputeUsage | number:'1.0-1' }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Policy Information -->
+  <div class="policy-info" *ngIf="gpuCullingPolicy">
+    <div class="policy-source" [class]="getPolicySourceClass()">
+      <mat-icon>{{ getPolicySourceIcon() }}</mat-icon>
+      <span>{{ getPolicySourceText() }}</span>
+    </div>
+    
+    <div class="policy-details" *ngIf="showDetailedMetrics">
+      <div class="policy-row">
+        <span>Mode:</span>
+        <span>{{ getCullingModeText() }}</span>
+      </div>
+      <div class="policy-row">
+        <span>Memory Threshold:</span>
+        <span>{{ gpuCullingPolicy.memoryThreshold }}%</span>
+      </div>
+      <div class="policy-row">
+        <span>Compute Threshold:</span>
+        <span>{{ gpuCullingPolicy.computeThreshold }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Evaluation Time -->
+  <div class="next-evaluation" *ngIf="nextEvaluationTime">
+    <mat-icon>schedule</mat-icon>
+    <span>Next check: {{ nextEvaluationTime | date:'short' }}</span>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="hasError">
+    <mat-icon>warning</mat-icon>
+    <span>GPU metrics unavailable</span>
+  </div>
+
+  <!-- Expand/Collapse Toggle -->
+  <button 
+    mat-icon-button 
+    class="expand-toggle"
+    (click)="toggleDetails()"
+    [matTooltip]="showDetailedMetrics ? 'Hide details' : 'Show details'"
+    *ngIf="gpuMetrics?.hasGPUResources || gpuCullingPolicy">
+    <mat-icon>{{ showDetailedMetrics ? 'expand_less' : 'expand_more' }}</mat-icon>
+  </button>
+</div>
+
+<!-- No GPU Resources -->
+<div class="no-gpu" *ngIf="!element?.hasGPUResources">
+  <mat-icon>info</mat-icon>
+  <span>No GPU</span>
+</div>

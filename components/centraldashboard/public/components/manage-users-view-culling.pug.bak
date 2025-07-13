@@ -1,0 +1,150 @@
+iron-ajax#GetCullingConfigAjax(auto='[[!empty(ownedNamespace)]]', url='/api/workgroup/profile-culling-config/[[ownedNamespace.namespace]]',
+    last-response='{{cullingConfig}}', on-error='onCullingConfigFetchError', handle-as='json')
+iron-ajax#UpdateCullingConfigAjax(method='PUT', url='/api/workgroup/profile-culling-config/[[ownedNamespace.namespace]]',
+    on-response='handleCullingConfigUpdate', on-error='handleCullingConfigUpdate', handle-as='json', content-type='application/json')
+iron-ajax#GetClusterDefaultsAjax(auto, url='/api/workgroup/cluster-culling-defaults',
+    last-response='{{clusterDefaults}}', on-error='onClusterDefaultsFetchError', handle-as='json')
+
+h2
+    iron-icon.icon(icon='schedule')
+    span.text
+        | Culling Configuration for -
+        |
+        span.namespace [[ownedNamespace.namespace]]
+
+// Regular Culling Configuration Section
+article.culling-section
+    h3
+        iron-icon.icon(icon='schedule')
+        span.text Regular Culling Configuration
+    .content
+        .config-row
+            paper-toggle-button(checked='{{cullingConfig.enabled}}', on-change='onCullingEnabledChange')
+            span.label Enable culling for this profile
+            
+        template(is='dom-if', if='[[cullingConfig.enabled]]')
+            .config-row
+                span.label Default idle timeout (minutes)
+                paper-input(type='number', value='{{cullingConfig.defaultIdleTime}}', min='[[clusterDefaults.defaultMinIdleTime]]', max='[[clusterDefaults.defaultMaxIdleTime]]', on-change='onConfigChange')
+                span.help-text Notebooks will be culled after this period of inactivity
+                
+            .config-row
+                span.label Check period (minutes)
+                paper-input(type='number', value='{{cullingConfig.defaultCheckPeriod}}', min='1', max='60', on-change='onConfigChange')
+                span.help-text How often to check for idle notebooks
+                
+            .config-row
+                span.label Minimum idle time (minutes)
+                paper-input(type='number', value='{{cullingConfig.minIdleTime}}', min='1', max='[[cullingConfig.maxIdleTime]]', on-change='onConfigChange')
+                span.help-text Minimum idle time users can configure
+                
+            .config-row
+                span.label Maximum idle time (minutes)
+                paper-input(type='number', value='{{cullingConfig.maxIdleTime}}', min='[[cullingConfig.minIdleTime]]', max='[[clusterDefaults.defaultMaxIdleTime]]', on-change='onConfigChange')
+                span.help-text Maximum idle time users can configure
+                
+            .config-row
+                paper-toggle-button(checked='{{cullingConfig.allowUserExemption}}', on-change='onConfigChange')
+                span.label Allow users to exempt their notebooks from culling
+                
+            .config-row
+                span.label Exempt notebooks (comma-separated)
+                paper-input(value='{{exemptNotebooksText}}', on-change='onExemptNotebooksChange', placeholder='notebook1,notebook2')
+                span.help-text Notebooks that are always exempt from culling
+
+// GPU Culling Configuration Section
+article.culling-section
+    h3
+        iron-icon.icon(icon='hardware:memory')
+        span.text GPU Culling Configuration
+    .content
+        .config-row
+            paper-toggle-button(checked='{{cullingConfig.gpuEnabled}}', on-change='onGpuCullingEnabledChange')
+            span.label Enable GPU-based culling for this profile
+            
+        template(is='dom-if', if='[[cullingConfig.gpuEnabled]]')
+            .config-row
+                span.label GPU culling mode
+                paper-dropdown-menu(label='Culling Mode')
+                    paper-listbox(slot='dropdown-content', selected='{{gpuModeIndex}}', on-iron-select='onGpuModeChange')
+                        paper-item(data-value='gpu-only') GPU Only
+                        paper-item(data-value='gpu-priority') GPU Priority
+                        paper-item(data-value='time-priority') Time Priority
+                span.help-text How to prioritize GPU vs time-based culling
+                
+            .config-row
+                span.label GPU memory threshold (%)
+                paper-slider(value='{{cullingConfig.gpuMemoryThreshold}}', min='1', max='100', step='1', pin, on-change='onConfigChange')
+                span.threshold-value [[cullingConfig.gpuMemoryThreshold]]%
+                span.help-text Cull notebooks using less than this GPU memory
+                
+            .config-row
+                span.label GPU compute threshold (%)
+                paper-slider(value='{{cullingConfig.gpuComputeThreshold}}', min='1', max='100', step='1', pin, on-change='onConfigChange')
+                span.threshold-value [[cullingConfig.gpuComputeThreshold]]%
+                span.help-text Cull notebooks using less than this GPU compute
+                
+            .config-row
+                span.label GPU kernel timeout
+                paper-input(value='{{cullingConfig.gpuKernelTimeout}}', pattern='[0-9]+[smh]', on-change='onConfigChange', placeholder='5m')
+                span.help-text Time to wait for GPU kernel activity (e.g., 5m, 1h)
+                
+            .config-row
+                span.label GPU sustained duration
+                paper-input(value='{{cullingConfig.gpuSustainedDuration}}', pattern='[0-9]+[smh]', on-change='onConfigChange', placeholder='10m')
+                span.help-text How long low usage must be sustained before culling
+
+// Policy Hierarchy Display Section
+article.culling-section
+    h3
+        iron-icon.icon(icon='account-tree')
+        span.text Policy Hierarchy
+    .content
+        .hierarchy-display
+            .hierarchy-item(class$='[[getHierarchyItemClass("cluster")]]')
+                iron-icon(icon='cloud')
+                span Cluster Defaults
+                .hierarchy-details
+                    span Idle Time: [[clusterDefaults.defaultIdleTime]]min
+                    span Max Time: [[clusterDefaults.defaultMaxIdleTime]]min
+                    
+            iron-icon.hierarchy-arrow(icon='arrow-downward')
+            
+            .hierarchy-item(class$='[[getHierarchyItemClass("profile")]]')
+                iron-icon(icon='kubeflow:namespace')
+                span Profile: [[ownedNamespace.namespace]]
+                .hierarchy-details(hidden$='[[!cullingConfig.enabled]]')
+                    span Idle Time: [[cullingConfig.defaultIdleTime]]min
+                    span GPU Enabled: [[getBooleanText(cullingConfig.gpuEnabled)]]
+                    
+            iron-icon.hierarchy-arrow(icon='arrow-downward')
+            
+            .hierarchy-item.notebook-level
+                iron-icon(icon='book')
+                span Individual Notebooks
+                .hierarchy-details
+                    span Can override profile settings within bounds
+
+// Action Buttons
+.action-buttons
+    paper-button.save-button(raised, on-tap='saveCullingConfig', disabled$='[[!hasChanges]]')
+        iron-icon(icon='save')
+        | Save Configuration
+    paper-button.reset-button(on-tap='resetCullingConfig')
+        iron-icon(icon='refresh')
+        | Reset to Defaults
+
+// Error and Success Messages
+paper-toast#CullingConfigError(duration=5000)
+    | Failed to update culling configuration:
+    strong [[cullingConfigError]]
+    
+paper-toast#CullingConfigSuccess(duration=3000, text='Culling configuration updated successfully!')
+
+paper-toast#CullingConfigFetchError(duration=5000)
+    | Failed to fetch culling configuration:
+    strong [[cullingConfigFetchError]]
+    
+paper-toast#ClusterDefaultsError(duration=5000)
+    | Failed to fetch cluster defaults:
+    strong [[clusterDefaultsError]]

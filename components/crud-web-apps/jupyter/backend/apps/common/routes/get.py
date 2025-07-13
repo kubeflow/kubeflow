@@ -98,6 +98,86 @@ def get_notebook_events(notebook_name, namespace):
     )
 
 
+@bp.route("/api/namespaces/<namespace>/culling-policy")
+def get_culling_policy(namespace):
+    """
+    Return the effective culling policy for the given namespace.
+    This includes hierarchical policy resolution from cluster -> profile -> namespace levels.
+    """
+    try:
+        # Try to get cluster-level culling configuration
+        cluster_config = {}
+        try:
+            cluster_cm = api.get_configmap("cluster-culling-config", "kubeflow")
+            cluster_config = cluster_cm.data or {}
+        except Exception:
+            log.debug("No cluster-level culling config found")
+
+        # Try to get profile-level configuration
+        profile_config = {}
+        try:
+            profile = api.get_custom_rsrc(
+                "kubeflow.org", "v1beta1", "profiles", namespace
+            )
+            profile_annotations = profile.get("metadata", {}).get("annotations", {})
+            if "notebooks.kubeflow.org/cull-idle-time" in profile_annotations:
+                profile_config["idleTimeout"] = profile_annotations["notebooks.kubeflow.org/cull-idle-time"]
+            if "notebooks.kubeflow.org/cull-check-period" in profile_annotations:
+                profile_config["checkPeriod"] = profile_annotations["notebooks.kubeflow.org/cull-check-period"]
+        except Exception:
+            log.debug(f"No profile-level culling config found for namespace {namespace}")
+
+        # Try to get namespace-level CullingPolicy CRDs
+        namespace_config = {}
+        try:
+            culling_policies = api.list_custom_rsrc(
+                "kubeflow.org", "v1beta1", "cullingpolicies", namespace
+            )
+            if culling_policies.get("items"):
+                # Use the first CullingPolicy found
+                policy = culling_policies["items"][0]
+                spec = policy.get("spec", {})
+                namespace_config["idleTimeout"] = f"{spec.get('defaultIdleTime', 5)}m"
+                namespace_config["checkPeriod"] = f"{spec.get('checkPeriod', 1)}m"
+        except Exception:
+            log.debug(f"No CullingPolicy CRDs found in namespace {namespace}")
+
+        # Determine effective policy with hierarchy: namespace > profile > cluster > default
+        effective_policy = {
+            "source": "default",
+            "enabled": True,
+            "idleTimeout": "24h",
+            "checkPeriod": "1m",
+            "exempt": False
+        }
+
+        if cluster_config:
+            effective_policy.update(cluster_config)
+            effective_policy["source"] = "cluster"
+
+        if profile_config:
+            effective_policy.update(profile_config)
+            effective_policy["source"] = "profile"
+
+        if namespace_config:
+            effective_policy.update(namespace_config)
+            effective_policy["source"] = "namespace"
+
+        return api.success_response("cullingPolicy", effective_policy)
+
+    except Exception as e:
+        log.error(f"Error getting culling policy for namespace {namespace}: {e}")
+        # Return default policy on error
+        default_policy = {
+            "source": "default",
+            "enabled": True,
+            "idleTimeout": "24h",
+            "checkPeriod": "1m",
+            "exempt": False
+        }
+        return api.success_response("cullingPolicy", default_policy)
+
+
 @bp.route("/api/gpus")
 def get_gpu_vendors():
     """

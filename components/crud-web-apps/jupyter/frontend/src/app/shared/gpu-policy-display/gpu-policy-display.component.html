@@ -1,0 +1,135 @@
+<div class="policy-display" *ngIf="policy">
+  <div class="policy-header">
+    <h4>{{ title }}</h4>
+    <div class="policy-source" [class]="getPolicySourceClass(policy.source)">
+      <mat-icon>{{ getPolicySourceIcon(policy.source) }}</mat-icon>
+      <span>{{ getPolicySourceLabel(policy.source) }}</span>
+    </div>
+  </div>
+
+  <div class="policy-content">
+    <!-- GPU Culling Status -->
+    <div class="policy-row">
+      <span class="policy-label" i18n>GPU Culling:</span>
+      <span class="policy-value" [class]="policy.enabled ? 'enabled' : 'disabled'">
+        <mat-icon>{{ policy.enabled ? 'check_circle' : 'cancel' }}</mat-icon>
+        {{ policy.enabled ? 'Enabled' : 'Disabled' }}
+      </span>
+    </div>
+
+    <!-- GPU Culling Mode -->
+    <div class="policy-row" *ngIf="policy.enabled">
+      <span class="policy-label" i18n>Culling Mode:</span>
+      <span class="policy-value">
+        <mat-icon>{{ getCullingModeIcon(policy.mode) }}</mat-icon>
+        {{ getCullingModeLabel(policy.mode) }}
+      </span>
+    </div>
+
+    <!-- GPU Thresholds -->
+    <div class="policy-section" *ngIf="policy.enabled">
+      <h5 i18n>GPU Usage Thresholds</h5>
+      
+      <div class="policy-row">
+        <span class="policy-label" i18n>Memory Threshold:</span>
+        <span class="policy-value threshold-value">
+          <mat-icon>memory</mat-icon>
+          {{ policy.memoryThreshold }}%
+        </span>
+      </div>
+
+      <div class="policy-row">
+        <span class="policy-label" i18n>Compute Threshold:</span>
+        <span class="policy-value threshold-value">
+          <mat-icon>speed</mat-icon>
+          {{ policy.computeThreshold }}%
+        </span>
+      </div>
+
+      <div class="policy-row">
+        <span class="policy-label" i18n>Kernel Timeout:</span>
+        <span class="policy-value">
+          <mat-icon>schedule</mat-icon>
+          {{ policy.kernelTimeout }}
+        </span>
+      </div>
+
+      <div class="policy-row">
+        <span class="policy-label" i18n>Sustained Duration:</span>
+        <span class="policy-value">
+          <mat-icon>hourglass_empty</mat-icon>
+          {{ policy.sustainedDuration }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Policy Hierarchy (if enabled) -->
+    <div class="policy-hierarchy" *ngIf="showHierarchy">
+      <h5 i18n>Policy Resolution Hierarchy</h5>
+      <div class="hierarchy-list">
+        <div class="hierarchy-item" 
+             [class]="getHierarchyItemClass('notebook', policy.source)">
+          <mat-icon>description</mat-icon>
+          <span i18n>Notebook Annotations</span>
+          <mat-icon class="hierarchy-status">{{ getHierarchyStatusIcon('notebook', policy.source) }}</mat-icon>
+        </div>
+        
+        <div class="hierarchy-item" 
+             [class]="getHierarchyItemClass('profile', policy.source)">
+          <mat-icon>group</mat-icon>
+          <span i18n>Profile Defaults</span>
+          <mat-icon class="hierarchy-status">{{ getHierarchyStatusIcon('profile', policy.source) }}</mat-icon>
+        </div>
+        
+        <div class="hierarchy-item" 
+             [class]="getHierarchyItemClass('cluster', policy.source)">
+          <mat-icon>dns</mat-icon>
+          <span i18n>Cluster Policies</span>
+          <mat-icon class="hierarchy-status">{{ getHierarchyStatusIcon('cluster', policy.source) }}</mat-icon>
+        </div>
+        
+        <div class="hierarchy-item" 
+             [class]="getHierarchyItemClass('default', policy.source)">
+          <mat-icon>settings</mat-icon>
+          <span i18n>System Defaults</span>
+          <mat-icon class="hierarchy-status">{{ getHierarchyStatusIcon('default', policy.source) }}</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Override Information -->
+    <div class="override-info" *ngIf="showOverrideInfo && canOverride">
+      <mat-icon>info</mat-icon>
+      <div class="override-content">
+        <div class="override-title" i18n>Override Available</div>
+        <div class="override-text" i18n>
+          You can override these settings by enabling GPU culling above. 
+          Notebook-level settings take precedence over profile and cluster policies.
+        </div>
+      </div>
+    </div>
+
+    <!-- GPU Culling Benefits -->
+    <div class="benefits-section" *ngIf="policy.enabled">
+      <h5 i18n>GPU Culling Benefits</h5>
+      <div class="benefits-list">
+        <div class="benefit-item">
+          <mat-icon>savings</mat-icon>
+          <span i18n>Optimizes expensive GPU resource allocation</span>
+        </div>
+        <div class="benefit-item">
+          <mat-icon>speed</mat-icon>
+          <span i18n>Makes GPUs available for active workloads</span>
+        </div>
+        <div class="benefit-item">
+          <mat-icon>eco</mat-icon>
+          <span i18n>Reduces energy consumption from idle GPUs</span>
+        </div>
+        <div class="benefit-item">
+          <mat-icon>analytics</mat-icon>
+          <span i18n>Intelligent decisions based on actual usage</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

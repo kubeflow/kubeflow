@@ -6,5 +6,7 @@ export interface GPUVendor {
 export interface GPU {
   vendor?: string;
   num?: string;
+  fractional?: string | number;
+  fractionalMemory?: string | number;
   vendors?: GPUVendor[];
 }

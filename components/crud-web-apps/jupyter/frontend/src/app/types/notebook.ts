@@ -9,6 +9,15 @@ import {
 import { Condition } from './condition';
 import { Params } from '@angular/router';
 
+export interface CullingConfig {
+  enabled: boolean;
+  idleTimeValue: number;
+  idleTimeUnit: 'minutes' | 'hours' | 'days';
+  checkPeriodValue: number;
+  checkPeriodUnit: 'minutes' | 'hours';
+  exempt: boolean;
+}
+
 export type ServerType = 'jupyter' | 'group-one' | 'group-two';
 
 export interface NotebookResponseObject {
@@ -39,6 +48,7 @@ export interface NotebookProcessedObject extends NotebookResponseObject {
     url: string;
     queryParams?: Params | null;
   };
+  hasGPUResources?: boolean;
 }
 
 export interface NotebookFormObject {
@@ -63,6 +73,7 @@ export interface NotebookFormObject {
   datavols: any[];
   shm: boolean;
   configurations: PodDefault[];
+  culling?: CullingConfig;
 }
 
 export interface NotebookRawObject {

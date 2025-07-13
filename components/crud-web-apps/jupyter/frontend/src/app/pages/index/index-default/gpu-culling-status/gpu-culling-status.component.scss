@@ -1,0 +1,347 @@
+.gpu-culling-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  min-width: 200px;
+  position: relative;
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 12px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    &.status-disabled {
+      color: #666;
+      
+      mat-icon {
+        color: #999;
+      }
+    }
+
+    &.status-error {
+      color: #d32f2f;
+      
+      mat-icon {
+        color: #f44336;
+      }
+    }
+
+    &.status-no-gpu {
+      color: #1976d2;
+      
+      mat-icon {
+        color: #2196f3;
+      }
+    }
+
+    &.status-low-usage {
+      color: #388e3c;
+      
+      mat-icon {
+        color: #4caf50;
+      }
+    }
+
+    &.status-moderate-usage {
+      color: #f57c00;
+      
+      mat-icon {
+        color: #ff9800;
+      }
+    }
+
+    &.status-high-usage {
+      color: #d32f2f;
+      
+      mat-icon {
+        color: #f44336;
+      }
+    }
+  }
+
+  .gpu-metrics {
+    .metrics-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+
+      .metric-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+
+        .metric-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          color: #666;
+        }
+
+        .metric-value {
+          font-weight: 500;
+
+          &.usage-low {
+            color: #4caf50;
+          }
+
+          &.usage-medium {
+            color: #ff9800;
+          }
+
+          &.usage-high {
+            color: #f44336;
+          }
+        }
+      }
+    }
+
+    .progress-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .progress-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+
+        .progress-label {
+          min-width: 50px;
+          color: #666;
+        }
+
+        mat-progress-bar {
+          flex: 1;
+          height: 4px;
+        }
+
+        .progress-value {
+          min-width: 35px;
+          text-align: right;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .policy-info {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+
+    .policy-source {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+
+      mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+      }
+
+      &.policy-source-notebook {
+        color: #2e7d32;
+      }
+
+      &.policy-source-profile {
+        color: #1976d2;
+      }
+
+      &.policy-source-cluster {
+        color: #f57c00;
+      }
+
+      &.policy-source-default {
+        color: #7b1fa2;
+      }
+    }
+
+    .policy-details {
+      font-size: 10px;
+      color: #666;
+
+      .policy-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2px;
+
+        span:first-child {
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .next-evaluation {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: #666;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 6px;
+
+    mat-icon {
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .error-state {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ffcdd2;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      color: #f44336;
+    }
+  }
+
+  .expand-toggle {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.no-gpu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #999;
+  padding: 4px 8px;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Compact view for table cells
+.compact-view {
+  .gpu-culling-status {
+    min-width: 150px;
+    padding: 4px;
+    gap: 4px;
+
+    .status-indicator {
+      font-size: 10px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .gpu-metrics {
+      .metrics-row {
+        gap: 8px;
+
+        .metric-item {
+          font-size: 10px;
+
+          .metric-icon {
+            font-size: 12px;
+            width: 12px;
+            height: 12px;
+          }
+        }
+      }
+    }
+
+    .expand-toggle {
+      width: 16px;
+      height: 16px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+}
+
+// Animation for expand/collapse
+.progress-bars,
+.policy-details {
+  transition: all 0.3s ease-in-out;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .gpu-culling-status {
+    min-width: 120px;
+    font-size: 10px;
+
+    .metrics-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .progress-bars {
+      .progress-item {
+        .progress-label {
+          min-width: 40px;
+        }
+      }
+    }
+  }
+}
+
+// Hover effects for interactive elements
+.gpu-culling-status {
+  &:hover {
+    background-color: #f0f0f0;
+    border-color: #d0d0d0;
+  }
+}
+
+.expand-toggle {
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    border-radius: 50%;
+  }
+}

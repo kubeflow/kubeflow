@@ -13,6 +13,7 @@ import {
   quantityToScalar,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
+import { GPUCullingStatusComponent } from './gpu-culling-status/gpu-culling-status.component';
 
 // --- Config for the Resource Table ---
 export const defaultConfig: TableConfig = {
@@ -110,6 +111,15 @@ export const defaultConfig: TableConfig = {
         field: 'memory',
       }),
       sort: true,
+    },
+    {
+      matHeaderCellDef: $localize`GPU Culling`,
+      matColumnDef: 'gpuCulling',
+      style: { width: '12%' },
+      value: new ComponentValue({
+        component: GPUCullingStatusComponent,
+      }),
+      sort: false,
     },
 
     {

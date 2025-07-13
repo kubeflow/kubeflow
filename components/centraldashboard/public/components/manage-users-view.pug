@@ -1,4 +1,4 @@
-div.page-title Manage Contributors
+div.page-title Profile Settings
 iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(isClusterAdmin)]]', url='/api/workgroup/get-all-namespaces',
     last-response='{{allNamespaces}}', on-error='onAllNamespaceFetchError', handle-as='json')
 section#Main-Content
@@ -32,9 +32,26 @@ section#Main-Content
                     vaadin-grid-column(path='1', header='Owner')
                     vaadin-grid-column(path='2', flex-grow='2', header='Contributors')
     template(is='dom-if', if='[[ownedNamespaces.length]]')
-        template(is='dom-repeat', items='[[ownedNamespaces]]' as='ownedNamespace')
-            article.Contributors
-                manage-users-view-contributor(owned-namespace='[[ownedNamespace]]')
+        article.Profile-Settings
+            // Tab Navigation
+            paper-tabs(selected='{{selectedTab}}', class='profile-tabs')
+                paper-tab Contributors
+                paper-tab Culling Policies
+
+            // Tab Content
+            iron-pages(selected='{{selectedTab}}', class='profile-content')
+                div.tab-content
+                    template(is='dom-repeat', items='[[ownedNamespaces]]' as='ownedNamespace')
+                        manage-users-view-contributor(owned-namespace='[[ownedNamespace]]')
+                div.tab-content
+                    template(is='dom-if', if='[[ownedNamespaces.length]]')
+                        div.namespace-selector(hidden$='[[!_hasMultipleNamespaces(ownedNamespaces)]]')
+                            label Select Profile:
+                            select(value='{{selectedNamespaceIndex}}', on-change='_onNamespaceSelectionChange')
+                                template(is='dom-repeat', items='[[ownedNamespaces]]' as='ownedNamespace', index-as='index')
+                                    option(value$='[[index]]') [[ownedNamespace.namespace]]
+                        template(is='dom-if', if='[[_getSelectedNamespace(ownedNamespaces, selectedNamespaceIndex)]]')
+                            manage-users-view-culling(owned-namespace='[[_getSelectedNamespace(ownedNamespaces, selectedNamespaceIndex)]]')
 paper-toast#AllNamespaceError(duration=5000)
     | Failed to fetch all namespaces, because:
     strong [[allNamespaceError]]

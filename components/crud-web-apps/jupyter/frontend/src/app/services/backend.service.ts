@@ -140,6 +140,46 @@ export class JWABackendService extends BackendService {
     );
   }
 
+  public getCullingPolicy(namespace: string): Observable<any> {
+    // Get effective culling policy for namespace
+    const url = `api/namespaces/${namespace}/culling-policy`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map(data => data.cullingPolicy),
+    );
+  }
+
+  public getGPUCullingPolicy(namespace: string): Observable<any> {
+    // Get effective GPU culling policy for namespace
+    const url = `api/namespaces/${namespace}/gpu-culling-policy`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map(data => data.gpuCullingPolicy),
+    );
+  }
+
+  public getGPUMetrics(namespace: string, notebookName: string): Observable<any> {
+    // Get current GPU metrics for a notebook
+    const url = `api/namespaces/${namespace}/notebooks/${notebookName}/gpu-metrics`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map(data => data.gpuMetrics),
+    );
+  }
+
+  public updateNotebookGPUCullingAnnotations(namespace: string, notebookName: string, annotations: any): Observable<any> {
+    // Update notebook GPU culling annotations
+    const url = `api/namespaces/${namespace}/notebooks/${notebookName}/gpu-culling-annotations`;
+
+    return this.http.patch<JWABackendResponse>(url, { annotations }).pipe(
+      catchError(error => this.handleError(error)),
+      map(data => data.result),
+    );
+  }
+
   // POST
   public createNotebook(notebook: NotebookFormObject): Observable<string> {
     const url = `api/namespaces/${notebook.namespace}/notebooks`;

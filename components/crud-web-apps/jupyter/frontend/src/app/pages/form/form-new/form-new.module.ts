@@ -16,6 +16,8 @@ import { FormAdvancedOptionsModule } from './form-advanced-options/form-advanced
 import { FormAffinityTolerationsModule } from './form-affinity-tolerations/form-affinity-tolerations.module';
 import { FormCpuRamModule } from './form-cpu-ram/form-cpu-ram.module';
 import { FormConfigurationsModule } from './form-configurations/form-configurations.module';
+import { FormCullingModule } from './form-culling/form-culling.module';
+import { FormGPUCullingModule } from './form-gpu-culling/form-gpu-culling.module';
 import { FormDataVolumesModule } from './form-data-volumes/form-data-volumes.module';
 import { FormGpusModule } from './form-gpus/form-gpus.module';
 import { FormImageModule } from './form-image/form-image.module';
@@ -39,6 +41,8 @@ import { FormNewComponent } from './form-new.component';
     FormAffinityTolerationsModule,
     FormConfigurationsModule,
     FormCpuRamModule,
+    FormCullingModule,
+    FormGPUCullingModule,
     FormDataVolumesModule,
     FormGpusModule,
     FormImageModule,

@@ -8,6 +8,8 @@ import { EnvironmentVariablesGroup } from '../../../types/environmentVariablesGr
 import { Configuration } from 'src/app/types/configuration';
 import { isEqual, get } from 'lodash-es';
 import { VolumesGroup } from './volumes/types';
+import { PolicyInfo } from '../../../shared/policy-display/policy-display.component';
+import { GPUCullingPolicy } from '../../form/form-new/form-gpu-culling/form-gpu-culling.component';
 import {
   PVCS,
   EPHEMERALS,
@@ -231,6 +233,90 @@ export class OverviewComponent implements OnInit, OnDestroy {
       if (container.name === notebook.metadata.name) {
         return container.image;
       }
+    }
+  }
+
+  get cullingInfo(): PolicyInfo | null {
+    return this.getCullingInfo(this.notebook);
+  }
+
+  getCullingInfo(notebook: NotebookRawObject): PolicyInfo | null {
+    if (!notebook?.metadata?.annotations) {
+      return null;
+    }
+
+    const annotations = notebook.metadata.annotations;
+    const idleTime = annotations['notebooks.kubeflow.org/cull-idle-time'];
+    const checkPeriod = annotations['notebooks.kubeflow.org/cull-check-period'];
+    const exempt = annotations['notebooks.kubeflow.org/cull-exempt'] === 'true';
+
+    // If no culling annotations are present, return null
+    if (!idleTime && !checkPeriod && !exempt) {
+      return null;
+    }
+
+    return {
+      source: 'notebook',
+      enabled: !exempt,
+      idleTimeout: idleTime || 'Not set',
+      checkPeriod: checkPeriod || 'Not set',
+      exempt: exempt
+    };
+  }
+
+  get gpuCullingInfo(): GPUCullingPolicy | null {
+    return this.getGPUCullingInfo(this.notebook);
+  }
+
+  getGPUCullingInfo(notebook: NotebookRawObject): GPUCullingPolicy | null {
+    if (!notebook?.metadata?.annotations) {
+      return null;
+    }
+
+    const annotations = notebook.metadata.annotations;
+    const gpuEnabled = annotations['notebooks.kubeflow.org/gpu-cull-enabled'] === 'true';
+    const gpuMode = annotations['notebooks.kubeflow.org/gpu-cull-mode'];
+    const memoryThreshold = annotations['notebooks.kubeflow.org/gpu-memory-threshold'];
+    const computeThreshold = annotations['notebooks.kubeflow.org/gpu-compute-threshold'];
+    const kernelTimeout = annotations['notebooks.kubeflow.org/gpu-kernel-timeout'];
+    const sustainedDuration = annotations['notebooks.kubeflow.org/gpu-sustained-duration'];
+
+    // If no GPU culling annotations are present, return null
+    if (!gpuEnabled && !gpuMode && !memoryThreshold && !computeThreshold && !kernelTimeout && !sustainedDuration) {
+      return null;
+    }
+
+    return {
+      source: 'notebook',
+      enabled: gpuEnabled,
+      mode: (gpuMode as any) || 'gpu-priority',
+      memoryThreshold: memoryThreshold ? parseInt(memoryThreshold) : 10,
+      computeThreshold: computeThreshold ? parseInt(computeThreshold) : 5,
+      kernelTimeout: kernelTimeout || '5m',
+      sustainedDuration: sustainedDuration || '10m'
+    };
+  }
+
+  get lastActivity(): string | null {
+    return this.getLastActivity(this.notebook);
+  }
+
+  getLastActivity(notebook: NotebookRawObject): string | null {
+    if (!notebook?.metadata?.annotations) {
+      return null;
+    }
+
+    const lastActivity = notebook.metadata.annotations['notebooks.kubeflow.org/last-activity'];
+    if (!lastActivity) {
+      return null;
+    }
+
+    // Format the timestamp for display
+    try {
+      const date = new Date(lastActivity);
+      return date.toLocaleString();
+    } catch (error) {
+      return lastActivity; // Return raw value if parsing fails
     }
   }
 

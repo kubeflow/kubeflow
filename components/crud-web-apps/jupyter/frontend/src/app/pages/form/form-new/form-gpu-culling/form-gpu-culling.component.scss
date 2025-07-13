@@ -1,0 +1,253 @@
+.gpu-culling-settings {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.validation-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 4px;
+  border-left: 4px solid #f44336;
+
+  mat-icon {
+    color: #f44336;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+  }
+
+  .validation-content {
+    flex: 1;
+
+    .validation-title {
+      font-weight: 500;
+      color: #d32f2f;
+      margin-bottom: 8px;
+    }
+
+    .validation-list {
+      margin: 0;
+      padding-left: 16px;
+      color: #d32f2f;
+
+      li {
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+.hint-text {
+  color: #666;
+  font-size: 14px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.time-unit {
+  max-width: 120px;
+  margin-left: 8px;
+}
+
+.gpu-metrics-preview {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+
+  h4 {
+    margin: 0 0 16px 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      color: #4caf50;
+    }
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .metric-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-weight: 500;
+      color: #333;
+
+      mat-icon {
+        color: #2196f3;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .metric-content {
+      .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 14px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        span:first-child {
+          color: #666;
+        }
+
+        span:last-child {
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .metrics-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    color: #1976d2;
+    font-size: 14px;
+
+    mat-icon {
+      color: #2196f3;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.gpu-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px;
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 4px;
+  border-left: 4px solid #2196f3;
+  color: #1976d2;
+  font-size: 14px;
+
+  mat-icon {
+    color: #2196f3;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Usage level indicators
+.usage-low {
+  color: #4caf50 !important;
+  font-weight: 500;
+}
+
+.usage-medium {
+  color: #ff9800 !important;
+  font-weight: 500;
+}
+
+.usage-high {
+  color: #f44336 !important;
+  font-weight: 500;
+}
+
+// Form field styling
+.row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+
+  .column {
+    flex: 1;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+// Advanced options styling
+lib-advanced-options {
+  margin-top: 16px;
+}
+
+// Policy display styling
+app-gpu-policy-display {
+  margin-top: 16px;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    gap: 8px;
+
+    .time-unit {
+      max-width: none;
+      margin-left: 0;
+    }
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card {
+    .metric-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+  }
+}
+
+// Form validation styles
+mat-form-field {
+  width: 100%;
+
+  &.ng-invalid.ng-touched {
+    .mat-form-field-outline {
+      color: #f44336;
+    }
+  }
+}
+
+// Policy information styles are now handled by the GPUPolicyDisplayComponent

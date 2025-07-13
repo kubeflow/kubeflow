@@ -1,0 +1,139 @@
+<lib-form-section
+  title="Notebook Culling"
+  i18n-title="Title for the Notebook Culling form section"
+  helpText="Configure automatic culling settings for this notebook. Culling automatically stops idle notebooks to save resources. Settings here override profile and cluster-level policies."
+>
+  <!-- Enable/Disable Culling -->
+  <div class="row">
+    <mat-slide-toggle
+      class="column"
+      [formControl]="parentForm.get('culling.enabled')"
+      color="primary"
+      data-cy-form-culling-enabled
+    >
+      <span i18n>Enable automatic culling</span>
+    </mat-slide-toggle>
+  </div>
+
+  <!-- Validation Summary -->
+  <div *ngIf="parentForm.get('culling.enabled').value && hasValidationErrors()" class="validation-summary">
+    <mat-icon>warning</mat-icon>
+    <div class="validation-content">
+      <div class="validation-title" i18n>Please fix the following issues:</div>
+      <ul class="validation-list">
+        <li *ngFor="let error of getValidationErrors()" [innerHTML]="error"></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Culling Settings (shown when enabled) -->
+  <div *ngIf="parentForm.get('culling.enabled').value" class="culling-settings">
+    
+    <!-- Idle Timeout -->
+    <div class="row">
+      <mat-form-field appearance="outline" class="column">
+        <mat-label i18n>Idle Timeout</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          [formControl]="parentForm.get('culling.idleTimeValue')"
+          placeholder="5"
+          i18n-placeholder
+          data-cy-form-culling-idle-time
+        />
+        <mat-hint i18n>Time before an idle notebook is automatically stopped</mat-hint>
+        <mat-error *ngIf="parentForm.get('culling.idleTimeValue').hasError('required')" i18n>
+          Idle timeout is required
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('culling.idleTimeValue').hasError('min')" i18n>
+          Idle timeout must be at least 1
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('culling.idleTimeValue').hasError('max')" i18n>
+          Idle timeout cannot exceed 365 days
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('culling').hasError('idleTimeTooSmall')" i18n>
+          Idle timeout must be at least 1 minute
+        </mat-error>
+        <mat-error *ngIf="parentForm.get('culling').hasError('idleTimeTooLarge')" i18n>
+          Idle timeout cannot exceed 30 days
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="column time-unit">
+        <mat-label i18n>Unit</mat-label>
+        <mat-select [formControl]="parentForm.get('culling.idleTimeUnit')"
+          data-cy-form-culling-time-unit>
+          <mat-option value="minutes" i18n>Minutes</mat-option>
+          <mat-option value="hours" i18n>Hours</mat-option>
+          <mat-option value="days" i18n>Days</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Advanced Settings -->
+    <lib-advanced-options>
+      <!-- Check Period -->
+      <div class="row">
+        <mat-form-field appearance="outline" class="column">
+          <mat-label i18n>Check Period</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            [formControl]="parentForm.get('culling.checkPeriodValue')"
+            placeholder="1"
+            i18n-placeholder
+            data-cy-form-culling-check-period
+          />
+          <mat-hint i18n>How often to check for idle notebooks (in minutes)</mat-hint>
+          <mat-error *ngIf="parentForm.get('culling.checkPeriodValue').hasError('min')" i18n>
+            Check period must be at least 1 minute
+          </mat-error>
+          <mat-error *ngIf="parentForm.get('culling.checkPeriodValue').hasError('max')" i18n>
+            Check period cannot exceed 60 hours
+          </mat-error>
+          <mat-error *ngIf="parentForm.get('culling').hasError('checkPeriodTooLarge')" i18n>
+            Check period must be less than idle timeout
+          </mat-error>
+          <mat-error *ngIf="parentForm.get('culling').hasError('checkPeriodInvalid')" i18n>
+            Check period must be between 1 minute and 24 hours
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="column time-unit">
+          <mat-label i18n>Unit</mat-label>
+          <mat-select [formControl]="parentForm.get('culling.checkPeriodUnit')" data-cy-form-culling-check-unit>
+            <mat-option value="minutes" i18n>Minutes</mat-option>
+            <mat-option value="hours" i18n>Hours</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Exempt from Culling -->
+      <div class="row">
+        <mat-slide-toggle
+          class="column"
+          [formControl]="parentForm.get('culling.exempt')"
+          color="primary"
+          data-cy-form-culling-exempt
+        >
+          <span i18n>Exempt from culling</span>
+        </mat-slide-toggle>
+      </div>
+      <div class="hint-text" i18n>
+        When enabled, this notebook will never be automatically stopped, regardless of idle time
+      </div>
+    </lib-advanced-options>
+  </div>
+
+  <!-- Policy Information Display -->
+  <mat-divider *ngIf="effectivePolicy"></mat-divider>
+  <app-policy-display
+    [policy]="effectivePolicy"
+    [title]="'Effective Culling Policy'"
+    [showHierarchy]="true"
+    [showOverrideInfo]="!parentForm.get('culling.enabled').value"
+    [canOverride]="true">
+  </app-policy-display>
+</lib-form-section>

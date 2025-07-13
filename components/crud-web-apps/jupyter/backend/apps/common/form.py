@@ -226,26 +226,74 @@ def set_notebook_affinity(notebook, body, defaults):
 def set_notebook_gpus(notebook, body, defaults):
     gpus = get_form_value(body, defaults, "gpus")
 
-    # Make sure the GPUs value is properly formatted
-    if "num" not in gpus:
-        raise BadRequest("'gpus' must have a 'num' field")
+    # Check if any GPU allocation is requested
+    has_whole_gpu = gpus.get("num") and gpus["num"] != "none"
+    has_fractional = gpus.get("fractional") and gpus["fractional"] != ""
+    has_fractional_memory = gpus.get("fractionalMemory") and gpus["fractionalMemory"] != ""
 
-    if gpus["num"] == "none":
+    # If no GPU allocation is requested, return early
+    if not (has_whole_gpu or has_fractional or has_fractional_memory):
         return
 
     if "vendor" not in gpus:
         raise BadRequest("'gpus' must have a 'vendor' field")
 
-    # set the gpus annotation
     container = notebook["spec"]["template"]["spec"]["containers"][0]
     vendor = gpus["vendor"]
-    try:
-        num = str(gpus["num"])
-    except ValueError:
-        raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
-
     limits = container["resources"].get("limits", {})
-    limits[vendor] = num
+
+    log.info("Processing GPU allocation: vendor=%s, whole_gpu=%s, fractional=%s, fractional_memory=%s",
+             vendor, has_whole_gpu, has_fractional, has_fractional_memory)
+
+    # Handle fractional GPU allocation for HAMi (NVIDIA GPUs)
+    if vendor == "nvidia.com/gpu" and (has_fractional or has_fractional_memory):
+        # For fractional allocation, always request 1 physical GPU
+        limits[vendor] = "1"
+
+        if has_fractional:
+            # Convert fraction (0.1-1.0) to percentage for HAMi gpucores and memory
+            try:
+                fractional_value = float(gpus["fractional"])
+                if fractional_value < 0.1 or fractional_value > 1.0:
+                    raise BadRequest("Fractional GPU value must be between 0.1 and 1.0: %s" % fractional_value)
+
+                gpu_cores_percentage = int(fractional_value * 100)
+                limits["nvidia.com/gpucores"] = str(gpu_cores_percentage)
+
+                # For fraction mode, also set memory percentage to same value
+                limits["nvidia.com/gpumem-percentage"] = str(gpu_cores_percentage)
+
+                log.info("Set fractional GPU allocation: cores=%s%%, memory=%s%%",
+                        gpu_cores_percentage, gpu_cores_percentage)
+
+            except (ValueError, TypeError) as e:
+                raise BadRequest("Invalid fractional GPU value: %s" % gpus["fractional"])
+
+        elif has_fractional_memory:
+            # Use absolute memory allocation in MiB
+            try:
+                memory_mb = int(gpus["fractionalMemory"])
+                if memory_mb < 1024:
+                    raise BadRequest("Fractional GPU memory must be at least 1024 MiB: %s" % memory_mb)
+
+                limits["nvidia.com/gpumem"] = str(memory_mb)
+
+                # Set a reasonable default for cores (50% when using memory allocation)
+                limits["nvidia.com/gpucores"] = "50"
+
+                log.info("Set fractional GPU memory allocation: memory=%s MiB, cores=50%%", memory_mb)
+
+            except (ValueError, TypeError) as e:
+                raise BadRequest("Invalid fractional GPU memory value: %s" % gpus["fractionalMemory"])
+
+    elif has_whole_gpu:
+        # Handle traditional whole GPU allocation
+        try:
+            num = str(gpus["num"])
+            limits[vendor] = num
+            log.info("Set whole GPU allocation: vendor=%s, count=%s", vendor, num)
+        except ValueError:
+            raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
 
     container["resources"]["limits"] = limits
 
@@ -284,6 +332,61 @@ def set_notebook_environment(notebook, body, defaults):
 
     env = [{"name": name, "value": str(value)} for name, value in env.items()]
     notebook["spec"]["template"]["spec"]["containers"][0]["env"] += env
+
+
+def set_notebook_culling(notebook, body, defaults):
+    """
+    Set culling annotations on the notebook based on form values
+    """
+    # defaults parameter is kept for consistency with other form functions
+    culling = body.get("culling")
+    if not culling or not culling.get("enabled"):
+        return
+
+    annotations = notebook["metadata"].get("annotations", {})
+
+    # Set culling annotations that the enhanced culling controller expects
+    if culling.get("idleTimeout"):
+        annotations["notebooks.kubeflow.org/cull-idle-time"] = culling["idleTimeout"]
+
+    if culling.get("checkPeriod"):
+        annotations["notebooks.kubeflow.org/cull-check-period"] = culling["checkPeriod"]
+
+    if culling.get("exempt"):
+        annotations["notebooks.kubeflow.org/cull-exempt"] = "true"
+
+    notebook["metadata"]["annotations"] = annotations
+
+
+def set_notebook_gpu_culling(notebook, body, defaults):
+    """
+    Set GPU culling annotations on the notebook based on form values
+    """
+    gpu_culling = body.get("gpuCulling")
+    if not gpu_culling or not gpu_culling.get("enabled"):
+        return
+
+    annotations = notebook["metadata"].get("annotations", {})
+
+    # Set GPU culling annotations that the enhanced culling controller expects
+    annotations["notebooks.kubeflow.org/gpu-cull-enabled"] = "true"
+
+    if gpu_culling.get("mode"):
+        annotations["notebooks.kubeflow.org/gpu-culling-mode"] = gpu_culling["mode"]
+
+    if gpu_culling.get("memoryThreshold"):
+        annotations["notebooks.kubeflow.org/gpu-memory-threshold"] = str(gpu_culling["memoryThreshold"])
+
+    if gpu_culling.get("computeThreshold"):
+        annotations["notebooks.kubeflow.org/gpu-compute-threshold"] = str(gpu_culling["computeThreshold"])
+
+    if gpu_culling.get("kernelTimeout"):
+        annotations["notebooks.kubeflow.org/gpu-kernel-timeout"] = gpu_culling["kernelTimeout"]
+
+    if gpu_culling.get("sustainedDuration"):
+        annotations["notebooks.kubeflow.org/gpu-sustained-duration"] = gpu_culling["sustainedDuration"]
+
+    notebook["metadata"]["annotations"] = annotations
 
 
 # Volume add functions

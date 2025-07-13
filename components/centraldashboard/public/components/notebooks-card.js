@@ -96,8 +96,17 @@ export class NotebooksCard extends PolymerElement {
         const response = responseEvent.detail.response;
         this.loading = true;
         try {
+            // Filter out stopped/culled notebooks before making API calls
+            const activeNotebooks = response.notebooks.filter((n) =>
+                this._isNotebookActive(n));
+
+            // eslint-disable-next-line no-console
+            console.debug(`Found ${response.notebooks.length} total ` +
+                `notebooks, ${activeNotebooks.length} active ` +
+                `(excluding stopped/culled)`);
+
             const listNotebooksResults = await Promise.all(
-                response.notebooks.map((n) =>
+                activeNotebooks.map((n) =>
                     this._getNotebooksFromServer(n.namespace, n.name)));
             const notebooks = [];
             listNotebooksResults.map((r) => notebooks.push(...r));
@@ -123,6 +132,23 @@ export class NotebooksCard extends PolymerElement {
         try {
             const response = await fetch(
                 getListNotebooksUrl(namespace, server));
+
+            // Handle HTTP error responses gracefully
+            if (!response.ok) {
+                if (response.status === 503) {
+                    // Service unavailable - likely a culled/stopped notebook
+                    // eslint-disable-next-line no-console
+                    console.debug(`Notebook server ${server} in namespace ` +
+                        `${namespace} is unavailable (likely culled/stopped)`);
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.warn(`Failed to fetch notebooks from server ` +
+                        `${server} in namespace ${namespace}: ` +
+                        `HTTP ${response.status}`);
+                }
+                return [];
+            }
+
             const notebooks = await response.json();
             return notebooks.content.map((n) => {
                 const date = new Date(n.last_modified);
@@ -136,8 +162,45 @@ export class NotebooksCard extends PolymerElement {
                 };
             });
         } catch (err) {
+            // Network errors or JSON parsing errors
+            // eslint-disable-next-line no-console
+            console.debug(`Error retrieving notebooks from server ${server} ` +
+                `in namespace ${namespace}:`, err.message);
             return [];
         }
+    }
+
+    /**
+     * Check if a notebook is active (not stopped/culled)
+     * @param {Object} notebook The notebook object from the API
+     * @return {boolean} True if the notebook is active
+     */
+    _isNotebookActive(notebook) {
+        // Check if the notebook has a status indicating it's stopped
+        if (notebook.status && notebook.status.phase === 'stopped') {
+            return false;
+        }
+
+        // Check for the stop annotation (kubeflow-resource-stopped)
+        if (notebook.metadata && notebook.metadata.annotations) {
+            const stopAnnotation = notebook.metadata.annotations[
+                'kubeflow-resource-stopped'];
+            if (stopAnnotation) {
+                return false;
+            }
+        }
+
+        // If status indicates ready replicas = 0, it's likely stopped
+        if (notebook.status && notebook.status.readyReplicas === 0) {
+            // But only consider it stopped if it also has stop annotation
+            // to avoid false positives for notebooks that are just starting
+            if (notebook.metadata && notebook.metadata.annotations &&
+                notebook.metadata.annotations['kubeflow-resource-stopped']) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

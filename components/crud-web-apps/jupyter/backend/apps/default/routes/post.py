@@ -37,6 +37,8 @@ def post_pvc(namespace):
     form.set_notebook_affinity(notebook, body, defaults)
     form.set_notebook_configurations(notebook, body, defaults)
     form.set_notebook_shm(notebook, body, defaults)
+    form.set_notebook_culling(notebook, body, defaults)
+    form.set_notebook_gpu_culling(notebook, body, defaults)
 
     # Notebook volumes
     api_volumes = []

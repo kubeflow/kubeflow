@@ -1,0 +1,349 @@
+/* Profile Culling Configuration Styles */
+/* Following existing manage-users-view.css patterns */
+
+:host {
+  display: block;
+  padding: 16px;
+}
+
+.culling-main-content {
+  min-height: 400px;
+  display: block;
+}
+
+h2 {
+  display: flex;
+  align-items: center;
+  margin: 0 0 24px 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+h2 .icon {
+  margin-right: 12px;
+  color: #1976d2;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+h2 .namespace {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+h3 {
+  display: flex;
+  align-items: center;
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+h3 .icon {
+  margin-right: 8px;
+  color: #666;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Section Styling */
+.culling-section {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.culling-section .content {
+  padding: 16px;
+}
+
+/* Configuration Row Styling */
+.config-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.config-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.config-row .label {
+  min-width: 200px;
+  font-weight: 500;
+  color: #555;
+  margin-right: 16px;
+}
+
+.config-row paper-input {
+  flex: 1;
+  max-width: 200px;
+  margin-right: 16px;
+}
+
+.config-row paper-slider {
+  flex: 1;
+  max-width: 300px;
+  margin-right: 16px;
+}
+
+.config-row paper-toggle-button {
+  margin-right: 16px;
+}
+
+/* Custom Checkbox Styling */
+.checkbox-wrapper {
+  position: relative;
+  margin-right: 16px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  opacity: 0;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox-wrapper label {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #757575;
+  border-radius: 3px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkbox-wrapper label::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked + label {
+  background: #1976d2;
+  border-color: #1976d2;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked + label::after {
+  opacity: 1;
+}
+
+.checkbox-wrapper input[type="checkbox"]:hover + label {
+  border-color: #1976d2;
+}
+
+.checkbox-wrapper input[type="checkbox"]:focus + label {
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.config-row paper-dropdown-menu {
+  min-width: 150px;
+  margin-right: 16px;
+}
+
+.config-row .help-text {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  flex: 1;
+}
+
+.config-row .threshold-value {
+  min-width: 40px;
+  font-weight: 500;
+  color: #1976d2;
+  margin-right: 16px;
+}
+
+/* Policy Hierarchy Display */
+.hierarchy-display {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.hierarchy-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.hierarchy-item iron-icon {
+  margin-right: 12px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.hierarchy-item span {
+  font-weight: 500;
+  margin-right: 16px;
+}
+
+.hierarchy-item .hierarchy-details {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #666;
+}
+
+.hierarchy-item .hierarchy-details span {
+  margin: 2px 0;
+  font-weight: 400;
+}
+
+.hierarchy-item.cluster-level {
+  background: #fff3e0;
+  border-color: #ffcc02;
+  color: #f57c00;
+}
+
+.hierarchy-item.cluster-level iron-icon {
+  color: #ff9800;
+}
+
+.hierarchy-item.profile-level.active {
+  background: #e8f5e8;
+  border-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.hierarchy-item.profile-level.active iron-icon {
+  color: #4caf50;
+}
+
+.hierarchy-item.profile-level.inactive {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+  color: #999;
+}
+
+.hierarchy-item.profile-level.inactive iron-icon {
+  color: #bbb;
+}
+
+.hierarchy-item.notebook-level {
+  background: #e3f2fd;
+  border-color: #bbdefb;
+  color: #1976d2;
+}
+
+.hierarchy-item.notebook-level iron-icon {
+  color: #2196f3;
+}
+
+.hierarchy-arrow {
+  display: block;
+  margin: 0 auto;
+  color: #bbb;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.save-button {
+  background-color: #1976d2;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #1565c0;
+}
+
+.save-button[disabled] {
+  background-color: #ccc;
+  color: #999;
+}
+
+.reset-button {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.reset-button:hover {
+  background-color: #e0e0e0;
+}
+
+.action-buttons paper-button iron-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .config-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .config-row .label {
+    min-width: auto;
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
+
+  .config-row paper-input,
+  .config-row paper-slider,
+  .config-row paper-dropdown-menu {
+    max-width: 100%;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .hierarchy-item {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .hierarchy-item iron-icon {
+    margin-bottom: 8px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons paper-button {
+    width: 100%;
+  }
+}

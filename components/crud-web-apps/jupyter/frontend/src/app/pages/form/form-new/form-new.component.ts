@@ -31,7 +31,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
     public backend: JWABackendService,
     public router: Router,
     public popup: SnackBarService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Initialize the form control
@@ -122,6 +122,31 @@ export class FormNewComponent implements OnInit, OnDestroy {
       notebook.gpus.num = notebook.gpus.num.toString();
     }
 
+    // Ensure fractional GPU input is a string
+    if (notebook.gpus && notebook.gpus.fractional != null && notebook.gpus.fractional !== '') {
+      if (typeof notebook.gpus.fractional === 'number') {
+        notebook.gpus.fractional = notebook.gpus.fractional.toString();
+      }
+    } else if (notebook.gpus) {
+      // Remove empty fractional field
+      delete notebook.gpus.fractional;
+    }
+
+    // Ensure fractional memory GPU input is a string
+    if (notebook.gpus && notebook.gpus.fractionalMemory != null && notebook.gpus.fractionalMemory !== '') {
+      if (typeof notebook.gpus.fractionalMemory === 'number') {
+        notebook.gpus.fractionalMemory = notebook.gpus.fractionalMemory.toString();
+      }
+    } else if (notebook.gpus) {
+      // Remove empty fractional memory field
+      delete notebook.gpus.fractionalMemory;
+    }
+
+    // Remove fractionalType field as it's only for UI control
+    if (notebook.gpus) {
+      delete notebook.gpus.fractionalType;
+    }
+
     // Remove cpuLimit from request if null
     if (notebook.cpuLimit == null) {
       delete notebook.cpuLimit;
@@ -149,7 +174,60 @@ export class FormNewComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Process culling configuration
+    if (notebook.culling && notebook.culling.enabled) {
+      // Convert culling settings to the format expected by the backend
+      const cullingConfig = {
+        enabled: notebook.culling.enabled,
+        idleTimeout: this.formatCullingDuration(
+          notebook.culling.idleTimeValue,
+          notebook.culling.idleTimeUnit
+        ),
+        checkPeriod: this.formatCullingDuration(
+          notebook.culling.checkPeriodValue,
+          notebook.culling.checkPeriodUnit
+        ),
+        exempt: notebook.culling.exempt
+      };
+      notebook.culling = cullingConfig;
+    } else {
+      // Remove culling config if disabled
+      delete notebook.culling;
+    }
+
+    // Process GPU culling configuration
+    if (notebook.gpuCulling && notebook.gpuCulling.enabled) {
+      // Convert GPU culling settings to the format expected by the backend
+      const gpuCullingConfig = {
+        enabled: notebook.gpuCulling.enabled,
+        mode: notebook.gpuCulling.mode,
+        memoryThreshold: notebook.gpuCulling.memoryThreshold,
+        computeThreshold: notebook.gpuCulling.computeThreshold,
+        kernelTimeout: this.formatCullingDuration(
+          notebook.gpuCulling.kernelTimeoutValue,
+          notebook.gpuCulling.kernelTimeoutUnit
+        ),
+        sustainedDuration: this.formatCullingDuration(
+          notebook.gpuCulling.sustainedDurationValue,
+          notebook.gpuCulling.sustainedDurationUnit
+        )
+      };
+      notebook.gpuCulling = gpuCullingConfig;
+    } else {
+      // Remove GPU culling config if disabled
+      delete notebook.gpuCulling;
+    }
+
     return notebook;
+  }
+
+  private formatCullingDuration(value: number, unit: string): string {
+    const unitMap = {
+      'minutes': 'm',
+      'hours': 'h',
+      'days': 'd'
+    };
+    return `${value}${unitMap[unit] || 'm'}`;
   }
 
   // Set the tooltip text based on form's validity

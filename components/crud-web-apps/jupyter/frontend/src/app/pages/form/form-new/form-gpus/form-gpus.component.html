@@ -26,4 +26,59 @@
       <mat-error>{{ getVendorError() }}</mat-error>
     </mat-form-field>
   </div>
+
+  <!--Fractional GPUs Section - New Row-->
+  <div class="row" [formGroup]="parentForm.get('gpus')">
+    <div class="fractional-gpu-section">
+      <mat-label class="section-label" i18n>Fractional GPU Allocation</mat-label>
+      
+      <!-- Allocation Type Selection -->
+      <mat-radio-group formControlName="fractionalType" class="allocation-type-group">
+        <mat-radio-button value="none" i18n>None</mat-radio-button>
+        <mat-radio-button value="fraction" i18n>By Fraction</mat-radio-button>
+        <mat-radio-button value="memory" i18n>By Memory</mat-radio-button>
+      </mat-radio-group>
+
+      <!-- Fraction Input -->
+      <mat-form-field 
+        appearance="outline" 
+        class="fractional-input"
+        *ngIf="parentForm.get('gpus').get('fractionalType').value === 'fraction'"
+      >
+        <mat-label i18n>GPU Fraction</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0.1"
+          max="1"
+          step="0.1"
+          placeholder="0.5"
+          formControlName="fractional"
+          id="gpu-fractional"
+        />
+        <mat-hint i18n>Specify fractional GPU allocation (0.1 - 1.0)</mat-hint>
+        <mat-error>{{ getFractionalError() }}</mat-error>
+      </mat-form-field>
+
+      <!-- Memory Input -->
+      <mat-form-field 
+        appearance="outline" 
+        class="fractional-input"
+        *ngIf="parentForm.get('gpus').get('fractionalType').value === 'memory'"
+      >
+        <mat-label i18n>GPU Memory (MiB)</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1024"
+          step="1024"
+          placeholder="4096"
+          formControlName="fractionalMemory"
+          id="gpu-fractional-memory"
+        />
+        <mat-hint i18n>Specify GPU memory allocation in MiB (e.g., 4096 for 4GB)</mat-hint>
+        <mat-error>{{ getFractionalMemoryError() }}</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
 </lib-form-section>

@@ -39,6 +39,16 @@
         [vendors]="config?.gpus?.value.vendors"
       ></app-form-gpus>
 
+      <app-form-culling
+        [parentForm]="formCtrl"
+        [readonly]="config?.culling?.readOnly"
+      ></app-form-culling>
+
+      <app-form-gpu-culling
+        [parentForm]="formCtrl"
+        [readonly]="config?.gpuCulling?.readOnly"
+      ></app-form-gpu-culling>
+
       <app-form-workspace-volume
         *ngIf="formCtrl.get('workspace')"
         [readonly]="config?.workspaceVolume?.readOnly"

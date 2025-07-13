@@ -142,6 +142,27 @@ spawnerFormDefaults:
       # (possible values: "none", "1", "2", "4", "8")
       num: "none"
 
+      # fractional GPU configuration
+      # enables fractional GPU allocation for supported vendors
+      fractional:
+        # whether fractional GPU allocation is enabled
+        enabled: true
+
+        # default fractional GPU value (0.1 to 1.0)
+        # set to empty string for no default
+        value: ""
+
+        # default fractional type ("none", "fraction", "memory")
+        # "none" - no fractional allocation
+        # "fraction" - allocate by GPU fraction (0.1-1.0)
+        # "memory" - allocate by GPU memory in MiB
+        type: "none"
+
+        # default fractional memory value in MiB
+        # minimum value is 1024 MiB (1 GB)
+        # set to empty string for no default
+        memoryValue: ""
+
   ################################################################
   # Workspace Volumes
   ################################################################

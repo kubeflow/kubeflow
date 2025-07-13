@@ -13,6 +13,8 @@ import {
 } from 'kubeflow';
 import { ConfigurationsModule } from './configurations/configurations.module';
 import { VolumesComponent } from './volumes/volumes.component';
+import { PolicyDisplayModule } from '../../../shared/policy-display/policy-display.module';
+import { GPUPolicyDisplayModule } from '../../../shared/gpu-policy-display/gpu-policy-display.module';
 
 @NgModule({
   declarations: [OverviewComponent, VolumesComponent],
@@ -27,6 +29,8 @@ import { VolumesComponent } from './volumes/volumes.component';
     ConfigurationsModule,
     UrlsModule,
     MatChipsModule,
+    PolicyDisplayModule,
+    GPUPolicyDisplayModule,
   ],
   exports: [OverviewComponent],
 })
