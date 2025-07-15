@@ -217,3 +217,27 @@ func CopyVirtualService(from, to *unstructured.Unstructured) bool {
 	}
 	return requiresUpdate
 }
+
+// Copy configuration related fields to another instance and returns true if there
+// is a diff and thus needs to update.
+func CopyHTTPRoute(from, to *unstructured.Unstructured) bool {
+	fromSpec, found, err := unstructured.NestedMap(from.Object, "spec")
+	if !found {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+
+	toSpec, found, err := unstructured.NestedMap(to.Object, "spec")
+	if !found || err != nil {
+		unstructured.SetNestedMap(to.Object, fromSpec, "spec")
+		return true
+	}
+
+	requiresUpdate := !reflect.DeepEqual(fromSpec, toSpec)
+	if requiresUpdate {
+		unstructured.SetNestedMap(to.Object, fromSpec, "spec")
+	}
+	return requiresUpdate
+}

@@ -53,6 +53,7 @@ type TensorboardReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 
@@ -109,12 +110,8 @@ func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile istio virtual service.
-	virtualService, err := generateVirtualService(instance)
-	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme()); err != nil {
-		return ctrl.Result{}, err
-	}
-	if err := reconcilehelper.VirtualService(ctx, r, virtualService.GetName(), virtualService.GetNamespace(), virtualService, logger); err != nil {
+	// Reconcile routing (VirtualService or HTTPRoute)
+	if err := r.reconcileRouting(ctx, instance, logger); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -375,6 +372,141 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	}
 
 	return vsvc, nil
+}
+
+func generateHTTPRoute(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.Unstructured, error) {
+	prefix := fmt.Sprintf("/tensorboard/%s/%s", tb.Namespace, tb.Name)
+	pathRewrite := "/"
+	
+	// Get gateway configuration
+	gatewayName := os.Getenv("GATEWAY_NAME")
+	if len(gatewayName) == 0 {
+		gatewayName = "kubeflow-gateway"
+	}
+	gatewayNamespace := os.Getenv("GATEWAY_NAMESPACE")
+	if len(gatewayNamespace) == 0 {
+		gatewayNamespace = "kubeflow"
+	}
+	
+	httpRoute := &unstructured.Unstructured{}
+	httpRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
+	httpRoute.SetKind("HTTPRoute")
+	httpRoute.SetName(tb.Name)
+	httpRoute.SetNamespace(tb.Namespace)
+	
+	// Set parentRefs for HTTPRoute
+	parentRefs := []interface{}{
+		map[string]interface{}{
+			"name":      gatewayName,
+			"namespace": gatewayNamespace,
+		},
+	}
+	if err := unstructured.SetNestedSlice(httpRoute.Object, parentRefs, "spec", "parentRefs"); err != nil {
+		return nil, fmt.Errorf("set .spec.parentRefs error: %v", err)
+	}
+	
+	// Set rules for HTTPRoute
+	rules := []interface{}{
+		map[string]interface{}{
+			"matches": []interface{}{
+				map[string]interface{}{
+					"path": map[string]interface{}{
+						"type":  "PathPrefix",
+						"value": prefix,
+					},
+				},
+			},
+			"filters": []interface{}{
+				map[string]interface{}{
+					"type": "URLRewrite",
+					"urlRewrite": map[string]interface{}{
+						"path": map[string]interface{}{
+							"type":               "ReplacePrefixMatch",
+							"replacePrefixMatch": pathRewrite,
+						},
+					},
+				},
+			},
+			"backendRefs": []interface{}{
+				map[string]interface{}{
+					"name": tb.Name,
+					"port": int64(80),
+				},
+			},
+		},
+	}
+	if err := unstructured.SetNestedSlice(httpRoute.Object, rules, "spec", "rules"); err != nil {
+		return nil, fmt.Errorf("set .spec.rules error: %v", err)
+	}
+	
+	return httpRoute, nil
+}
+
+func (r *TensorboardReconciler) reconcileRouting(ctx context.Context, instance *tensorboardv1alpha1.Tensorboard, logger logr.Logger) error {
+	useAmbientMode := os.Getenv("USE_AMBIENT_MODE") == "true"
+	
+	if useAmbientMode {
+		return r.reconcileHTTPRoute(ctx, instance, logger)
+	} else {
+		return r.reconcileVirtualService(ctx, instance, logger)
+	}
+}
+
+func (r *TensorboardReconciler) reconcileHTTPRoute(ctx context.Context, instance *tensorboardv1alpha1.Tensorboard, logger logr.Logger) error {
+	httpRoute, err := generateHTTPRoute(instance)
+	if err != nil {
+		return err
+	}
+	if err := ctrl.SetControllerReference(instance, httpRoute, r.Scheme()); err != nil {
+		return err
+	}
+	
+	// Check if the HTTPRoute already exists
+	foundHTTPRoute := &unstructured.Unstructured{}
+	foundHTTPRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
+	foundHTTPRoute.SetKind("HTTPRoute")
+	justCreated := false
+	if err := r.Get(ctx, types.NamespacedName{Name: httpRoute.GetName(), Namespace: httpRoute.GetNamespace()}, foundHTTPRoute); err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Info("Creating HTTPRoute", "namespace", httpRoute.GetNamespace(), "name", httpRoute.GetName())
+			if err := r.Create(ctx, httpRoute); err != nil {
+				logger.Error(err, "unable to create HTTPRoute")
+				return err
+			}
+			justCreated = true
+		} else {
+			logger.Error(err, "error getting HTTPRoute")
+			return err
+		}
+	}
+	
+	if !justCreated {
+		// Copy the spec from the desired HTTPRoute to the existing one
+		if !reflect.DeepEqual(httpRoute.Object["spec"], foundHTTPRoute.Object["spec"]) {
+			logger.Info("Updating HTTPRoute", "namespace", httpRoute.GetNamespace(), "name", httpRoute.GetName())
+			foundHTTPRoute.Object["spec"] = httpRoute.Object["spec"]
+			if err := r.Update(ctx, foundHTTPRoute); err != nil {
+				logger.Error(err, "unable to update HTTPRoute")
+				return err
+			}
+		}
+	}
+	
+	return nil
+}
+
+func (r *TensorboardReconciler) reconcileVirtualService(ctx context.Context, instance *tensorboardv1alpha1.Tensorboard, logger logr.Logger) error {
+	virtualService, err := generateVirtualService(instance)
+	if err != nil {
+		return err
+	}
+	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme()); err != nil {
+		return err
+	}
+	if err := reconcilehelper.VirtualService(ctx, r, virtualService.GetName(), virtualService.GetNamespace(), virtualService, logger); err != nil {
+		return err
+	}
+	return nil
 }
 
 func isCloudPath(path string) bool {

@@ -85,6 +85,7 @@ type NotebookReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs="*"
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks;notebooks/status;notebooks/finalizers,verbs="*"
 // +kubebuilder:rbac:groups="networking.istio.io",resources=virtualservices,verbs="*"
+// +kubebuilder:rbac:groups="gateway.networking.k8s.io",resources=httproutes,verbs="*"
 
 func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
@@ -199,9 +200,9 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	// Reconcile virtual service if we use ISTIO.
+	// Reconcile routing (VirtualService or HTTPRoute) if we use ISTIO.
 	if os.Getenv("USE_ISTIO") == "true" {
-		err = r.reconcileVirtualService(instance)
+		err = r.reconcileRouting(instance)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -567,7 +568,142 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	}
 
 	return vsvc, nil
+}
 
+func generateHTTPRoute(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
+	name := instance.Name
+	namespace := instance.Namespace
+	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+
+	// unpack annotations from Notebook resource
+	annotations := make(map[string]string)
+	for k, v := range instance.ObjectMeta.Annotations {
+		annotations[k] = v
+	}
+
+	pathRewrite := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+	// If AnnotationRewriteURI is present, use this value for path rewrite
+	if _, ok := annotations[AnnotationRewriteURI]; ok && len(annotations[AnnotationRewriteURI]) > 0 {
+		pathRewrite = annotations[AnnotationRewriteURI]
+	}
+
+	httpRoute := &unstructured.Unstructured{}
+	httpRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
+	httpRoute.SetKind("HTTPRoute")
+	httpRoute.SetName(virtualServiceName(name, namespace))
+	httpRoute.SetNamespace(namespace)
+
+	// Get gateway configuration
+	gatewayName := os.Getenv("GATEWAY_NAME")
+	if len(gatewayName) == 0 {
+		gatewayName = "kubeflow-gateway"
+	}
+	gatewayNamespace := os.Getenv("GATEWAY_NAMESPACE")
+	if len(gatewayNamespace) == 0 {
+		gatewayNamespace = "kubeflow"
+	}
+
+	// Set parentRefs for HTTPRoute
+	parentRefs := []interface{}{
+		map[string]interface{}{
+			"name":      gatewayName,
+			"namespace": gatewayNamespace,
+		},
+	}
+	if err := unstructured.SetNestedSlice(httpRoute.Object, parentRefs, "spec", "parentRefs"); err != nil {
+		return nil, fmt.Errorf("set .spec.parentRefs error: %v", err)
+	}
+
+	// Set rules for HTTPRoute
+	rules := []interface{}{
+		map[string]interface{}{
+			"matches": []interface{}{
+				map[string]interface{}{
+					"path": map[string]interface{}{
+						"type":  "PathPrefix",
+						"value": prefix,
+					},
+				},
+			},
+			"filters": []interface{}{
+				map[string]interface{}{
+					"type": "URLRewrite",
+					"urlRewrite": map[string]interface{}{
+						"path": map[string]interface{}{
+							"type":               "ReplacePrefixMatch",
+							"replacePrefixMatch": pathRewrite,
+						},
+					},
+				},
+			},
+			"backendRefs": []interface{}{
+				map[string]interface{}{
+					"name": name,
+					"port": int64(DefaultServingPort),
+				},
+			},
+		},
+	}
+	if err := unstructured.SetNestedSlice(httpRoute.Object, rules, "spec", "rules"); err != nil {
+		return nil, fmt.Errorf("set .spec.rules error: %v", err)
+	}
+
+	return httpRoute, nil
+}
+
+func (r *NotebookReconciler) reconcileRouting(instance *v1beta1.Notebook) error {
+	useAmbientMode := os.Getenv("USE_AMBIENT_MODE") == "true"
+	
+	if useAmbientMode {
+		return r.reconcileHTTPRoute(instance)
+	} else {
+		return r.reconcileVirtualService(instance)
+	}
+}
+
+func (r *NotebookReconciler) reconcileHTTPRoute(instance *v1beta1.Notebook) error {
+	log := r.Log.WithValues("notebook", instance.Namespace)
+	httpRoute, err := generateHTTPRoute(instance)
+	if err != nil {
+		log.Info("Unable to generate HTTPRoute...", err)
+		return err
+	}
+	if err := ctrl.SetControllerReference(instance, httpRoute, r.Scheme); err != nil {
+		return err
+	}
+	// Check if the HTTPRoute already exists.
+	foundHTTPRoute := &unstructured.Unstructured{}
+	justCreated := false
+	foundHTTPRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
+	foundHTTPRoute.SetKind("HTTPRoute")
+	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
+		instance.Namespace), Namespace: instance.Namespace}, foundHTTPRoute)
+	if err != nil && apierrs.IsNotFound(err) {
+		log.Info("Creating HTTPRoute", "namespace", instance.Namespace, "name",
+			virtualServiceName(instance.Name, instance.Namespace))
+		err = r.Create(context.TODO(), httpRoute)
+		justCreated = true
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	if !justCreated {
+		// Copy the spec from the desired HTTPRoute to the existing one
+		if !reflect.DeepEqual(httpRoute.Object["spec"], foundHTTPRoute.Object["spec"]) {
+			log.Info("Updating HTTPRoute", "namespace", instance.Namespace, "name",
+				virtualServiceName(instance.Name, instance.Namespace))
+			foundHTTPRoute.Object["spec"] = httpRoute.Object["spec"]
+			err = r.Update(context.TODO(), foundHTTPRoute)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook) error {
@@ -722,12 +858,19 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&source.Kind{Type: &corev1.Event{}},
 			handler.EnqueueRequestsFromMapFunc(mapEventToRequest),
 			builder.WithPredicates(predNBEvents(r)))
-	// watch Istio virtual service
+	// watch Istio virtual service or HTTPRoute
 	if os.Getenv("USE_ISTIO") == "true" {
-		virtualService := &unstructured.Unstructured{}
-		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
-		virtualService.SetKind("VirtualService")
-		builder.Owns(virtualService)
+		if os.Getenv("USE_AMBIENT_MODE") == "true" {
+			httpRoute := &unstructured.Unstructured{}
+			httpRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
+			httpRoute.SetKind("HTTPRoute")
+			builder.Owns(httpRoute)
+		} else {
+			virtualService := &unstructured.Unstructured{}
+			virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+			virtualService.SetKind("VirtualService")
+			builder.Owns(virtualService)
+		}
 	}
 
 	err := builder.Complete(r)

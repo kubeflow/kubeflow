@@ -64,6 +64,12 @@ var (
 			"kind":       "VirtualService",
 		},
 	}
+	httpRouteTemplate = &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "gateway.networking.k8s.io/v1",
+			"kind":       "HTTPRoute",
+		},
+	}
 )
 
 // Default permissions for the PVCViewer
@@ -75,6 +81,7 @@ var (
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes,verbs=get;list;watch;create;update
 
 // Add permissions to read external resources
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
@@ -82,13 +89,20 @@ var (
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PVCViewerReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kubefloworgv1alpha1.PVCViewer{}).
 		// This controller manages, i.e. creates these kinds for a PVCViewer
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{}).
-		Owns(virtualServiceTemplate).
-		Complete(r)
+		Owns(&corev1.Service{})
+	
+	// Add routing resource ownership based on mode
+	if os.Getenv("USE_AMBIENT_MODE") == "true" {
+		builder.Owns(httpRouteTemplate)
+	} else {
+		builder.Owns(virtualServiceTemplate)
+	}
+	
+	return builder.Complete(r)
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -132,8 +146,8 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileVirtualService(ctx, log, instance, commonLabels); err != nil {
-		log.Error(err, "Error while reconciling virtual service")
+	if err := r.reconcileRouting(ctx, log, instance, commonLabels); err != nil {
+		log.Error(err, "Error while reconciling routing")
 		return ctrl.Result{}, err
 	}
 
@@ -332,6 +346,112 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 	}
 	log.Info("Updating Virtual Service")
 	return r.Update(ctx, virtualService)
+}
+
+func (r *PVCViewerReconciler) reconcileRouting(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
+	if viewer.Spec.Networking == (kubefloworgv1alpha1.Networking{}) {
+		return nil
+	}
+
+	useAmbientMode := os.Getenv("USE_AMBIENT_MODE") == "true"
+	
+	if useAmbientMode {
+		return r.reconcileHTTPRoute(ctx, log, viewer, commonLabels)
+	} else {
+		return r.reconcileVirtualService(ctx, log, viewer, commonLabels)
+	}
+}
+
+func (r *PVCViewerReconciler) reconcileHTTPRoute(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
+	httpRoute := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "gateway.networking.k8s.io/v1",
+			"kind":       "HTTPRoute",
+			"metadata": map[string]interface{}{
+				"name":      resourcePrefix + viewer.Name,
+				"namespace": viewer.Namespace,
+				"labels":    commonLabels,
+			},
+		},
+	}
+	createHTTPRoute := false
+	if err := r.Get(ctx, types.NamespacedName{Name: httpRoute.GetName(), Namespace: httpRoute.GetNamespace()}, httpRoute); err != nil {
+		if !apierrs.IsNotFound(err) {
+			return err
+		}
+		createHTTPRoute = true
+	}
+
+	prefix := fmt.Sprintf("%s/%s/%s", viewer.Spec.Networking.BasePrefix, viewer.Namespace, viewer.Name)
+	rewrite := prefix
+	if viewer.Spec.Networking.Rewrite != "" {
+		rewrite = viewer.Spec.Networking.Rewrite
+	}
+	
+	// Get gateway configuration
+	gatewayName := os.Getenv("GATEWAY_NAME")
+	if gatewayName == "" {
+		gatewayName = "kubeflow-gateway"
+	}
+	gatewayNamespace := os.Getenv("GATEWAY_NAMESPACE")
+	if gatewayNamespace == "" {
+		gatewayNamespace = "kubeflow"
+	}
+	
+	// Set parentRefs for HTTPRoute
+	parentRefs := []interface{}{
+		map[string]interface{}{
+			"name":      gatewayName,
+			"namespace": gatewayNamespace,
+		},
+	}
+	
+	// Set rules for HTTPRoute
+	rules := []interface{}{
+		map[string]interface{}{
+			"matches": []interface{}{
+				map[string]interface{}{
+					"path": map[string]interface{}{
+						"type":  "PathPrefix",
+						"value": prefix,
+					},
+				},
+			},
+			"filters": []interface{}{
+				map[string]interface{}{
+					"type": "URLRewrite",
+					"urlRewrite": map[string]interface{}{
+						"path": map[string]interface{}{
+							"type":               "ReplacePrefixMatch",
+							"replacePrefixMatch": rewrite,
+						},
+					},
+				},
+			},
+			"backendRefs": []interface{}{
+				map[string]interface{}{
+					"name": resourcePrefix + viewer.Name,
+					"port": int64(servicePort),
+				},
+			},
+		},
+	}
+	
+	httpRoute.Object["spec"] = map[string]interface{}{
+		"parentRefs": parentRefs,
+		"rules":      rules,
+	}
+
+	if err := ctrl.SetControllerReference(viewer, httpRoute, r.Scheme); err != nil {
+		return err
+	}
+
+	if createHTTPRoute {
+		log.Info("Creating HTTPRoute")
+		return r.Create(ctx, httpRoute)
+	}
+	log.Info("Updating HTTPRoute")
+	return r.Update(ctx, httpRoute)
 }
 
 // Computes and updates the status of the PVCViewer

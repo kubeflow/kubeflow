@@ -1,2 +1,7 @@
 resources:
 - manager.yaml
+
+configMapGenerator:
+- name: manager-config
+  envs:
+  - params.env
