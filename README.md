@@ -37,7 +37,7 @@ training or model serving.
 | [Kubeflow Spark Operator](https://www.kubeflow.org/docs/components/spark-operator/) | [`kubeflow/spark-operator`](https://github.com/kubeflow/spark-operator) |
 | [Kubeflow Trainer](https://www.kubeflow.org/docs/components/trainer/)               | [`kubeflow/trainer`](https://github.com/kubeflow/trainer)               |
 
-## What is Kubeflow AI Reference Platform
+## What is the Kubeflow AI Reference Platform
 
 The Kubeflow AI reference platform refers to the full suite of Kubeflow projects bundled together
 with additional integration and management tools. Kubeflow AI reference platform deploys the
@@ -53,7 +53,7 @@ or [Kubeflow Manifests](https://www.kubeflow.org/docs/started/installing-kubeflo
 
 ## Kubeflow Community
 
-Kubeflow is a community-lead project maintained by the
+Kubeflow is a community-led project maintained by the
 [Kubeflow Working Groups](https://www.kubeflow.org/docs/about/governance/#4-working-groups)
 under the guidance of the [Kubeflow Steering Committee](https://www.kubeflow.org/docs/about/governance/#2-kubeflow-steering-committee-ksc).
 
