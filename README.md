@@ -11,7 +11,7 @@
 
 AI platform teams can build on top of Kubeflow by using each project independently or deploying the
 entire AI reference platform to meet their specific needs. The Kubeflow AI reference platform is
-composable, modular, portable, and scalable, backed by an ecosystem of Kubernetes-native open source
+composable, modular, portable, and scalable, backed by an ecosystem of Kubernetes-native
 projects that cover every stage of the [AI lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-projects-in-the-ai-lifecycle).
 
 Whether you’re an AI practitioner, a platform administrator, or a team of developers, Kubeflow
