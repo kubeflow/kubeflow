@@ -111,7 +111,7 @@ const surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: 
     const code = (err.response && err.response.statusCode) || 400;
     const devError = err.body || '';
     // Msg is the developer reason of what happened, devError is the technical details as to why
-    console.error(msg+(devError?` ${devError}`:''), err.stack?err:'');
+    console.error('%s%s', msg, devError ? ` ${devError}` : '', err.stack ? err : '');
     apiError({res, code, error: devError || msg});
 };
 

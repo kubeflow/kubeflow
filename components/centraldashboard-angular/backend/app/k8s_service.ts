@@ -63,7 +63,7 @@ export class KubernetesService {
       return body.items;
     } catch (err) {
       console.error(
-          `Unable to fetch Events for ${namespace}:`, err.body || err);
+          'Unable to fetch Events for %s:', namespace, err.body || err);
       return [];
     }
   }
