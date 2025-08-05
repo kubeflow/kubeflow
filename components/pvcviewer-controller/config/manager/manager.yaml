@@ -48,6 +48,9 @@ spec:
         image: ghcr.io/kubeflow/kubeflow/pvcviewer-controller
         imagePullPolicy: IfNotPresent
         name: manager
+        envFrom:
+        - configMapRef:
+            name: manager-config
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

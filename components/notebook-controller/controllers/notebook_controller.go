@@ -45,6 +45,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	gwapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
 const DefaultContainerPort = 8888
@@ -200,9 +201,17 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	// Reconcile routing (VirtualService or HTTPRoute) if we use ISTIO.
+	// Reconcile VirtualService if we use ISTIO.
 	if os.Getenv("USE_ISTIO") == "true" {
-		err = r.reconcileRouting(instance)
+		err = r.reconcileVirtualService(instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Reconcile HTTPRoute if we use Gateway API.
+	if os.Getenv("USE_GATEWAY_API") == "true" {
+		err = r.reconcileHTTPRoute(instance)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -570,10 +579,10 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	return vsvc, nil
 }
 
-func generateHTTPRoute(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
+func generateHTTPRoute(instance *v1beta1.Notebook) (*gwapiv1beta1.HTTPRoute, error) {
 	name := instance.Name
 	namespace := instance.Namespace
-	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+	pathPrefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
 
 	// unpack annotations from Notebook resource
 	annotations := make(map[string]string)
@@ -587,79 +596,74 @@ func generateHTTPRoute(instance *v1beta1.Notebook) (*unstructured.Unstructured, 
 		pathRewrite = annotations[AnnotationRewriteURI]
 	}
 
-	httpRoute := &unstructured.Unstructured{}
-	httpRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
-	httpRoute.SetKind("HTTPRoute")
-	httpRoute.SetName(virtualServiceName(name, namespace))
-	httpRoute.SetNamespace(namespace)
-
 	// Get gateway configuration
-	gatewayName := os.Getenv("GATEWAY_NAME")
+	gatewayName := os.Getenv("K8S_GATEWAY_NAME")
 	if len(gatewayName) == 0 {
 		gatewayName = "kubeflow-gateway"
 	}
-	gatewayNamespace := os.Getenv("GATEWAY_NAMESPACE")
+	gatewayNamespace := os.Getenv("K8S_GATEWAY_NAMESPACE")
 	if len(gatewayNamespace) == 0 {
 		gatewayNamespace = "kubeflow"
 	}
 
-	// Set parentRefs for HTTPRoute
-	parentRefs := []interface{}{
-		map[string]interface{}{
-			"name":      gatewayName,
-			"namespace": gatewayNamespace,
-		},
-	}
-	if err := unstructured.SetNestedSlice(httpRoute.Object, parentRefs, "spec", "parentRefs"); err != nil {
-		return nil, fmt.Errorf("set .spec.parentRefs error: %v", err)
-	}
+	pathMatchType := gwapiv1beta1.PathMatchPathPrefix
+	pathRewriteType := gwapiv1beta1.PrefixMatchHTTPPathModifier
+	urlRewriteType := gwapiv1beta1.HTTPRouteFilterURLRewrite
+	portNumber := gwapiv1beta1.PortNumber(DefaultServingPort)
 
-	// Set rules for HTTPRoute
-	rules := []interface{}{
-		map[string]interface{}{
-			"matches": []interface{}{
-				map[string]interface{}{
-					"path": map[string]interface{}{
-						"type":  "PathPrefix",
-						"value": prefix,
+	httpRoute := &gwapiv1beta1.HTTPRoute{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      virtualServiceName(name, namespace),
+			Namespace: namespace,
+		},
+		Spec: gwapiv1beta1.HTTPRouteSpec{
+			CommonRouteSpec: gwapiv1beta1.CommonRouteSpec{
+				ParentRefs: []gwapiv1beta1.ParentReference{
+					{
+						Name:      gwapiv1beta1.ObjectName(gatewayName),
+						Namespace: (*gwapiv1beta1.Namespace)(&gatewayNamespace),
 					},
 				},
 			},
-			"filters": []interface{}{
-				map[string]interface{}{
-					"type": "URLRewrite",
-					"urlRewrite": map[string]interface{}{
-						"path": map[string]interface{}{
-							"type":               "ReplacePrefixMatch",
-							"replacePrefixMatch": pathRewrite,
+			Rules: []gwapiv1beta1.HTTPRouteRule{
+				{
+					Matches: []gwapiv1beta1.HTTPRouteMatch{
+						{
+							Path: &gwapiv1beta1.HTTPPathMatch{
+								Type:  &pathMatchType,
+								Value: &pathPrefix,
+							},
+						},
+					},
+					Filters: []gwapiv1beta1.HTTPRouteFilter{
+						{
+							Type: urlRewriteType,
+							URLRewrite: &gwapiv1beta1.HTTPURLRewriteFilter{
+								Path: &gwapiv1beta1.HTTPPathModifier{
+									Type:               pathRewriteType,
+									ReplacePrefixMatch: &pathRewrite,
+								},
+							},
+						},
+					},
+					BackendRefs: []gwapiv1beta1.HTTPBackendRef{
+						{
+							BackendRef: gwapiv1beta1.BackendRef{
+								BackendObjectReference: gwapiv1beta1.BackendObjectReference{
+									Name: gwapiv1beta1.ObjectName(name),
+									Port: &portNumber,
+								},
+							},
 						},
 					},
 				},
 			},
-			"backendRefs": []interface{}{
-				map[string]interface{}{
-					"name": name,
-					"port": int64(DefaultServingPort),
-				},
-			},
 		},
-	}
-	if err := unstructured.SetNestedSlice(httpRoute.Object, rules, "spec", "rules"); err != nil {
-		return nil, fmt.Errorf("set .spec.rules error: %v", err)
 	}
 
 	return httpRoute, nil
 }
 
-func (r *NotebookReconciler) reconcileRouting(instance *v1beta1.Notebook) error {
-	useAmbientMode := os.Getenv("USE_AMBIENT_MODE") == "true"
-	
-	if useAmbientMode {
-		return r.reconcileHTTPRoute(instance)
-	} else {
-		return r.reconcileVirtualService(instance)
-	}
-}
 
 func (r *NotebookReconciler) reconcileHTTPRoute(instance *v1beta1.Notebook) error {
 	log := r.Log.WithValues("notebook", instance.Namespace)
@@ -672,10 +676,8 @@ func (r *NotebookReconciler) reconcileHTTPRoute(instance *v1beta1.Notebook) erro
 		return err
 	}
 	// Check if the HTTPRoute already exists.
-	foundHTTPRoute := &unstructured.Unstructured{}
+	foundHTTPRoute := &gwapiv1beta1.HTTPRoute{}
 	justCreated := false
-	foundHTTPRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
-	foundHTTPRoute.SetKind("HTTPRoute")
 	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
 		instance.Namespace), Namespace: instance.Namespace}, foundHTTPRoute)
 	if err != nil && apierrs.IsNotFound(err) {
@@ -692,10 +694,10 @@ func (r *NotebookReconciler) reconcileHTTPRoute(instance *v1beta1.Notebook) erro
 
 	if !justCreated {
 		// Copy the spec from the desired HTTPRoute to the existing one
-		if !reflect.DeepEqual(httpRoute.Object["spec"], foundHTTPRoute.Object["spec"]) {
+		if !reflect.DeepEqual(httpRoute.Spec, foundHTTPRoute.Spec) {
 			log.Info("Updating HTTPRoute", "namespace", instance.Namespace, "name",
 				virtualServiceName(instance.Name, instance.Namespace))
-			foundHTTPRoute.Object["spec"] = httpRoute.Object["spec"]
+			foundHTTPRoute.Spec = httpRoute.Spec
 			err = r.Update(context.TODO(), foundHTTPRoute)
 			if err != nil {
 				return err
@@ -858,19 +860,17 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&source.Kind{Type: &corev1.Event{}},
 			handler.EnqueueRequestsFromMapFunc(mapEventToRequest),
 			builder.WithPredicates(predNBEvents(r)))
-	// watch Istio virtual service or HTTPRoute
+	// watch Istio virtual service
 	if os.Getenv("USE_ISTIO") == "true" {
-		if os.Getenv("USE_AMBIENT_MODE") == "true" {
-			httpRoute := &unstructured.Unstructured{}
-			httpRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
-			httpRoute.SetKind("HTTPRoute")
-			builder.Owns(httpRoute)
-		} else {
-			virtualService := &unstructured.Unstructured{}
-			virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
-			virtualService.SetKind("VirtualService")
-			builder.Owns(virtualService)
-		}
+		virtualService := &unstructured.Unstructured{}
+		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+		virtualService.SetKind("VirtualService")
+		builder.Owns(virtualService)
+	}
+
+	// watch HTTPRoute
+	if os.Getenv("USE_GATEWAY_API") == "true" {
+		builder.Owns(&gwapiv1beta1.HTTPRoute{})
 	}
 
 	err := builder.Complete(r)

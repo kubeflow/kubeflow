@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -33,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	gwapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	kubefloworgv1alpha1 "github.com/kubeflow/kubeflow/components/pvc-viewer/api/v1alpha1"
 )
@@ -64,12 +66,7 @@ var (
 			"kind":       "VirtualService",
 		},
 	}
-	httpRouteTemplate = &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "gateway.networking.k8s.io/v1",
-			"kind":       "HTTPRoute",
-		},
-	}
+	httpRouteTemplate = &gwapiv1.HTTPRoute{}
 )
 
 // Default permissions for the PVCViewer
@@ -96,7 +93,7 @@ func (r *PVCViewerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{})
 	
 	// Add routing resource ownership based on mode
-	if os.Getenv("USE_AMBIENT_MODE") == "true" {
+	if os.Getenv("USE_GATEWAY_API") == "true" {
 		builder.Owns(httpRouteTemplate)
 	} else {
 		builder.Owns(virtualServiceTemplate)
@@ -146,9 +143,19 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileRouting(ctx, log, instance, commonLabels); err != nil {
-		log.Error(err, "Error while reconciling routing")
-		return ctrl.Result{}, err
+	// Reconcile routing: HTTPRoute if Gateway API is enabled, otherwise VirtualService
+	if instance.Spec.Networking != (kubefloworgv1alpha1.Networking{}) {
+		if os.Getenv("USE_GATEWAY_API") == "true" {
+			if err := r.reconcileHTTPRoute(ctx, log, instance, commonLabels); err != nil {
+				log.Error(err, "Error while reconciling HTTPRoute")
+				return ctrl.Result{}, err
+			}
+		} else {
+			if err := r.reconcileVirtualService(ctx, log, instance, commonLabels); err != nil {
+				log.Error(err, "Error while reconciling VirtualService")
+				return ctrl.Result{}, err
+			}
+		}
 	}
 
 	if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace); err != nil {
@@ -348,40 +355,8 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 	return r.Update(ctx, virtualService)
 }
 
-func (r *PVCViewerReconciler) reconcileRouting(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
-	if viewer.Spec.Networking == (kubefloworgv1alpha1.Networking{}) {
-		return nil
-	}
-
-	useAmbientMode := os.Getenv("USE_AMBIENT_MODE") == "true"
-	
-	if useAmbientMode {
-		return r.reconcileHTTPRoute(ctx, log, viewer, commonLabels)
-	} else {
-		return r.reconcileVirtualService(ctx, log, viewer, commonLabels)
-	}
-}
 
 func (r *PVCViewerReconciler) reconcileHTTPRoute(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
-	httpRoute := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "gateway.networking.k8s.io/v1",
-			"kind":       "HTTPRoute",
-			"metadata": map[string]interface{}{
-				"name":      resourcePrefix + viewer.Name,
-				"namespace": viewer.Namespace,
-				"labels":    commonLabels,
-			},
-		},
-	}
-	createHTTPRoute := false
-	if err := r.Get(ctx, types.NamespacedName{Name: httpRoute.GetName(), Namespace: httpRoute.GetNamespace()}, httpRoute); err != nil {
-		if !apierrs.IsNotFound(err) {
-			return err
-		}
-		createHTTPRoute = true
-	}
-
 	prefix := fmt.Sprintf("%s/%s/%s", viewer.Spec.Networking.BasePrefix, viewer.Namespace, viewer.Name)
 	rewrite := prefix
 	if viewer.Spec.Networking.Rewrite != "" {
@@ -389,69 +364,92 @@ func (r *PVCViewerReconciler) reconcileHTTPRoute(ctx context.Context, log logr.L
 	}
 	
 	// Get gateway configuration
-	gatewayName := os.Getenv("GATEWAY_NAME")
+	gatewayName := os.Getenv("K8S_GATEWAY_NAME")
 	if gatewayName == "" {
 		gatewayName = "kubeflow-gateway"
 	}
-	gatewayNamespace := os.Getenv("GATEWAY_NAMESPACE")
+	gatewayNamespace := os.Getenv("K8S_GATEWAY_NAMESPACE")
 	if gatewayNamespace == "" {
 		gatewayNamespace = "kubeflow"
 	}
-	
-	// Set parentRefs for HTTPRoute
-	parentRefs := []interface{}{
-		map[string]interface{}{
-			"name":      gatewayName,
-			"namespace": gatewayNamespace,
+
+	pathMatchType := gwapiv1.PathMatchPathPrefix
+	pathRewriteType := gwapiv1.PrefixMatchHTTPPathModifier
+	urlRewriteType := gwapiv1.HTTPRouteFilterURLRewrite
+	portNumber := gwapiv1.PortNumber(servicePort)
+
+	httpRoute := &gwapiv1.HTTPRoute{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourcePrefix + viewer.Name,
+			Namespace: viewer.Namespace,
+			Labels:    commonLabels,
 		},
-	}
-	
-	// Set rules for HTTPRoute
-	rules := []interface{}{
-		map[string]interface{}{
-			"matches": []interface{}{
-				map[string]interface{}{
-					"path": map[string]interface{}{
-						"type":  "PathPrefix",
-						"value": prefix,
+		Spec: gwapiv1.HTTPRouteSpec{
+			CommonRouteSpec: gwapiv1.CommonRouteSpec{
+				ParentRefs: []gwapiv1.ParentReference{
+					{
+						Name:      gwapiv1.ObjectName(gatewayName),
+						Namespace: (*gwapiv1.Namespace)(&gatewayNamespace),
 					},
 				},
 			},
-			"filters": []interface{}{
-				map[string]interface{}{
-					"type": "URLRewrite",
-					"urlRewrite": map[string]interface{}{
-						"path": map[string]interface{}{
-							"type":               "ReplacePrefixMatch",
-							"replacePrefixMatch": rewrite,
+			Rules: []gwapiv1.HTTPRouteRule{
+				{
+					Matches: []gwapiv1.HTTPRouteMatch{
+						{
+							Path: &gwapiv1.HTTPPathMatch{
+								Type:  &pathMatchType,
+								Value: &prefix,
+							},
+						},
+					},
+					Filters: []gwapiv1.HTTPRouteFilter{
+						{
+							Type: urlRewriteType,
+							URLRewrite: &gwapiv1.HTTPURLRewriteFilter{
+								Path: &gwapiv1.HTTPPathModifier{
+									Type:               pathRewriteType,
+									ReplacePrefixMatch: &rewrite,
+								},
+							},
+						},
+					},
+					BackendRefs: []gwapiv1.HTTPBackendRef{
+						{
+							BackendRef: gwapiv1.BackendRef{
+								BackendObjectReference: gwapiv1.BackendObjectReference{
+									Name: gwapiv1.ObjectName(resourcePrefix + viewer.Name),
+									Port: &portNumber,
+								},
+							},
 						},
 					},
 				},
 			},
-			"backendRefs": []interface{}{
-				map[string]interface{}{
-					"name": resourcePrefix + viewer.Name,
-					"port": int64(servicePort),
-				},
-			},
 		},
-	}
-	
-	httpRoute.Object["spec"] = map[string]interface{}{
-		"parentRefs": parentRefs,
-		"rules":      rules,
 	}
 
 	if err := ctrl.SetControllerReference(viewer, httpRoute, r.Scheme); err != nil {
 		return err
 	}
 
-	if createHTTPRoute {
+	foundHTTPRoute := &gwapiv1.HTTPRoute{}
+	err := r.Get(ctx, types.NamespacedName{Name: httpRoute.Name, Namespace: httpRoute.Namespace}, foundHTTPRoute)
+	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Creating HTTPRoute")
 		return r.Create(ctx, httpRoute)
+	} else if err != nil {
+		return err
 	}
-	log.Info("Updating HTTPRoute")
-	return r.Update(ctx, httpRoute)
+
+	// Update if spec changed
+	if !reflect.DeepEqual(httpRoute.Spec, foundHTTPRoute.Spec) {
+		log.Info("Updating HTTPRoute")
+		foundHTTPRoute.Spec = httpRoute.Spec
+		return r.Update(ctx, foundHTTPRoute)
+	}
+
+	return nil
 }
 
 // Computes and updates the status of the PVCViewer

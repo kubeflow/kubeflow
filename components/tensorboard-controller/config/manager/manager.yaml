@@ -31,6 +31,9 @@ spec:
             - /manager
           image: ghcr.io/kubeflow/kubeflow/tensorboard-controller
           name: manager
+          envFrom:
+          - configMapRef:
+              name: manager-config
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:

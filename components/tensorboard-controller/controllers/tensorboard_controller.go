@@ -39,6 +39,7 @@ import (
 
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	tensorboardv1alpha1 "github.com/kubeflow/kubeflow/components/tensorboard-controller/api/v1alpha1"
+	gwapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
 // TensorboardReconciler reconciles a Tensorboard object
@@ -110,9 +111,15 @@ func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile routing (VirtualService or HTTPRoute)
-	if err := r.reconcileRouting(ctx, instance, logger); err != nil {
-		return ctrl.Result{}, err
+	// Reconcile routing: HTTPRoute if Gateway API is enabled, otherwise VirtualService
+	if os.Getenv("USE_GATEWAY_API") == "true" {
+		if err := r.reconcileHTTPRoute(ctx, instance, logger); err != nil {
+			return ctrl.Result{}, err
+		}
+	} else {
+		if err := r.reconcileVirtualService(ctx, instance, logger); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	foundDeployment := &appsv1.Deployment{}
@@ -374,83 +381,78 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	return vsvc, nil
 }
 
-func generateHTTPRoute(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.Unstructured, error) {
+func generateHTTPRoute(tb *tensorboardv1alpha1.Tensorboard) (*gwapiv1beta1.HTTPRoute, error) {
 	prefix := fmt.Sprintf("/tensorboard/%s/%s", tb.Namespace, tb.Name)
 	pathRewrite := "/"
 	
 	// Get gateway configuration
-	gatewayName := os.Getenv("GATEWAY_NAME")
+	gatewayName := os.Getenv("K8S_GATEWAY_NAME")
 	if len(gatewayName) == 0 {
 		gatewayName = "kubeflow-gateway"
 	}
-	gatewayNamespace := os.Getenv("GATEWAY_NAMESPACE")
+	gatewayNamespace := os.Getenv("K8S_GATEWAY_NAMESPACE")
 	if len(gatewayNamespace) == 0 {
 		gatewayNamespace = "kubeflow"
 	}
-	
-	httpRoute := &unstructured.Unstructured{}
-	httpRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
-	httpRoute.SetKind("HTTPRoute")
-	httpRoute.SetName(tb.Name)
-	httpRoute.SetNamespace(tb.Namespace)
-	
-	// Set parentRefs for HTTPRoute
-	parentRefs := []interface{}{
-		map[string]interface{}{
-			"name":      gatewayName,
-			"namespace": gatewayNamespace,
+
+	pathMatchType := gwapiv1beta1.PathMatchPathPrefix
+	pathRewriteType := gwapiv1beta1.PrefixMatchHTTPPathModifier
+	urlRewriteType := gwapiv1beta1.HTTPRouteFilterURLRewrite
+	portNumber := gwapiv1beta1.PortNumber(80)
+
+	httpRoute := &gwapiv1beta1.HTTPRoute{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      tb.Name,
+			Namespace: tb.Namespace,
 		},
-	}
-	if err := unstructured.SetNestedSlice(httpRoute.Object, parentRefs, "spec", "parentRefs"); err != nil {
-		return nil, fmt.Errorf("set .spec.parentRefs error: %v", err)
-	}
-	
-	// Set rules for HTTPRoute
-	rules := []interface{}{
-		map[string]interface{}{
-			"matches": []interface{}{
-				map[string]interface{}{
-					"path": map[string]interface{}{
-						"type":  "PathPrefix",
-						"value": prefix,
+		Spec: gwapiv1beta1.HTTPRouteSpec{
+			CommonRouteSpec: gwapiv1beta1.CommonRouteSpec{
+				ParentRefs: []gwapiv1beta1.ParentReference{
+					{
+						Name:      gwapiv1beta1.ObjectName(gatewayName),
+						Namespace: (*gwapiv1beta1.Namespace)(&gatewayNamespace),
 					},
 				},
 			},
-			"filters": []interface{}{
-				map[string]interface{}{
-					"type": "URLRewrite",
-					"urlRewrite": map[string]interface{}{
-						"path": map[string]interface{}{
-							"type":               "ReplacePrefixMatch",
-							"replacePrefixMatch": pathRewrite,
+			Rules: []gwapiv1beta1.HTTPRouteRule{
+				{
+					Matches: []gwapiv1beta1.HTTPRouteMatch{
+						{
+							Path: &gwapiv1beta1.HTTPPathMatch{
+								Type:  &pathMatchType,
+								Value: &prefix,
+							},
+						},
+					},
+					Filters: []gwapiv1beta1.HTTPRouteFilter{
+						{
+							Type: urlRewriteType,
+							URLRewrite: &gwapiv1beta1.HTTPURLRewriteFilter{
+								Path: &gwapiv1beta1.HTTPPathModifier{
+									Type:               pathRewriteType,
+									ReplacePrefixMatch: &pathRewrite,
+								},
+							},
+						},
+					},
+					BackendRefs: []gwapiv1beta1.HTTPBackendRef{
+						{
+							BackendRef: gwapiv1beta1.BackendRef{
+								BackendObjectReference: gwapiv1beta1.BackendObjectReference{
+									Name: gwapiv1beta1.ObjectName(tb.Name),
+									Port: &portNumber,
+								},
+							},
 						},
 					},
 				},
 			},
-			"backendRefs": []interface{}{
-				map[string]interface{}{
-					"name": tb.Name,
-					"port": int64(80),
-				},
-			},
 		},
-	}
-	if err := unstructured.SetNestedSlice(httpRoute.Object, rules, "spec", "rules"); err != nil {
-		return nil, fmt.Errorf("set .spec.rules error: %v", err)
 	}
 	
 	return httpRoute, nil
 }
 
-func (r *TensorboardReconciler) reconcileRouting(ctx context.Context, instance *tensorboardv1alpha1.Tensorboard, logger logr.Logger) error {
-	useAmbientMode := os.Getenv("USE_AMBIENT_MODE") == "true"
-	
-	if useAmbientMode {
-		return r.reconcileHTTPRoute(ctx, instance, logger)
-	} else {
-		return r.reconcileVirtualService(ctx, instance, logger)
-	}
-}
 
 func (r *TensorboardReconciler) reconcileHTTPRoute(ctx context.Context, instance *tensorboardv1alpha1.Tensorboard, logger logr.Logger) error {
 	httpRoute, err := generateHTTPRoute(instance)
@@ -462,13 +464,11 @@ func (r *TensorboardReconciler) reconcileHTTPRoute(ctx context.Context, instance
 	}
 	
 	// Check if the HTTPRoute already exists
-	foundHTTPRoute := &unstructured.Unstructured{}
-	foundHTTPRoute.SetAPIVersion("gateway.networking.k8s.io/v1")
-	foundHTTPRoute.SetKind("HTTPRoute")
+	foundHTTPRoute := &gwapiv1beta1.HTTPRoute{}
 	justCreated := false
-	if err := r.Get(ctx, types.NamespacedName{Name: httpRoute.GetName(), Namespace: httpRoute.GetNamespace()}, foundHTTPRoute); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: httpRoute.Name, Namespace: httpRoute.Namespace}, foundHTTPRoute); err != nil {
 		if apierrs.IsNotFound(err) {
-			logger.Info("Creating HTTPRoute", "namespace", httpRoute.GetNamespace(), "name", httpRoute.GetName())
+			logger.Info("Creating HTTPRoute", "namespace", httpRoute.Namespace, "name", httpRoute.Name)
 			if err := r.Create(ctx, httpRoute); err != nil {
 				logger.Error(err, "unable to create HTTPRoute")
 				return err
@@ -482,9 +482,9 @@ func (r *TensorboardReconciler) reconcileHTTPRoute(ctx context.Context, instance
 	
 	if !justCreated {
 		// Copy the spec from the desired HTTPRoute to the existing one
-		if !reflect.DeepEqual(httpRoute.Object["spec"], foundHTTPRoute.Object["spec"]) {
-			logger.Info("Updating HTTPRoute", "namespace", httpRoute.GetNamespace(), "name", httpRoute.GetName())
-			foundHTTPRoute.Object["spec"] = httpRoute.Object["spec"]
+		if !reflect.DeepEqual(httpRoute.Spec, foundHTTPRoute.Spec) {
+			logger.Info("Updating HTTPRoute", "namespace", httpRoute.Namespace, "name", httpRoute.Name)
+			foundHTTPRoute.Spec = httpRoute.Spec
 			if err := r.Update(ctx, foundHTTPRoute); err != nil {
 				logger.Error(err, "unable to update HTTPRoute")
 				return err
