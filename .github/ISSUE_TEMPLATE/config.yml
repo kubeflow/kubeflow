@@ -40,9 +40,9 @@ contact_links:
     url: https://github.com/kubeflow/spark-operator/issues
     about: Please use the `kubeflow/spark-operator` repository
 
-  - name: Issues - Kubeflow Training Operator
-    url: https://github.com/kubeflow/training-operator/issues
-    about: Please use the `kubeflow/training-operator` repository
+  - name: Issues - Kubeflow Trainer
+    url: https://github.com/kubeflow/trainer/issues
+    about: Please use the `kubeflow/trainer` repository
 
   - name: Issues - Kubeflow Platform - Central Dashboard
     url: https://github.com/kubeflow/dashboard/issues
