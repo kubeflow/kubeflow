@@ -10,6 +10,10 @@ kind: Deployment
 metadata:
   name: deployment
 spec:
+  selector:
+    matchLabels:
+      app: notebook-controller
+      kustomize.component: notebook-controller
   template:
     metadata:
       labels:
@@ -21,42 +25,9 @@ spec:
         image: ghcr.io/kubeflow/kubeflow/notebook-controller
         command:
           - /manager
-        env:
-          - name: USE_ISTIO
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: USE_ISTIO
-          - name: ISTIO_GATEWAY
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: ISTIO_GATEWAY
-          - name: ISTIO_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: ISTIO_HOST
-          - name: CLUSTER_DOMAIN
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: CLUSTER_DOMAIN
-          - name: ENABLE_CULLING
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: ENABLE_CULLING
-          - name: CULL_IDLE_TIME
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: CULL_IDLE_TIME
-          - name: IDLENESS_CHECK_PERIOD
-            valueFrom:
-              configMapKeyRef:
-                name: config
-                key: IDLENESS_CHECK_PERIOD
+        envFrom:
+        - configMapRef:
+            name: config
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
