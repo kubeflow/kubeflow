@@ -34,7 +34,17 @@ All other fields will be filled in with default value if not specified.
 | --- | --- |
 |ADD_FSGROUP| If the value is true or unset, fsGroup: 100 will be included in the pod's security context. If this value is present and set to false, it will suppress the automatic addition of fsGroup: 100 to the security context of the pod.|
 |DEV| If the value is false or unset, then the default implementation of the Notebook Controller will be used. If the admins want to use a custom implementation from their local machine, they should set this value to true.|
-
+|USE_ISTIO| If the value is set to true, Istio will be used to route traffic. If set to false, Istio routing will be disabled.|
+|ISTIO_GATEWAY|Name of the Istio Gateway resource used to route traffic to notebook servers. Only used if ``USE_ISTIO`` is enabled.|
+|ISTIO_HOST|Specifies the host to use in the Istio VirtualService. Default is ``*``. Only used if ``USE_ISTIO`` is enabled.|
+|ISTIO_USE_NOTEBOOK_SUBDOMAINS| If the value is true, notebooks hosted on a subdomain. This is recommended for security reasons but has some technical dependencies. If the value is set to false, secure subdomain feature is not enabled. Disabled by default.|
+|ISTIO_HOST_NOTEBOOK| Domain template used by Istio to host notebooks (e.g., `${NAMESPACE}-notebook.kubeflow.example.com`). Required if ``ISTIO_USE_NOTEBOOK_SUBDOMAINS`` is enabled. |
+|ISTIO_HOST_AUTH| Host used by Istio for handling authentication callbacks or login flows (e.g., `kubeflow.example.com`). Required if ``ISTIO_USE_NOTEBOOK_SUBDOMAINS`` is enabled. |
+|ISTIO_AUTH_PATH|Specifies the path used for authentication callbacks or redirection when integrating with an identity provider through Istio. Default is ``/oauth2/``. Only used if ``ISTIO_USE_NOTEBOOK_SUBDOMAINS`` is enabled. |
+|ENABLE_CULLING|If the value is true, the controller will do culling on idle notebooks. Not enabled by default.|
+|CULL_IDLE_TIME|Specifies minutes until an idle notebook will be stopped. Default is 1 day.|
+|IDLENESS_CHECK_PERIOD|Specifies minutes for the idleness check period. Default is 1 minute.|
+|CLUSTER_DOMAIN| Specifies the Kubernetes internal cluster domain. Default is ``cluster.local``|
 
 
 ## Commandline parameters

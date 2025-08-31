@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -468,7 +469,108 @@ func virtualServiceName(kfName string, namespace string) string {
 	return fmt.Sprintf("notebook-%s-%s", namespace, kfName)
 }
 
-func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
+func virtualServiceNameWithSuffix(kfName string, namespace string, suffix string) string {
+	return fmt.Sprintf("notebook-%s-%s-%s", namespace, kfName, suffix)
+}
+
+func generateVirtualServiceForNotebookRedirect(name string, namespace string, prefix string, istioHostNotebook string, istioGateway string) (*unstructured.Unstructured, error) {
+	vsvc := &unstructured.Unstructured{}
+	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
+	vsvc.SetKind("VirtualService")
+	vsvc.SetName(virtualServiceNameWithSuffix(name, namespace, "notebook-redirect"))
+	vsvc.SetNamespace(namespace)
+
+	istioHost := os.Getenv("ISTIO_HOST")
+	if len(istioHost) == 0 {
+		istioHost = "*"
+	}
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
+		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
+
+	}
+
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioGateway},
+		"spec", "gateways"); err != nil {
+		return nil, fmt.Errorf("set .spec.gateways error: %v", err)
+	}
+
+	// the http section of the istio VirtualService spec
+	http := []interface{}{
+		map[string]interface{}{
+			"match": []interface{}{
+				map[string]interface{}{
+					"uri": map[string]interface{}{
+						"prefix": prefix,
+					},
+				},
+			},
+			"redirect": map[string]interface{}{
+				"authority":    istioHostNotebook,
+				"redirectCode": int64(307),
+			},
+		},
+	}
+
+	// add http section to istio VirtualService spec
+	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
+		return nil, fmt.Errorf("set .spec.http error: %v", err)
+	}
+
+	return vsvc, nil
+}
+
+func generateVirtualServiceForAuthRedirect(name string, namespace string, prefix string, istioHostNotebook string, istioGateway string) (*unstructured.Unstructured, error) {
+	vsvc := &unstructured.Unstructured{}
+	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
+	vsvc.SetKind("VirtualService")
+	vsvc.SetName(virtualServiceNameWithSuffix(name, namespace, "auth-redirect"))
+	vsvc.SetNamespace(namespace)
+
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHostNotebook}, "spec", "hosts"); err != nil {
+		return nil, fmt.Errorf("set .spec.hosts error: %v", err)
+	}
+
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioGateway},
+		"spec", "gateways"); err != nil {
+		return nil, fmt.Errorf("set .spec.gateways error: %v", err)
+	}
+
+	istioHostAuth := os.Getenv("ISTIO_HOST_AUTH")
+	if len(istioHostAuth) == 0 {
+		return nil, fmt.Errorf("invalid ISTIO_HOST_AUTH: When ISTIO_USE_NOTEBOOK_SUBDOMAINS is set, the ISTIO_HOST_AUTH environment variable must be defined.")
+	}
+
+	istioAuthPath := os.Getenv("ISTIO_AUTH_PATH")
+	if len(istioAuthPath) == 0 {
+		istioAuthPath = "/oauth2/"
+	}
+
+	// the http section of the istio VirtualService spec
+	http := []interface{}{
+		map[string]interface{}{
+			"match": []interface{}{
+				map[string]interface{}{
+					"uri": map[string]interface{}{
+						"prefix": istioAuthPath,
+					},
+				},
+			},
+			"redirect": map[string]interface{}{
+				"authority":    istioHostAuth,
+				"redirectCode": int64(307),
+			},
+		},
+	}
+
+	// add http section to istio VirtualService spec
+	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
+		return nil, fmt.Errorf("set .spec.http error: %v", err)
+	}
+
+	return vsvc, nil
+}
+
+func generateVirtualServices(instance *v1beta1.Notebook) ([]*unstructured.Unstructured, error) {
 	name := instance.Name
 	namespace := instance.Namespace
 	clusterDomain := "cluster.local"
@@ -492,19 +594,12 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	service := fmt.Sprintf("%s.%s.svc.%s", name, namespace, clusterDomain)
 
 	vsvc := &unstructured.Unstructured{}
+	vsvcs := []*unstructured.Unstructured{vsvc}
+
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
 	vsvc.SetName(virtualServiceName(name, namespace))
 	vsvc.SetNamespace(namespace)
-
-	istioHost := os.Getenv("ISTIO_HOST")
-	if len(istioHost) == 0 {
-		istioHost = "*"
-	}
-	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
-		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
-
-	}
 
 	istioGateway := os.Getenv("ISTIO_GATEWAY")
 	if len(istioGateway) == 0 {
@@ -513,6 +608,33 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioGateway},
 		"spec", "gateways"); err != nil {
 		return nil, fmt.Errorf("set .spec.gateways error: %v", err)
+	}
+
+	istioHost := os.Getenv("ISTIO_HOST")
+	if os.Getenv("ISTIO_USE_NOTEBOOK_SUBDOMAINS") == "true" {
+		istioHost = os.Getenv("ISTIO_HOST_NOTEBOOK")
+		if !strings.Contains(istioHost, "${NAMESPACE}") {
+			return nil, errors.New("invalid ISTIO_HOST_NOTEBOOK: When ISTIO_USE_NOTEBOOK_SUBDOMAINS is set, the placeholder ${NAMESPACE} must be defined in ISTIO_HOST_NOTEBOOK.")
+		}
+		istioHost = strings.ReplaceAll(istioHost, "${NAMESPACE}", namespace)
+
+		vsvcForNotebookRedirect, err := generateVirtualServiceForNotebookRedirect(name, namespace, prefix, istioHost, istioGateway)
+		if err != nil {
+			return nil, fmt.Errorf("generate virtual service for notebook redirect error: %v", err)
+		}
+
+		vsvcForAuthRedirect, err := generateVirtualServiceForAuthRedirect(name, namespace, prefix, istioHost, istioGateway)
+		if err != nil {
+			return nil, fmt.Errorf("generate virtual service for auth redirect error: %v", err)
+		}
+
+		vsvcs = append(vsvcs, vsvcForAuthRedirect, vsvcForNotebookRedirect)
+	} else if len(istioHost) == 0 {
+		istioHost = "*"
+	}
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioHost}, "spec", "hosts"); err != nil {
+		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
+
 	}
 
 	headersRequestSet := make(map[string]string)
@@ -535,7 +657,8 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 		map[string]interface{}{
 			"headers": map[string]interface{}{
 				"request": map[string]interface{}{
-					"set": headersRequestSetInterface,
+					"set":    headersRequestSetInterface,
+					"remove": []interface{}{"Cookie"},
 				},
 			},
 			"match": []interface{}{
@@ -566,45 +689,50 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 		return nil, fmt.Errorf("set .spec.http error: %v", err)
 	}
 
-	return vsvc, nil
+	return vsvcs, nil
 
 }
 
 func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook) error {
 	log := r.Log.WithValues("notebook", instance.Namespace)
-	virtualService, err := generateVirtualService(instance)
+	virtualServices, err := generateVirtualServices(instance)
 	if err != nil {
 		log.Info("Unable to generate VirtualService...", err)
 		return err
 	}
-	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
-		return err
-	}
-	// Check if the virtual service already exists.
-	foundVirtual := &unstructured.Unstructured{}
-	justCreated := false
-	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
-	foundVirtual.SetKind("VirtualService")
-	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
-		instance.Namespace), Namespace: instance.Namespace}, foundVirtual)
-	if err != nil && apierrs.IsNotFound(err) {
-		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
-			virtualServiceName(instance.Name, instance.Namespace))
-		err = r.Create(context.TODO(), virtualService)
-		justCreated = true
-		if err != nil {
+
+	for _, virtualService := range virtualServices {
+
+		if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
 			return err
 		}
-	} else if err != nil {
-		return err
-	}
-
-	if !justCreated && reconcilehelper.CopyVirtualService(virtualService, foundVirtual) {
-		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
-			virtualServiceName(instance.Name, instance.Namespace))
-		err = r.Update(context.TODO(), foundVirtual)
-		if err != nil {
+		// Check if the virtual service already exists.
+		foundVirtual := &unstructured.Unstructured{}
+		justCreated := false
+		foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
+		foundVirtual.SetKind("VirtualService")
+		virtualServiceName := virtualService.GetName()
+		virtualServiceNamespace := virtualService.GetNamespace()
+		err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName, Namespace: virtualServiceNamespace}, foundVirtual)
+		if err != nil && apierrs.IsNotFound(err) {
+			log.Info("Creating virtual service", "namespace", virtualServiceNamespace, "name",
+				virtualServiceName)
+			err = r.Create(context.TODO(), virtualService)
+			justCreated = true
+			if err != nil {
+				return err
+			}
+		} else if err != nil {
 			return err
+		}
+
+		if !justCreated && reconcilehelper.CopyVirtualService(virtualService, foundVirtual) {
+			log.Info("Updating virtual service", "namespace", virtualServiceNamespace, "name",
+				virtualServiceName)
+			err = r.Update(context.TODO(), foundVirtual)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
