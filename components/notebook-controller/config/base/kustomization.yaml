@@ -1,8 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- ../default
-images:
-- name: ghcr.io/kubeflow/kubeflow/notebook-controller
-  newName: ghcr.io/kubeflow/kubeflow/notebook-controller
-  newTag: latest

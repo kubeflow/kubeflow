@@ -1,4 +1,4 @@
-# Kubeflow Roadmap
+# Kubeflow AI Reference Platform Roadmap
 
 ## Kubeflow 1.10 Release, Planned for release: Mar 2025
 The Kubeflow Community plans to deliver its v1.10 release in Mar 2025 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.10/README.md#timeline). The high level deliverables are tracked in the [v1.10 Release](https://github.com/orgs/kubeflow/projects/73) Github project board. The v1.10 release process will be managed by the v1.10 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.10/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
