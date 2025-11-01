@@ -1,8 +1,9 @@
 # Changelog
 
-The [GitHub Releases](https://github.com/kubeflow/kubeflow/releases) page covers newer versions of `kubeflow/kubeflow` components.
+Changelogs can be found in the respective Kubeflow sub-project GitHub repositories.
 
-Release information for the overall _Kubeflow Platform_ is available on the [Kubeflow Releases](https://www.kubeflow.org/docs/releases/) page.
+Release information for the overall _Kubeflow AI Reference Platform_ is available on the
+[Kubeflow website](https://www.kubeflow.org/docs/releases/) page.
 
 # Changelog (pre-0.5.0)
 

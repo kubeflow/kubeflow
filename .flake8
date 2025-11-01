@@ -1,4 +1,0 @@
-[flake8]
-ignore = E111, E114
-exclude = .git
-max-complexity = 10

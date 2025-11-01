@@ -36,6 +36,10 @@ contact_links:
     url: https://github.com/kubeflow/pipelines/issues
     about: Please use the `kubeflow/pipelines` repository
 
+  - name: Issues - Kubeflow SDK
+    url: https://github.com/kubeflow/sdk/issues
+    about: Please use the `kubeflow/sdk` repository
+
   - name: Issues - Kubeflow Spark Operator
     url: https://github.com/kubeflow/spark-operator/issues
     about: Please use the `kubeflow/spark-operator` repository
