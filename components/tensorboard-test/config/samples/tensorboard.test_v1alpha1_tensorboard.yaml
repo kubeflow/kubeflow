@@ -1,0 +1,19 @@
+apiVersion: tensorboard.test.tensorboards.test/v1alpha1
+kind: Tensorboard
+metadata:
+  labels:
+    app.kubernetes.io/name: tensorboard-test
+    app.kubernetes.io/managed-by: kustomize
+  name: tensorboard-sample
+spec:
+  # Add fields here
+  image: "dockerhub.kubekey.local/system/tensorflow:2.5.1"
+  nodeSelector:
+    system/node-group: "taint-4156e1a"
+  tolerations:
+    - effect: "NoSchedule"
+      key: "system/node-group"
+      operator: "Equal"
+      value: "taint-41561a"
+  mountPath: "tb"
+  hostPath: "/mnt/NXDX_LXKJ_file/584d0b96-c8ff-4fe4-bea8-f364cf6b4a44/bdbc0886-6fc1-4cf1-93d7-95a3aa6ee4e6/"

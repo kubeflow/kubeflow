@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- tensorboard.test_v1alpha1_tensorboard.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
