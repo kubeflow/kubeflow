@@ -1,5 +1,26 @@
 # Kubeflow AI Reference Platform Roadmap
 
+## Kubeflow 1.11 Release, Planned for release: December 2025
+The Kubeflow Community plans to deliver its v1.11 release in December 2025 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.11/README.md#timeline). The v1.11 release process will be managed by the v1.11 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.11/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
+
+### Themes
+* Trainer V2.0
+* Model Registry new features (async-upload job, reconcile loop for integration with KServe Isvc, and Model Catalog pattern being developed with UI support)
+* Kubeflow SDK, Katib 0.19, and Spark Operator v2.4
+* Transparent switch from MinIO to Seaweedfs for S3 storage.
+* Default zero pod overhead for namespaces/profiles to save resources.
+* PodSecurityStandards restricted is enforced for all system namespaces. PodSecurityStandards baseline is enforced for user namespaces
+
+### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps,Tracking Issues and releases:
+* [Trainer](https://github.com/kubeflow/trainer/issues/2859)
+* [KServe](https://github.com/kserve/kserve/releases/tag/v0.15.2)
+* [Katib](https://github.com/kubeflow/katib/releases/tag/v0.19.0)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/releases/tag/2.15.0)
+* [Notebooks](https://github.com/kubeflow/kubeflow/releases/tag/v1.10.0)
+* [Platform (Manifests+Security)](https://github.com/kubeflow/manifests/releases/tag/v1.11.0)
+* [Model Registry](https://github.com/kubeflow/model-registry/releases/tag/v0.3.4)
+* [Spark Operator](https://github.com/kubeflow/spark-operator/releases/tag/v2.4.0)
+
 ## Kubeflow 1.10 Release, Planned for release: Mar 2025
 The Kubeflow Community plans to deliver its v1.10 release in Mar 2025 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.10/README.md#timeline). The high level deliverables are tracked in the [v1.10 Release](https://github.com/orgs/kubeflow/projects/73) Github project board. The v1.10 release process will be managed by the v1.10 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.10/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
