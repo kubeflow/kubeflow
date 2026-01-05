@@ -2436,7 +2436,7 @@ Release information for the overall _Kubeflow AI Reference Platform_ is availabl
 - update http proxy readme [\#363](https://github.com/kubeflow/kubeflow/pull/363) ([yupbank](https://github.com/yupbank))
 - Create a GPU model deployment to use for E2E testing of serving with GPUs [\#362](https://github.com/kubeflow/kubeflow/pull/362) ([jlewi](https://github.com/jlewi))
 - Example showing how to do TF serving when IAP is enabled. [\#361](https://github.com/kubeflow/kubeflow/pull/361) ([lluunn](https://github.com/lluunn))
-- Allow seperate naming of model name vs deployment name for TF Serving. [\#359](https://github.com/kubeflow/kubeflow/pull/359) ([elsonrodriguez](https://github.com/elsonrodriguez))
+- Allow separate naming of model name vs deployment name for TF Serving. [\#359](https://github.com/kubeflow/kubeflow/pull/359) ([elsonrodriguez](https://github.com/elsonrodriguez))
 -  Add tensorflow-serving-api to jupyter image  [\#358](https://github.com/kubeflow/kubeflow/pull/358) ([inc0](https://github.com/inc0))
 - Remove -E from find command as it is not supported by GNU find [\#357](https://github.com/kubeflow/kubeflow/pull/357) ([ankushagarwal](https://github.com/ankushagarwal))
 - Refactor the workflow for TF Serving [\#347](https://github.com/kubeflow/kubeflow/pull/347) ([jlewi](https://github.com/jlewi))
