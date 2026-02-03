@@ -48,6 +48,9 @@ type PVCViewerSpec struct {
 }
 
 type Networking struct {
+	// Specifies the cluster domain.
+	// +optional
+	ClusterDomain string `json:"clusterDomain"`
 	// Specifies the application's target port used by the Deployment's Service.
 	// +optional
 	TargetPort intstr.IntOrString `json:"targetPort"`
