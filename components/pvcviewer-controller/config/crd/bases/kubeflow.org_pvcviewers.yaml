@@ -28,6 +28,9 @@ spec:
             properties:
               networking:
                 properties:
+                  clusterDomain:
+                    type: string
+                    default: cluster.local
                   basePrefix:
                     type: string
                   rewrite:

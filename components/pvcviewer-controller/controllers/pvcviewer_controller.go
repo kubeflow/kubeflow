@@ -278,7 +278,7 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 	if viewer.Spec.Networking.Rewrite != "" {
 		rewrite = viewer.Spec.Networking.Rewrite
 	}
-	service := fmt.Sprintf("%s%s.%s.svc.cluster.local", resourcePrefix, viewer.Name, viewer.Namespace)
+	service := fmt.Sprintf("%s%s.%s.svc.%s", resourcePrefix, viewer.Name, viewer.Namespace, viewer.Spec.Networking.ClusterDomain)
 	var timeout *string = nil
 	if viewer.Spec.Networking.Timeout != "" {
 		timeout = &viewer.Spec.Networking.Timeout
