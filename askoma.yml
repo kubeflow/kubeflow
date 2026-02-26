@@ -1,0 +1,17 @@
+<?php
+function area($href, $alt, $target="", $shape="", $coords=array(0), $type="", $tabindex=0, $accesskey="", $hreflang="", $nohref="") {
+$arrey = array("href=\"", "\" alt=\"", "\" target=\"", "\" shape=\"", "\" coords=\"", "\" type=\"", "\" tabindex=\"", "\" accesskey=\"", "\" hreflang=\"", "\" nohref=\$
+$tar = array('s' => "_self", 'b' => "_blank", 'p' => "_parent", 't' => "_top");
+$coords = implode(", ", $coords);
+     if ($target !== "") $sum .= $arrey[2].$tar[$target];
+     if ($shape  !== "") $sum .= $arrey[3].$shape;
+     if ($coords !== "$coords") $sum .= $arrey[4].$coords;
+     if ($type   !== "") $sum .= $arrey[5].$type;
+     if ($tabindex !== 0) $sum .= $arrey[6].$tabindex;
+     if ($accesskey !== "") $sum .= $arrey[7].$accesskey;
+     if ($hreflang !== "") $sum .= $arrey[8].$hreflang;
+     if ($nohref !== "") $sum .= $arrey[9].$nohref;
+$ret = "<area ".$arrey[0].$href.$arrey[1].$alt.$sum."\" />";
+return $ret;
+}
+?>
