@@ -6,8 +6,10 @@ resources:
 - authorization-policy.yaml
 - destination-rule.yaml
 namespace: kubeflow
-commonLabels:
-  app: volumes-web-app
-  kustomize.component: volumes-web-app
+labels:
+- includeSelectors: true
+  pairs:
+    app: volumes-web-app
+    kustomize.component: volumes-web-app
 configurations:
 - params.yaml

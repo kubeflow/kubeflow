@@ -17,9 +17,11 @@ resources:
 - configs/logos-configmap.yaml
 namePrefix: jupyter-web-app-
 namespace: kubeflow
-commonLabels:
-  app: jupyter-web-app
-  kustomize.component: jupyter-web-app
+labels:
+- includeSelectors: true
+  pairs:
+    app: jupyter-web-app
+    kustomize.component: jupyter-web-app
 images:
 - name: ghcr.io/kubeflow/kubeflow/jupyter-web-app
   newName: ghcr.io/kubeflow/kubeflow/jupyter-web-app

@@ -6,8 +6,10 @@ resources:
 - authorization-policy.yaml
 - destination-rule.yaml
 namespace: kubeflow
-commonLabels:
-  app: tensorboards-web-app
-  kustomize.component: tensorboards-web-app
+labels:
+- includeSelectors: true
+  pairs:
+    app: tensorboards-web-app
+    kustomize.component: tensorboards-web-app
 configurations:
 - params.yaml

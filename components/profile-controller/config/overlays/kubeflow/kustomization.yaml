@@ -7,12 +7,14 @@ resources:
 - virtual-service.yaml
 - authorizationpolicy.yaml
 
-commonLabels:
-  kustomize.component: profiles
+labels:
+- includeSelectors: true
+  pairs:
+    kustomize.component: profiles
 
-patchesStrategicMerge:
-- patches/kfam.yaml
-- patches/remove-namespace.yaml
+patches:
+- path: patches/kfam.yaml
+- path: patches/remove-namespace.yaml
 
 configurations:
 - params.yaml

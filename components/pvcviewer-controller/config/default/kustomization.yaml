@@ -12,8 +12,10 @@ namespace: kubeflow
 namePrefix: pvcviewer-
 
 # Labels to add to all resources and selectors.
-commonLabels:
-  app: pvcviewer
+labels:
+- includeSelectors: true
+  pairs:
+    app: pvcviewer
 
 resources:
 - ../crd
@@ -23,18 +25,16 @@ resources:
 - ../certmanager
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
 #- ../prometheus
-
-patchesStrategicMerge:
+patches:
 # Do not create a namespace
-- remove_namespace.yaml
+- path: remove_namespace.yaml
 # Protect the /metrics endpoint by putting it behind auth.
 # If you want your controller-manager to expose the /metrics
 # endpoint w/o any authn/z, please comment the following line.
-- manager_auth_proxy_patch.yaml
-- manager_webhook_patch.yaml
-- cainjection_patch.yaml
-- dnsnames_patch.yaml
-
+- path: manager_auth_proxy_patch.yaml
+- path: manager_webhook_patch.yaml
+- path: cainjection_patch.yaml
+- path: dnsnames_patch.yaml
 vars:
 - name: CERTIFICATE_NAMESPACE 
   objref:

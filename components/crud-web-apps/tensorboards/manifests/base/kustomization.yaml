@@ -8,9 +8,11 @@ resources:
 - service.yaml
 namePrefix: tensorboards-web-app-
 namespace: kubeflow
-commonLabels:
-  app: tensorboards-web-app
-  kustomize.component: tensorboards-web-app
+labels:
+- includeSelectors: true
+  pairs:
+    app: tensorboards-web-app
+    kustomize.component: tensorboards-web-app
 images:
 - name: ghcr.io/kubeflow/kubeflow/tensorboards-web-app
   newName: ghcr.io/kubeflow/kubeflow/tensorboards-web-app

@@ -3,5 +3,5 @@ kind: Kustomization
 resources:
 - ../../base
 namespace: kubeflow
-patchesStrategicMerge:
-- patches/remove-namespace.yaml
+patches:
+- path: patches/remove-namespace.yaml

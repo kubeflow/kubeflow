@@ -6,8 +6,10 @@ resources:
 - authorization-policy.yaml
 - destination-rule.yaml
 namespace: kubeflow
-commonLabels:
-  app: jupyter-web-app
-  kustomize.component: jupyter-web-app
+labels:
+- includeSelectors: true
+  pairs:
+    app: jupyter-web-app
+    kustomize.component: jupyter-web-app
 configurations:
 - params.yaml
