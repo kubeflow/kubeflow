@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- ../../base
+- service.yaml
+- virtual-service.yaml
+- authorizationpolicy.yaml
+
+labels:
+- includeSelectors: true
+  pairs:
+    kustomize.component: profiles
+
+patches:
+- path: patches/kfam.yaml
+- path: patches/remove-namespace.yaml
+
+configurations:
+- params.yaml
+
+vars:
+- name: PROFILES_NAMESPACE
+  fieldref:
+    fieldpath: metadata.namespace
+  objref:
+    name: profiles-kfam
+    kind: Service
+    apiVersion: v1
+
+images:
+- name: ghcr.io/kubeflow/kubeflow/kfam
+  newName: ghcr.io/kubeflow/kubeflow/kfam
+  newTag: v1.10.0

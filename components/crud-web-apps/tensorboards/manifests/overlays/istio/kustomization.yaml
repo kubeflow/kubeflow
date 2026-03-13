@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+- virtual-service.yaml
+- authorization-policy.yaml
+- destination-rule.yaml
+namespace: kubeflow
+labels:
+- includeSelectors: true
+  pairs:
+    app: tensorboards-web-app
+    kustomize.component: tensorboards-web-app
+configurations:
+- params.yaml
