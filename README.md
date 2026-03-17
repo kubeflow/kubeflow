@@ -7,7 +7,8 @@
 
 ## What is Kubeflow
 
-[Kubeflow](https://www.kubeflow.org/) is the foundation of tools for AI Platforms on Kubernetes.
+Kubeflow is an open-source machine learning toolkit designed to simplify the deployment, management, and scaling of machine learning workflows on Kubernetes.
+It provides a set of modular, portable, and scalable tools that enable data scientists and developers to build, train, and deploy ML models efficiently in cloud-native environments.
 
 AI platform teams can build on top of Kubeflow by using each project independently or deploying the
 entire AI reference platform to meet their specific needs. The Kubeflow AI reference platform is
@@ -60,3 +61,4 @@ under the guidance of the [Kubeflow Steering Committee](https://www.kubeflow.org
 
 We encourage you to learn about the [Kubeflow Community](https://www.kubeflow.org/docs/about/community/)
 and how to [contribute](https://www.kubeflow.org/docs/about/contributing/) to the project!
+Kubeflow bridges the gap between machine learning development and Kubernetes-based production deployment.
