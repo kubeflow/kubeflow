@@ -19,6 +19,7 @@ spec:
       uri: /kfam/
     route:
     - destination:
-        host: profiles-kfam.$(PROFILES_NAMESPACE).svc.cluster.local
+        # host: service.namespace.svc.cluster.local — index 1 filled by replacement
+        host: profiles-kfam.placeholder.svc.cluster.local
         port:
           number: 8081

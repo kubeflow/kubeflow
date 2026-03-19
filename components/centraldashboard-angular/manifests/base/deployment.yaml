@@ -31,13 +31,13 @@ spec:
           protocol: TCP
         env:
         - name: USERID_HEADER
-          value: $(CD_USERID_HEADER)
+          value: placeholder
         - name: USERID_PREFIX
-          value: $(CD_USERID_PREFIX)
+          value: placeholder
         - name: PROFILES_KFAM_SERVICE_HOST
           value: profiles-kfam.kubeflow
         - name: REGISTRATION_FLOW
-          value: $(CD_REGISTRATION_FLOW)
+          value: placeholder
         - name: DASHBOARD_CONFIGMAP
-          value: $(CD_CONFIGMAP_NAME)
+          value: placeholder
       serviceAccountName: centraldashboard-angular

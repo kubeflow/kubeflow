@@ -9,8 +9,8 @@ configMapGenerator:
   - TENSORBOARD_IMAGE=tensorflow/tensorflow:2.5.1
   - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
   - ISTIO_HOST=*
-patchesStrategicMerge:
-- patches/add_controller_config.yaml
+patches:
+- path: patches/add_controller_config.yaml
 images:
 - name: ghcr.io/kubeflow/kubeflow/tensorboard-controller
   newName: ghcr.io/kubeflow/kubeflow/tensorboard-controller

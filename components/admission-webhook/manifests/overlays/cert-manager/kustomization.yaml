@@ -4,44 +4,98 @@
 # the certificate.
 # TODO(jlewi): We should eventually refactor the manifests to delete
 # bootstrap and use certmanager by default.
-bases:
-- ../../base
 
 resources:
+- ../../base
 - certificate.yaml
 
 namespace: kubeflow
 
 namePrefix: admission-webhook-
 
-commonLabels:
-  app: poddefaults
-  kustomize.component: poddefaults
-  app.kubernetes.io/component: poddefaults
-  app.kubernetes.io/name: poddefaults
+labels:
+- includeSelectors: true
+  pairs:
+    app: poddefaults
+    kustomize.component: poddefaults
+    app.kubernetes.io/component: poddefaults
+    app.kubernetes.io/name: poddefaults
 
-patchesStrategicMerge:
-- mutating-webhook-configuration.yaml
-- deployment.yaml
+patches:
+- path: mutating-webhook-configuration.yaml
+- path: deployment.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
 
-vars:
-# These vars are used to substitute in the namespace, service name and
-# deployment name into the mutating WebHookConfiguration.
-# Since its a CR kustomize isn't aware of those fields and won't
-# transform them.
-# We need the var names to be relatively unique so that when we
-# compose with other applications they won't conflict.
-- name: podDefaultsCertName
-  objref:
+replacements:
+# Webhook name: use prefixed deployment name (overlay has namePrefix).
+- source:
+    kind: Deployment
+    name: deployment
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: MutatingWebhookConfiguration
+      name: mutating-webhook-configuration
+    fieldPaths:
+    - webhooks.0.name
+    options:
+      delimiter: "."
+      index: 0
+# Service name and namespace for Certificate commonName/dnsNames (index 0 and 1).
+- source:
+    kind: Service
+    name: service
+    fieldPath: metadata.name
+  targets:
+  - select:
       kind: Certificate
-      group: cert-manager.io
-      version: v1
       name: cert
-  fieldref:
-    fieldpath: metadata.name
+    fieldPaths:
+    - spec.commonName
+    - spec.dnsNames.0
+    - spec.dnsNames.1
+    options:
+      delimiter: "."
+      index: 0
+- source:
+    kind: Service
+    name: service
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: Certificate
+      name: cert
+    fieldPaths:
+    - spec.commonName
+    - spec.dnsNames.0
+    - spec.dnsNames.1
+    options:
+      delimiter: "."
+      index: 1
+  - select:
+      kind: MutatingWebhookConfiguration
+      name: mutating-webhook-configuration
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 0
+# Certificate name for webhook CA injection annotation (index 1).
+- source:
+    kind: Certificate
+    name: cert
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: MutatingWebhookConfiguration
+      name: mutating-webhook-configuration
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 1
 
 configurations:
 - params.yaml

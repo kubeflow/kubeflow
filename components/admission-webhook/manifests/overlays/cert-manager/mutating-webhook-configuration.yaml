@@ -3,5 +3,5 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: mutating-webhook-configuration
   annotations:
-    cert-manager.io/inject-ca-from: $(podDefaultsNamespace)/$(podDefaultsCertName)
+    cert-manager.io/inject-ca-from: POD_DEFAULT_NAMESPACE_PLACEHOLDER/POD_DEFAULT_CERT_NAME
   

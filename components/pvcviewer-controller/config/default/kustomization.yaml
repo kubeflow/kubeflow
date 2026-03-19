@@ -12,8 +12,10 @@ namespace: kubeflow
 namePrefix: pvcviewer-
 
 # Labels to add to all resources and selectors.
-commonLabels:
-  app: pvcviewer
+labels:
+- includeSelectors: true
+  pairs:
+    app: pvcviewer
 
 resources:
 - ../crd
@@ -24,48 +26,117 @@ resources:
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
 #- ../prometheus
 
-patchesStrategicMerge:
+patches:
 # Do not create a namespace
-- remove_namespace.yaml
+- path: remove_namespace.yaml
 # Protect the /metrics endpoint by putting it behind auth.
 # If you want your controller-manager to expose the /metrics
 # endpoint w/o any authn/z, please comment the following line.
-- manager_auth_proxy_patch.yaml
-- manager_webhook_patch.yaml
-- cainjection_patch.yaml
-- dnsnames_patch.yaml
+- path: manager_auth_proxy_patch.yaml
+- path: manager_webhook_patch.yaml
+- path: cainjection_patch.yaml
+- path: dnsnames_patch.yaml
 
-vars:
-- name: CERTIFICATE_NAMESPACE 
-  objref:
+# Replacements for cert-manager CA injection annotation and Certificate dnsNames.
+replacements:
+# Certificate namespace and name → webhook/CRD annotation (format namespace/certname).
+- source:
     kind: Certificate
     group: cert-manager.io
     version: v1
-    name: serving-cert 
-  fieldref:
-    fieldpath: metadata.namespace
-- name: CERTIFICATE_NAME
-  objref:
+    name: pvcviewer-serving-cert
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: MutatingWebhookConfiguration
+      name: pvcviewer-mutating-webhook-configuration
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 0
+  - select:
+      kind: ValidatingWebhookConfiguration
+      name: pvcviewer-validating-webhook-configuration
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 0
+  - select:
+      kind: CustomResourceDefinition
+      name: pvcviewers.kubeflow.org
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 0
+- source:
     kind: Certificate
     group: cert-manager.io
     version: v1
-    name: serving-cert
-- name: SERVICE_NAMESPACE
-  objref:
+    name: pvcviewer-serving-cert
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: MutatingWebhookConfiguration
+      name: pvcviewer-mutating-webhook-configuration
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 1
+  - select:
+      kind: ValidatingWebhookConfiguration
+      name: pvcviewer-validating-webhook-configuration
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 1
+  - select:
+      kind: CustomResourceDefinition
+      name: pvcviewers.kubeflow.org
+    fieldPaths:
+    - metadata.annotations.[cert-manager.io/inject-ca-from]
+    options:
+      delimiter: "/"
+      index: 1
+# Service name and namespace → Certificate dnsNames (format service.namespace.svc[.cluster.local]).
+- source:
     kind: Service
     version: v1
-    name: webhook-service
-  fieldref:
-    fieldpath: metadata.namespace
-- name: SERVICE_NAME
-  objref:
+    name: pvcviewer-webhook-service
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: Certificate
+      group: cert-manager.io
+      version: v1
+      name: pvcviewer-serving-cert
+    fieldPaths:
+    - spec.dnsNames.0
+    - spec.dnsNames.1
+    options:
+      delimiter: "."
+      index: 0
+- source:
     kind: Service
     version: v1
-    name: webhook-service
-
-# the following config is for teaching kustomize how to replace vars in Certificates.
-configurations:
-- kustomizeconfig.yaml
+    name: pvcviewer-webhook-service
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: Certificate
+      group: cert-manager.io
+      version: v1
+      name: pvcviewer-serving-cert
+    fieldPaths:
+    - spec.dnsNames.0
+    - spec.dnsNames.1
+    options:
+      delimiter: "."
+      index: 1
 
 # Note: the kustomize version that's being used to execute integration tests currently doesn't support replacemens.
 # Thus, we're using the deprecated vars feature above.

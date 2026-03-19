@@ -19,6 +19,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: tensorboards-web-app-service.$(TWA_NAMESPACE).svc.$(TWA_CLUSTER_DOMAIN)
+        # host: service.namespace.svc.clusterDomain — index 1 and 3 filled by replacements
+        host: tensorboards-web-app-service.placeholder.svc.placeholder
         port:
           number: 80

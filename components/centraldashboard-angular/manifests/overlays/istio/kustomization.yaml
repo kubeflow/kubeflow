@@ -8,11 +8,39 @@ resources:
 
 namespace: kubeflow
 
-commonLabels:
-  kustomize.component: centraldashboard-angular
-  app: centraldashboard-angular
-  app.kubernetes.io/component: centraldashboard-angular
-  app.kubernetes.io/name: centraldashboard-angular
+labels:
+- includeSelectors: true
+  pairs:
+    kustomize.component: centraldashboard-angular
+    app: centraldashboard-angular
+    app.kubernetes.io/component: centraldashboard-angular
+    app.kubernetes.io/name: centraldashboard-angular
 
-configurations:
-- params.yaml
+# Replacements for VirtualService destination host (service.namespace.svc.clusterDomain).
+replacements:
+- source:
+    kind: Service
+    name: centraldashboard-angular
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: VirtualService
+      name: centraldashboard-angular
+    fieldPaths:
+    - spec.http.0.route.0.destination.host
+    options:
+      delimiter: "."
+      index: 1
+- source:
+    kind: ConfigMap
+    name: centraldashboard-angular-parameters
+    fieldPath: data.CD_CLUSTER_DOMAIN
+  targets:
+  - select:
+      kind: VirtualService
+      name: centraldashboard-angular
+    fieldPaths:
+    - spec.http.0.route.0.destination.host
+    options:
+      delimiter: "."
+      index: 3

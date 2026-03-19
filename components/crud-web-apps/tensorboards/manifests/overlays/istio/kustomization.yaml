@@ -6,8 +6,37 @@ resources:
 - authorization-policy.yaml
 - destination-rule.yaml
 namespace: kubeflow
-commonLabels:
-  app: tensorboards-web-app
-  kustomize.component: tensorboards-web-app
-configurations:
-- params.yaml
+labels:
+- includeSelectors: true
+  pairs:
+    app: tensorboards-web-app
+    kustomize.component: tensorboards-web-app
+
+# Replacements for VirtualService destination host (service.namespace.svc.clusterDomain).
+replacements:
+- source:
+    kind: Service
+    name: tensorboards-web-app-service
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: VirtualService
+      name: tensorboards-web-app-tensorboards-web-app
+    fieldPaths:
+    - spec.http.0.route.0.destination.host
+    options:
+      delimiter: "."
+      index: 1
+- source:
+    kind: ConfigMap
+    name: tensorboards-web-app-parameters
+    fieldPath: data.TWA_CLUSTER_DOMAIN
+  targets:
+  - select:
+      kind: VirtualService
+      name: tensorboards-web-app-tensorboards-web-app
+    fieldPaths:
+    - spec.http.0.route.0.destination.host
+    options:
+      delimiter: "."
+      index: 3

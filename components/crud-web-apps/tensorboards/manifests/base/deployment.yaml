@@ -13,13 +13,13 @@ spec:
         - containerPort: 5000
         env:
         - name: APP_PREFIX
-          value: $(TWA_PREFIX)
+          value: placeholder
         - name: USERID_HEADER
-          value: $(TWA_USERID_HEADER)
+          value: placeholder
         - name: USERID_PREFIX
-          value: $(TWA_USERID_PREFIX)
+          value: placeholder
         - name: APP_SECURE_COOKIES
-          value: $(TWA_APP_SECURE_COOKIES)
+          value: placeholder
         - name: METRICS
-          value: $(TWA_APP_ENABLE_METRICS)
+          value: placeholder
       serviceAccountName: service-account

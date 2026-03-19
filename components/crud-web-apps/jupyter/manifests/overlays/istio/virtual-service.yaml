@@ -19,6 +19,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: jupyter-web-app-service.$(JWA_NAMESPACE).svc.$(JWA_CLUSTER_DOMAIN)
+        # host: service.namespace.svc.clusterDomain — index 1 and 3 filled by replacements
+        host: jupyter-web-app-service.placeholder.svc.placeholder
         port:
           number: 80

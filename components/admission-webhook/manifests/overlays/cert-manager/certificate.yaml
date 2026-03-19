@@ -4,10 +4,10 @@ metadata:
   name: cert
 spec:
   isCA: true
-  commonName: $(podDefaultsServiceName).$(podDefaultsNamespace).svc
+  commonName: POD_DEFAULT_SERVICE_NAME_PLACEHOLDER.POD_DEFAULT_NAMESPACE_PLACEHOLDER.svc
   dnsNames:
-  - $(podDefaultsServiceName).$(podDefaultsNamespace).svc
-  - $(podDefaultsServiceName).$(podDefaultsNamespace).svc.cluster.local
+  - POD_DEFAULT_SERVICE_NAME_PLACEHOLDER.POD_DEFAULT_NAMESPACE_PLACEHOLDER.svc
+  - POD_DEFAULT_SERVICE_NAME_PLACEHOLDER.POD_DEFAULT_NAMESPACE_PLACEHOLDER.svc.cluster.local
   issuerRef:
     kind: Issuer
     name: selfsigned-issuer

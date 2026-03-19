@@ -6,8 +6,37 @@ resources:
 - authorization-policy.yaml
 - destination-rule.yaml
 namespace: kubeflow
-commonLabels:
-  app: volumes-web-app
-  kustomize.component: volumes-web-app
-configurations:
-- params.yaml
+labels:
+- includeSelectors: true
+  pairs:
+    app: volumes-web-app
+    kustomize.component: volumes-web-app
+
+# Replacements for VirtualService destination host (service.namespace.svc.clusterDomain).
+replacements:
+- source:
+    kind: Service
+    name: volumes-web-app-service
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: VirtualService
+      name: volumes-web-app-volumes-web-app
+    fieldPaths:
+    - spec.http.0.route.0.destination.host
+    options:
+      delimiter: "."
+      index: 1
+- source:
+    kind: ConfigMap
+    name: volumes-web-app-parameters
+    fieldPath: data.VWA_CLUSTER_DOMAIN
+  targets:
+  - select:
+      kind: VirtualService
+      name: volumes-web-app-volumes-web-app
+    fieldPaths:
+    - spec.http.0.route.0.destination.host
+    options:
+      delimiter: "."
+      index: 3

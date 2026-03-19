@@ -19,6 +19,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: volumes-web-app-service.$(VWA_NAMESPACE).svc.$(VWA_CLUSTER_DOMAIN)
+        # host: service.namespace.svc.clusterDomain — index 1 and 3 filled by replacements
+        host: volumes-web-app-service.placeholder.svc.placeholder
         port:
           number: 80

@@ -4,6 +4,7 @@ metadata:
   name: serving-cert
   namespace: system
 spec:
+  # dnsNames: service.namespace.svc[.cluster.local] — index 0 and 1 filled by replacements
   dnsNames:
-  - $(SERVICE_NAME).$(SERVICE_NAMESPACE).svc
-  - $(SERVICE_NAME).$(SERVICE_NAMESPACE).svc.cluster.local
+  - placeholder.placeholder.svc
+  - placeholder.placeholder.svc.cluster.local

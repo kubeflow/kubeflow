@@ -13,7 +13,7 @@ webhooks:
       path: /apply-poddefault
   sideEffects: None
   failurePolicy: Fail
-  name: $(podDefaultsDeploymentName).kubeflow.org
+  name: POD_DEFAULT_DEPLOYMENT_NAME_PLACEHOLDER.kubeflow.org
   namespaceSelector:
     matchLabels:
       app.kubernetes.io/part-of: kubeflow-profile

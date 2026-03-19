@@ -13,17 +13,17 @@ spec:
         - containerPort: 5000
         env:
         - name: APP_PREFIX
-          value: $(VWA_PREFIX)
+          value: placeholder
         - name: USERID_HEADER
-          value: $(VWA_USERID_HEADER)
+          value: placeholder
         - name: USERID_PREFIX
-          value: $(VWA_USERID_PREFIX)
+          value: placeholder
         - name: APP_SECURE_COOKIES
-          value: $(VWA_APP_SECURE_COOKIES)
+          value: placeholder
         - name: VOLUME_VIEWER_IMAGE
           value: filebrowser/filebrowser:v2.25.0
         - name: METRICS
-          value: $(VWA_APP_ENABLE_METRICS)
+          value: placeholder
         volumeMounts: 
         - name: viewer-spec
           mountPath: /etc/config/viewer-spec.yaml

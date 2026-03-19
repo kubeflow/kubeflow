@@ -17,9 +17,11 @@ resources:
 - configs/logos-configmap.yaml
 namePrefix: jupyter-web-app-
 namespace: kubeflow
-commonLabels:
-  app: jupyter-web-app
-  kustomize.component: jupyter-web-app
+labels:
+- includeSelectors: true
+  pairs:
+    app: jupyter-web-app
+    kustomize.component: jupyter-web-app
 images:
 - name: ghcr.io/kubeflow/kubeflow/jupyter-web-app
   newName: ghcr.io/kubeflow/kubeflow/jupyter-web-app
@@ -33,60 +35,64 @@ configMapGenerator:
 - files:
   - configs/spawner_ui_config.yaml
   name: config
-vars:
-- fieldref:
-    fieldPath: data.JWA_CLUSTER_DOMAIN
-  name: JWA_CLUSTER_DOMAIN
-  objref:
-    apiVersion: v1
+replacements:
+- source:
     kind: ConfigMap
-    name: parameters
-- fieldref:
-    fieldPath: metadata.namespace
-  name: JWA_NAMESPACE
-  objref:
-    apiVersion: v1
-    kind: Service
-    name: service
-- fieldref:
-    fieldPath: data.JWA_USERID_HEADER
-  name: JWA_USERID_HEADER
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: parameters
-- fieldref:
-    fieldPath: data.JWA_USERID_PREFIX
-  name: JWA_USERID_PREFIX
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: parameters
-- fieldref:
-    fieldPath: data.JWA_UI
-  name: JWA_UI
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: parameters
-- fieldref:
+    name: jupyter-web-app-parameters
     fieldPath: data.JWA_PREFIX
-  name: JWA_PREFIX
-  objref:
-    apiVersion: v1
+  targets:
+  - select:
+      kind: Deployment
+      name: jupyter-web-app-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=jupyter-web-app].env.[name=APP_PREFIX].value
+- source:
     kind: ConfigMap
-    name: parameters
-- name: JWA_APP_SECURE_COOKIES
-  fieldref:
+    name: jupyter-web-app-parameters
+    fieldPath: data.JWA_UI
+  targets:
+  - select:
+      kind: Deployment
+      name: jupyter-web-app-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=jupyter-web-app].env.[name=UI].value
+- source:
+    kind: ConfigMap
+    name: jupyter-web-app-parameters
+    fieldPath: data.JWA_USERID_PREFIX
+  targets:
+  - select:
+      kind: Deployment
+      name: jupyter-web-app-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=jupyter-web-app].env.[name=USERID_PREFIX].value
+- source:
+    kind: ConfigMap
+    name: jupyter-web-app-parameters
+    fieldPath: data.JWA_USERID_HEADER
+  targets:
+  - select:
+      kind: Deployment
+      name: jupyter-web-app-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=jupyter-web-app].env.[name=USERID_HEADER].value
+- source:
+    kind: ConfigMap
+    name: jupyter-web-app-parameters
     fieldPath: data.JWA_APP_SECURE_COOKIES
-  objref:
-    apiVersion: v1
+  targets:
+  - select:
+      kind: Deployment
+      name: jupyter-web-app-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=jupyter-web-app].env.[name=APP_SECURE_COOKIES].value
+- source:
     kind: ConfigMap
-    name: parameters
-- name: JWA_APP_ENABLE_METRICS
-  fieldref:
+    name: jupyter-web-app-parameters
     fieldPath: data.JWA_APP_ENABLE_METRICS
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: parameters
+  targets:
+  - select:
+      kind: Deployment
+      name: jupyter-web-app-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=jupyter-web-app].env.[name=METRICS].value

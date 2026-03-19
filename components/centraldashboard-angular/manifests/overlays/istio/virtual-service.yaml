@@ -15,6 +15,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: centraldashboard-angular.$(CD_NAMESPACE).svc.$(CD_CLUSTER_DOMAIN)
+        # host: service.namespace.svc.clusterDomain — index 1 and 3 filled by replacements
+        host: centraldashboard-angular.placeholder.svc.placeholder
         port:
           number: 80
