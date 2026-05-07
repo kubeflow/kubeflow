@@ -33,7 +33,7 @@ The Kubeflow Community plans to deliver its v1.10 release in Mar 2025 per this [
 * Switch from Istio to Istio-cni and enable Pod Security standards
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
-* [Training Operators](https://github.com/kubeflow/training-operator/issues/2169)
+* [Training Operators](https://github.com/kubeflow/trainer/issues/2169)
 * [KServe](https://github.com/kserve/kserve/releases/tag/v0.14.0)
 * [Katib](https://github.com/kubeflow/katib/issues/2386)
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/milestone/12)
@@ -53,7 +53,7 @@ The Kubeflow Community plans to deliver its v1.9 release in Jul 2024 per this [t
 * Kubeflow Pipelines and kfp-tekton V2 merged in a single GitHub repository
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
-* [Training Operators](https://github.com/kubeflow/training-operator/issues/1994)
+* [Training Operators](https://github.com/kubeflow/trainer/issues/1994)
 * [KServe](https://github.com/orgs/kserve/projects/12)
 * [Katib](https://github.com/kubeflow/katib/issues/2255)
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/issues/10402)
@@ -74,7 +74,7 @@ The Kubeflow Community plans to deliver its v1.8 release in Oct 2023 per this [t
 * OIDC Authservice moving to a Kubeflow owned and managed container registry
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps and Tracking Issues:
-* [Training Operators](https://github.com/kubeflow/training-operator/issues/1809)
+* [Training Operators](https://github.com/kubeflow/trainer/issues/1809)
 * [KServe](https://github.com/kserve/kserve/issues/2676)
 * [Katib](https://github.com/kubeflow/katib/issues/2156)
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
@@ -343,7 +343,7 @@ Here is a preliminary list of limitations and requirements that will be part of 
 
 ## Kubeflow 0.7
 
-Following Kubeflow's quarterly relese schedule Kubeflow 0.7 will be released in October 2019.
+Following Kubeflow's quarterly release schedule Kubeflow 0.7 will be released in October 2019.
 
 Notebooks
 
