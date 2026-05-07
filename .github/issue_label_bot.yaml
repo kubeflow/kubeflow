@@ -1,6 +1,0 @@
-# for https://mlbot.net
-label-alias:
-  bug: 'kind/bug'
-  feature_request: 'kind/feature'
-  feature: 'kind/feature'
-  question: 'kind/question'
