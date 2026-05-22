@@ -198,7 +198,7 @@ Please join the Kubeflow Community Meetings on Tuesdays for updates and for oppo
 
 ## Kubeflow 1.4.1 Release, Delivered: December 2021
 * The need for a patch release was triggered by [#2082](https://github.com/kubeflow/manifests/issues/2082)
-* 1.4.1 Tracking issue: [2084](https://github.com/kubeflow/manifests/issues/2082)
+* 1.4.1 Tracking issue: [2084](https://github.com/kubeflow/manifests/issues/2084)
 
 ## Kubeflow 1.4 Release, Delivered: October 2021
 
