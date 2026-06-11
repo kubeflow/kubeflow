@@ -2,13 +2,14 @@
 # Approvers listed here is just a backup in case someone is out.
 approvers:
   - andreyvelich
+  - chasecadet
   - franciscojavierarceo
   - juliusvonkohout 
-  - johnugeorge
-  - terrytangyuan
+  - thesuperzapper
   - zijianjoy
 
 emeritus_approvers:
   - james-jwu
   - jbottum
-
+  - johnugeorge
+  - terrytangyuan
