@@ -2,6 +2,22 @@
 
 This repository is just a placeholder. Please consult https://github.com/kubeflow/community-distribution/releases and https://github.com/kubeflow/community-distribution for up to date information.
 
+This roadmap tracks the integrated Kubeflow AI reference platform. Kubeflow is composed of
+independently developed subprojects, and detailed component-level roadmap items are tracked in
+the relevant subproject repositories, release issues, milestones, and release notes.
+
+Current subproject roadmap references:
+
+* [Kubeflow Notebooks](https://github.com/kubeflow/notebooks/blob/main/ROADMAP.md)
+* [Kubeflow Trainer](https://github.com/kubeflow/trainer/blob/master/ROADMAP.md)
+* [Kubeflow Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Kubeflow Hub](https://github.com/kubeflow/hub/blob/main/ROADMAP.md)
+* [Kubeflow Spark Operator](https://github.com/kubeflow/spark-operator/blob/master/ROADMAP.md)
+
+Current platform and distribution release status is published in the
+[Kubeflow Community Distribution release documentation](https://www.kubeflow.org/docs/kubeflow-distribution/releases/).
+
 ## Kubeflow 1.11 Release, Planned for release: December 2025
 The Kubeflow Community plans to deliver its v1.11 release in December 2025 per this [timeline](https://github.com/kubeflow/community/blob/8a4247b920e6b0ec0d9daa85837ecb0747da9882/releases/release-1.11/README.md#timeline). The v1.11 release process will be managed by the v1.11 [release team](https://github.com/kubeflow/community/blob/8a4247b920e6b0ec0d9daa85837ecb0747da9882/releases/release-1.11/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
@@ -18,7 +34,7 @@ The Kubeflow Community plans to deliver its v1.11 release in December 2025 per t
 * [KServe](https://github.com/kserve/kserve/releases/tag/v0.15.2)
 * [Katib](https://github.com/kubeflow/katib/releases/tag/v0.19.0)
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/releases/tag/2.15.0)
-* [Notebooks](https://github.com/kubeflow/kubeflow/releases/tag/v1.10.0)
+* [Notebooks](https://github.com/kubeflow/notebooks/blob/main/ROADMAP.md)
 * [Platform (Manifests+Security)](https://github.com/kubeflow/manifests/releases/tag/v1.11.0)
 * [Model Registry](https://github.com/kubeflow/model-registry/releases/tag/v0.3.4)
 * [Spark Operator](https://github.com/kubeflow/spark-operator/releases/tag/v2.4.0)

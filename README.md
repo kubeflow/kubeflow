@@ -19,6 +19,13 @@ offers modular, scalable, and extensible tools to support your AI use cases.
 
 Please refer to [the official documentation](https://www.kubeflow.org/docs/) for more information.
 
+## Repository Role
+
+This repository is the historical entry point for the Kubeflow AI reference platform. It now serves
+primarily as a gateway to Kubeflow subprojects, shared project metadata, and platform-level planning
+for the integrated reference platform. Most component development happens in the individual
+subproject repositories listed below.
+
 ## What are Kubeflow Projects
 
 Kubeflow is composed of multiple open source projects that address different aspects
@@ -51,6 +58,10 @@ or [Kubeflow Manifests](https://www.kubeflow.org/docs/started/installing-kubeflo
 | [Central Dashboard](https://www.kubeflow.org/docs/components/central-dash/)                         | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
 | [Profile Controller](https://www.kubeflow.org/docs/components/central-dash/profiles/)               | [`kubeflow/dashboard`](https://github.com/kubeflow/dashboard) |
 | [Kubeflow Manifests](https://www.kubeflow.org/docs/started/installing-kubeflow/#kubeflow-manifests) | [`kubeflow/manifests`](https://github.com/kubeflow/manifests) |
+
+The platform-level roadmap in [`ROADMAP.md`](ROADMAP.md) tracks integrated Kubeflow AI reference
+platform releases. Individual subproject roadmap details live in the corresponding subproject
+repositories.
 
 ## Kubeflow Community
 
