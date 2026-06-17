@@ -1,7 +1,9 @@
-# Kubeflow AI Reference Platform Roadmap
+# Kubeflow Community Distribution
+
+This repository is just a placeholder. Please consult https://github.com/kubeflow/community-distribution/releases and https://github.com/kubeflow/community-distribution for up to date information.
 
 ## Kubeflow 1.11 Release, Planned for release: December 2025
-The Kubeflow Community plans to deliver its v1.11 release in December 2025 per this [timeline](https://github.com/kubeflow/community/blob/master/releases/release-1.11/README.md#timeline). The v1.11 release process will be managed by the v1.11 [release team](https://github.com/kubeflow/community/blob/master/releases/release-1.11/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
+The Kubeflow Community plans to deliver its v1.11 release in December 2025 per this [timeline](https://github.com/kubeflow/community/blob/8a4247b920e6b0ec0d9daa85837ecb0747da9882/releases/release-1.11/README.md#timeline). The v1.11 release process will be managed by the v1.11 [release team](https://github.com/kubeflow/community/blob/8a4247b920e6b0ec0d9daa85837ecb0747da9882/releases/release-1.11/release-team.md) using the best practices in the [Release Handbook](https://github.com/kubeflow/community/blob/master/releases/handbook.md).
 
 ### Themes
 * Trainer V2.0
