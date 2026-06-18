@@ -20,7 +20,7 @@ contact_links:
     url: https://github.com/kubeflow/katib/issues
     about: Please use the `kubeflow/katib` repository
 
-  - name: Issues - Kubeflow Model Registry
+  - name: Issues - Kubeflow Hub (formerly Model Registry)
     url: https://github.com/kubeflow/hub/issues
     about: Please use the `kubeflow/hub` repository
 
@@ -56,6 +56,6 @@ contact_links:
     url: https://github.com/kubeflow/dashboard/issues
     about: Please use the `kubeflow/dashboard` repository
 
-  - name: Issues - Kubeflow Platform - Kubeflow Manifests
+  - name: Issues - Kubeflow Community Distribution
     url: https://github.com/kubeflow/community-distribution/issues
     about: Please use the `kubeflow/community-distribution` repository
