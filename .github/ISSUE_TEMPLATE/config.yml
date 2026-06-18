@@ -4,6 +4,10 @@ contact_links:
     url: https://www.kubeflow.org/
     about: Official Kubeflow Documentation
 
+  - name: Security Vulnerabilities
+    url: https://github.com/kubeflow/kubeflow/security/advisories/new
+    about: Please report vulnerabilities privately with GitHub Security Advisories
+
   - name: Kubeflow Slack
     url: https://www.kubeflow.org/docs/about/community/#kubeflow-slack-channels
     about: Join the Kubeflow Slack
