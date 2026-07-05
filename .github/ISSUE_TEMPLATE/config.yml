@@ -20,6 +20,10 @@ contact_links:
     url: https://github.com/kubeflow/katib/issues
     about: Please use the `kubeflow/katib` repository
 
+  - name: Issues - Kubeflow Kale
+    url: https://github.com/kubeflow/kale/issues
+    about: Please use the `kubeflow/kale` repository
+
   - name: Issues - Kubeflow Hub (formerly Model Registry)
     url: https://github.com/kubeflow/hub/issues
     about: Please use the `kubeflow/hub` repository
