@@ -28,6 +28,14 @@ contact_links:
     url: https://github.com/kubeflow/hub/issues
     about: Please use the `kubeflow/hub` repository
 
+  - name: Issues - Kubeflow MLflow Integration
+    url: https://github.com/kubeflow/mlflow-integration/issues
+    about: Please use the `kubeflow/mlflow-integration` repository
+
+  - name: Issues - Kubeflow MCP Server
+    url: https://github.com/kubeflow/mcp-server/issues
+    about: Please use the `kubeflow/mcp-server` repository
+
   - name: Issues - Kubeflow MPI Operator
     url: https://github.com/kubeflow/mpi-operator/issues
     about: Please use the `kubeflow/mpi-operator` repository
@@ -47,6 +55,10 @@ contact_links:
   - name: Issues - Kubeflow Spark Operator
     url: https://github.com/kubeflow/spark-operator/issues
     about: Please use the `kubeflow/spark-operator` repository
+
+  - name: Issues - Kubeflow MCP Apache Spark History Server
+    url: https://github.com/kubeflow/mcp-apache-spark-history-server/issues
+    about: Please use the `kubeflow/mcp-apache-spark-history-server` repository
 
   - name: Issues - Kubeflow Trainer
     url: https://github.com/kubeflow/trainer/issues
