@@ -6,27 +6,27 @@
 
 ## What is Kubeflow
 
-[Kubeflow](https://www.kubeflow.org/) is the foundation of tools for AI Platforms on Kubernetes.
+[Kubeflow](https://www.kubeflow.org/) is _the_ Cloud Native AI platform.
 
-AI platform teams can build on top of Kubeflow by using each subproject independently or deploying
-the entire Kubeflow Community Distribution to meet their specific needs.
-The Kubeflow Community Distribution is composable, modular, portable, and scalable, backed by an
-ecosystem of Kubernetes-native projects that cover every stage of
-[the AI lifecycle](https://www.kubeflow.org/docs/started/architecture/#kubeflow-landscape-in-the-ai-lifecycle).
+Kubeflow is composed of modular, open source projects that form the Kubernetes-native stack
+for data & AI workloads. Whether you are an AI practitioner, a platform administrator, or a
+decision-maker, Kubeflow offers modular, scalable, and extensible tools to support your
+data, AI/ML, and HPC use-cases.
 
-Whether you’re an AI practitioner, a platform administrator, or a team of developers,
-Kubeflow offers modular, scalable, and extensible tools to support your AI use cases.
+## Kubeflow Mission
 
-Kubeflow consists of Kubeflow Subprojects, Kubeflow Ecosystem, Kubeflow Packaged Distribution,
-and Kubeflow Community Distribution.
+Kubeflow's mission is to bridge the Data, AI, and Cloud Native ecosystems. We enable teams to
+deliver more models, agents, and AI applications into production with well-lit paths across
+[the AI lifecycle](/docs/started/architecture/#kubeflow-landscape-in-the-ai-lifecycle). By bringing
+together the skills and expertise of an open global community, our goal is to be the standard for
+data & AI workloads on Kubernetes.
 
-Check out [the official documentation](https://www.kubeflow.org/docs/started/introduction/) for
-more detailed information.
+The Kubeflow Community and Subprojects embrace the following core principles:
 
-## Repository Role
-
-This repository serves primarily as a gateway to Kubeflow subprojects and shared project metadata.
-Kubeflow development happens in the individual subproject repositories.
+- **Simple**: Run workloads at any scale without becoming a Kubernetes expert
+- **Portable**: Use the same code on a local laptop, on-premises, or in any cloud
+- **Scalable**: Manage hyperscale training jobs and high-throughput AI agents
+- **Composable**: Mix and match tools across the AI lifecycle
 
 ## Kubeflow Community
 
@@ -39,3 +39,8 @@ and [Kubeflow Steering Committee](https://www.kubeflow.org/docs/about/governance
 
 We encourage you to learn about the [Kubeflow Community](https://www.kubeflow.org/docs/about/community/)
 and how to [contribute](https://www.kubeflow.org/docs/about/contributing/) to the project!
+
+## Repository Role
+
+This repository serves primarily as a gateway to Kubeflow subprojects and shared project metadata.
+Kubeflow development happens in the individual subproject repositories.
