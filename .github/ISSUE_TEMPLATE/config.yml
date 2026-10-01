@@ -40,7 +40,7 @@ contact_links:
     url: https://github.com/kubeflow/mpi-operator/issues
     about: Please use the `kubeflow/mpi-operator` repository
 
-  - name: Issues - Kubeflow Notebooks
+  - name: Issues - Kubeflow Notebooks & Workspaces
     url: https://github.com/kubeflow/notebooks/issues
     about: Please use the `kubeflow/notebooks` repository
 
